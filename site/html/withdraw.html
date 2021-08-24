@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+{{template "head"}}
+<body>
+{{template "navbar"}}
+<div class="container-fluid">
+    <div class="row">
+        {{template "sidebarMenu"}}
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            {{template "dashboard"}}
+            <div id="app">
+                <form class="deposit-form" @submit.prevent="onSubmit">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">From exchange</span>
+                    <select class="form-select" v-model="exchangeInput" id="exchangeInput" aria-label="Default select exchange">
+                        <option v-for="option in options" :value="option.value">
+                            ${ option.text }
+                        </option>
+                    </select>
+                    <span class="input-group-text">Exchange destination*</span>
+                    <select class="form-select" v-model="exchangeDestination" id="exchangeDestination" aria-label="Default select example">
+                        <option v-for="option in options" :value="option.value">
+                            ${ option.text }
+                        </option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">asset</span>
+                        <input type="text" class="form-control" id="assetName" v-model="asset" aria-label="asset" required>
+                    </div>
+                    <input type="text" class="form-control" placeholder="Destination address" id="destinationAddress" v-model="destinationAddress" aria-label="Address" aria-describedby="basic-addon2">
+                    <span class="input-group-text" id="basic-addon2">Address</span>
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="form-control" id="amountUSD" v-model="amountUSD">
+                    <span class="input-group-text">Amount</span>
+                    <input type="number" class="form-control" id="amount" v-model="amount" step="any">
+                </div>
+                    <button type="submit" class="btn btn-primary" :disabled="isDisabled">Transfer</button>
+                </form>
+                <br>
+                <div v-if="loading" class="loading">
+                    Loading...
+                </div>
+                <div v-if="errored" class="errored">
+                    error: ${ result["error"]["message"] }
+                </div>
+                <div>
+                    ${ result }
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+
+<script type="text/javascript">
+    const app = Vue.createApp({
+        delimiters: ['${', '}'],
+
+        data() {
+            return {
+                loading: false,
+                errored: false,
+                options: [
+                    {text: 'FTX', value: 'ftx'},
+                    {text: 'Binance', value: 'binance'},
+                    {text: 'Deribit', value: 'deribit'},
+                    {text: 'Kraken', value: 'kraken'},
+                    {text: 'BTSE', value: 'btse'}
+                ],
+                asset: "",
+                destinationAddress: "",
+                exchangeInput: "",
+                exchangeDestination: "",
+                loadingDestinationAddress: false,
+                amount: "",
+                result: "",
+                transactionData: "",
+                clickCount: 0,
+                isDisabled: false,
+            }
+        },
+        methods: {
+            onSubmit() {
+                if (this.isDisabled) return; // Button is disabled, halt block execution
+                this.clickCount++;
+                this.isDisabled = true;
+                this.loading = true
+                this.errored = false
+
+                this.sentToDestinationAddress()
+            },
+            sentToDestinationAddress: function() {
+                // if exchange destination is selected, get the deposit address and put that as destinationAddress
+                if (this.exchangeDestination.length < 1) {
+                    this.withdraw()
+                }else {
+                    this.loadingDestinationAddress = true
+                    axios
+                        .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeDestination + '/' + this.asset)
+                        .then(response => {
+                            console.log(response)
+                            this.handleDepositAddressData(response)
+                        })
+                        .catch(error => {
+                                console.log(error)
+                                //this.address = "Not available"
+                                this.errored = true
+                            }
+                        )
+                        .finally(() => this.withdraw())
+                }
+            },
+            withdraw: function () {
+                axios
+                    .get('http://127.0.0.1:3333/api/withdraw/' + this.exchangeInput + '/' + this.asset + '/' + this.amount + '/' + this.destinationAddress)
+                    .then(response => {
+                        console.log(response)
+                        this.result = response.data
+                        this.handleData(response)
+                    })
+                    .catch(error => {
+                            console.log(error)
+                            //this.errored = true
+                        }
+                    )
+                    .finally(() => this.handleDisablingButton())
+            },
+            handleDisablingButton: function () {
+                this.loading = false
+                setTimeout(() => {
+                    this.isDisabled = false;
+                }, 5000);
+            },
+            handleData(result) {
+                if (this.result.error.success === false) this.errored = true
+                this.transactionData = result.transactionData
+            },
+            handleDepositAddressData(result) {
+                const data = result.data
+                this.destinationAddress = data.address
+            }
+        }
+    })
+    app.mount('#app').created()
+</script>
+</html>

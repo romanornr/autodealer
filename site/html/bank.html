@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+{{template "head"}}
+<body>
+{{template "navbar"}}
+<div class="container-fluid">
+    <div class="row">
+        {{template "sidebarMenu"}}
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            {{template "dashboard"}}
+            <div id="app">
+                <form class="deposit-form" @submit.prevent="onSubmit">
+                    <label class="form-label">Exchange name</label>
+                    <select class="form-select" v-model="exchangeName" id="exchangeName">
+                        <option v-for="option in options" :value="option.value">
+                            ${ option.text }
+                        </option>
+                    </select>
+
+                    <div class="mb-3">
+                        <label for="currencyName" class="form-label">Currency name</label>
+                        <select class="form-select" v-model="currencyName" id="currencyName">
+                            <option v-for="currencyOption in currencyOptions" :value="currencyOption.value">
+                                ${ currencyOption.text }
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Withdraw to international bank account</button>
+                </form>
+                <div v-if="loading" class="loading">
+                    Loading...
+                </div>
+                <div v-if="error" class="error">
+                    ${ error }
+                </div>
+
+                <div v-if="address" class="content">
+                    <p>Balance: ${ balance} ${ symbol }</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+
+<script>
+    const app = Vue.createApp({
+        delimiters: ['${', '}'],
+
+        data() {
+            return {
+                loading: false,
+                errored: false,
+                options: [
+                    {text: 'Kraken', value: 'kraken'},
+                ],
+                currencyOptions: [
+                    {text: 'EUR', value: 'EUR'},
+                    {text: 'USD', value: 'USD'}
+                ],
+                exchangeName: "",
+                address: "",
+                balance: "",
+            }
+        },
+        methods: {
+            onSubmit() {
+                // reset previous result
+                this.errored = false
+                this.address = ""
+                this.balance = ""
+                this.loading = true
+                axios
+                    .get('http://127.0.0.1:3333/api/bank/transfer')
+                    .then(response => {
+                        console.log(response)
+                        this.handleData(response)
+                    })
+                    .catch(error => {
+                            console.log(error)
+                            //this.address = "Not available"
+                            this.errored = true
+                        }
+                    )
+                    .finally(() => this.loading = false)
+            },
+            handleData(result) {
+                const data = result.data
+                this.address = data.address
+                this.symbol = data.code
+                this.balance = data.balance
+                this.exchangeName = data.exchange
+            }
+        },
+    })
+    app.mount('#app').created()
+</script>
+</html>

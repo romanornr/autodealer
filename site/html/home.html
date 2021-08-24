@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+{{template "head"}}
+<body>
+{{template "navbar"}}
+<div class="container-fluid">
+    <div class="row">
+        {{template "sidebarMenu"}}
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            {{template "dashboard"}}
+            <div id="app">
+                <a href="/deposit" type="button" class="btn btn-outline-primary">Deposit</a>
+                <br>
+                <a href="/withdraw" type="button" class="btn btn-primary">Transfer capital</a>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+
+</body>
+</html>
