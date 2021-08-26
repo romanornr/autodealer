@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -18,4 +19,8 @@ func TestLocation2(t *testing.T) {
 	if location != x {
 		t.Errorf("Expected Location to be '%s'. Got '%s' instead\n", x, location)
 	}
+}
+
+func TestExpandUser(t *testing.T) {
+	fmt.Println(ExpandUser("~/.gocryptotrader/config.json"))
 }
