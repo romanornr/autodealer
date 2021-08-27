@@ -36,7 +36,7 @@ func BankTransferCtx(next http.Handler) http.Handler {
 
 		response, err := transfer.KrakenInternationalBankAccountWithdrawal()
 		if err != nil {
-			logrus.Errorf("failed to get address: %s\n", err)
+			logrus.Errorf("Failed to get bank account transfer: %s\n", err)
 			render.Render(w, request, ErrWithdawRender(err))
 			return
 		}
