@@ -115,7 +115,7 @@ func DefaultEngineSettings() (engine.Settings, map[string]bool) {
 	if !flagSet["config"] {
 		// If config file is not explicitly set, fall back to default path resolution
 		//settings.ConfigFile = "/home/romano/.gocryptotrader/config.json"
-		settings.ConfigFile = ""
+		//settings.ConfigFile = ""
 	}
 	return settings, flagSet
 }
