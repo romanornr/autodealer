@@ -193,7 +193,7 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 	}
 
 	logrus.Info(exch)
-	bot.ExchangeManager.Add(exch)
+	//bot.ExchangeManager.Add(exch)
 	base := exch.GetBase()
 	if base.API.AuthenticatedSupport ||
 		base.API.AuthenticatedWebsocketSupport {

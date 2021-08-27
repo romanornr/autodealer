@@ -11,7 +11,7 @@ func TestSetupExchanges(t *testing.T) {
 	settings, _ := flagparser.DefaultEngineSettings()
 	_, err := NewDealer(settings)
 	if err != nil {
-		t.Errorf("Failed to create dealer %s\n", err)
+		t.Errorf("Failed to create dealer: %s\n", err)
 	}
 
 	//err = bot.SetupExchanges(GCTLog{})

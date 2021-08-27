@@ -26,12 +26,14 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 		return order.SubmitResponse{}, errors.Newf("failed to submit order: %s\n", err)
 	}
 
-	account := accounts.Accounts[0]
 	var value float64
 
-	for _, c := range account.Currencies {
-		if c.CurrencyName == currency.USDT {
-			value = c.TotalValue
+	// check accounts for total tether value to sell
+	for _, a := range accounts.Accounts {
+		for _, c := range a.Currencies {
+			if c.CurrencyName == currency.USDT {
+				value = c.TotalValue
+			}
 		}
 	}
 
