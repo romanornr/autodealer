@@ -62,7 +62,10 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		assetInfo.Code.Item.Role = currency.Cryptocurrency
 
-		exchangeEngine, _ := engine.Bot.GetExchangeByName(exchangeNameReq)
+		exchangeEngine, err := engine.Bot.GetExchangeByName(exchangeNameReq)
+		if err != nil {
+			logrus.Errorf("Failed to return exchange %s\n", err)
+		}
 
 		wi := &withdraw.Request{
 			Exchange: exchangeEngine.GetName(),
