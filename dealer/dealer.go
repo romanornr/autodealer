@@ -29,7 +29,7 @@ type Dealer struct {
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
 // The root strategy is a used as a placeholder for future functions. A registry object is created and set as a property of this object
 // The program gets the keys of an "Assets Currency" table from the configuration table in gocryptotrader.conf
-// a green flag that will be passed to the config.DEALER.SETTINGS.ACCOUNT when the new config.DEALER.DefaultCurrency property is evaluated to initialize the system
+// a green flag that will be passed to the config.DEALER.SETTINGS.ACCOUNT when the new config.DEALER.DefaultCurrency property is evaluated to initialize the system?
 
 // *"Continuous Poller"
 // The Keep object will reset the previous values in Engine and request a New
@@ -47,8 +47,7 @@ type Dealer struct {
 // 4. Dealer will wire the "asset" table from the configuration table in gocryptotrader.conf
 // 5. Dealer will request a new initialization every time a new Dealer object has been initiated with a new root strategy
 // 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
-// 7. To avoid confusion about the green flag the property that enables this should have an alternative name
-// 8. The percentage of synchronize up to x times to a second property should exist
+// 7. To avoid confusion about the green flag the property that enables this should have an alternative name ?
 
 func NewDealer(settigs engine.Settings) (*Dealer, error) {
 	settigs.ConfigFile = util.ConfigFile(settigs.ConfigFile)
