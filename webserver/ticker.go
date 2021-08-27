@@ -34,7 +34,7 @@ func TickerCtx(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		exchangeEngine := engine.Bot.GetExchangeByName(exchangeNameReq)
+		exchangeEngine, _ := engine.Bot.GetExchangeByName(exchangeNameReq)
 
 		base.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "base")))
 		quote.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "quote")))
@@ -75,7 +75,7 @@ func PriceToUSDCtx(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		exchangeEngine := engine.Bot.GetExchangeByName(exchangeNameReq)
+		exchangeEngine, _ := engine.Bot.GetExchangeByName(exchangeNameReq)
 		base.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "base")))
 
 		price, err := fetchTickerPriceUSD(exchangeEngine, base.Code)

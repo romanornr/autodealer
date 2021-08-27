@@ -42,7 +42,7 @@ func withdrawHistoryCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		var ctx context.Context
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		exchangeEngine := engine.Bot.GetExchangeByName(exchangeNameReq)
+		exchangeEngine, _ := engine.Bot.GetExchangeByName(exchangeNameReq)
 		code := currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		history, err := exchangeEngine.GetWithdrawalsHistory(code)
 		if err != nil {

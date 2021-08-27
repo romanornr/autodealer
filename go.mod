@@ -27,18 +27,19 @@ require (
 	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.1 // indirect
-	github.com/thrasher-corp/gocryptotrader v0.0.0-20210818083103-3467914ab763
+	github.com/thrasher-corp/gocryptotrader v0.0.0-20210827023134-c9ab0b1164b3
 	github.com/toorop/go-pusher v0.0.0-20180521062818-4521e2eb39fb // indirect
 	github.com/urfave/cli v1.22.5 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/exp v0.0.0-20201008143054-e3b2a7f2fdc7 // indirect
-	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect
-	golang.org/x/sys v0.0.0-20210818153620-00dd8d7831e7 // indirect
+	golang.org/x/net v0.0.0-20210825183410-e898025ed96a // indirect
+	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
+	golang.org/x/tools v0.1.5 // indirect
 	gonum.org/v1/gonum v0.9.0
-	google.golang.org/genproto v0.0.0-20210816143620-e15ff196659d // indirect
+	google.golang.org/genproto v0.0.0-20210827211047-25e5f791fe06 // indirect
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.0.0 // indirect
 	google.golang.org/grpc/examples v0.0.0-20200825214159-c4ba4cc6af4a // indirect
 	gopkg.in/errgo.v2 v2.1.0

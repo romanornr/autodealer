@@ -35,7 +35,7 @@ func TwapCtx(next http.Handler) http.Handler {
 		baseCode := strings.ToUpper(chi.URLParam(request, "base"))
 		quoteCode := strings.ToUpper(chi.URLParam(request, "quote"))
 		quantityReq := chi.URLParam(request, "quantity")
-		exchangeEngine := engine.Bot.GetExchangeByName(chi.URLParam(request, "exchange"))
+		exchangeEngine, _ := engine.Bot.GetExchangeByName(chi.URLParam(request, "exchange"))
 		quantity, err := strconv.ParseFloat(quantityReq, 64)
 		if err != nil {
 			logrus.Errorf("") // 3.14159265

@@ -51,10 +51,10 @@ type Dealer struct {
 
 func NewDealer(settigs engine.Settings) (*Dealer, error) {
 	settigs.ConfigFile = util.ConfigFile(settigs.ConfigFile)
-	//var conf config.Config
+	var conf config.Config
 	dealer := &Dealer{
 		Settings:        engine.Settings{},
-		Config:          config.Config{},
+		Config:          conf,
 		ExchangeManager: engine.ExchangeManager{},
 	}
 	filePath, err := config.GetAndMigrateDefaultPath(dealer.Settings.ConfigFile)
@@ -67,7 +67,10 @@ func NewDealer(settigs engine.Settings) (*Dealer, error) {
 		return dealer, err
 	}
 
-	//if err := dealer.setupEx
+	if err := dealer.SetupExchanges(GCTLog{nil}); err != nil {
+		return dealer, err
+	}
+
 	return dealer, nil
 }
 
