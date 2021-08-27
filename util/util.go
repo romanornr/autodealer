@@ -20,7 +20,7 @@ func Location() string {
 	xs := strings.SplitAfterN(fn.Name(), "/", 3)
 	//nolint: gomnd
 	return xs[len(xs)-1]
- }
+}
 
 // Location2 implements the grandparent call interface
 // and contains Call 'street calling' troubleshooting  and returns the name of the grandparent function
@@ -38,7 +38,7 @@ func Location2() string {
 // If `inp` is not empty, check to see if `inp` corresponds with multiple strings and whether `inp`'s corresponding string is a folder.
 // The function is only necessary if `inp` is not the default configuration file.
 // This utility function that is used to check for files with the name `inp` or `'inp`. These two strings are being output as such because of the file in the default configuration file, the `~/.gocryptotrader/config.json` file. If `inp` does not correspond with the `inp` filename, then `inp` is set to `""` and is returned as such.
-// If environment variable "DOLA_CONFIG" is found, it attempts to expand the string using ExpandUser(), also leading to an error if the string is empty.
+// If environment variable "DEALER_CONFIG" is found, it attempts to expand the string using ExpandUser(), also leading to an error if the string is empty.
 // Also check if configuration file exists based on a user-operated environment variable, the executable running, and the user's home directory. If any of these conditions are met, the configuration file will be found. If none of the conditions are met, a configuration file will not be found.
 func ConfigFile(inp string) string {
 	if inp != "" {
