@@ -91,7 +91,7 @@ func btseGrid(bidLimitPrice, stepsize float64) {
 	token := GetEthereumToken()
 	externalPrice := token.Price.Rate
 
-	exchangeEngine := engine.Bot.GetExchangeByName("Btse")
+	exchangeEngine, _ := engine.Bot.GetExchangeByName("Btse")
 	ticker, err := exchangeEngine.FetchTicker(currencyPair, asset.Spot)
 	if err != nil {
 		logrus.Warn(err)

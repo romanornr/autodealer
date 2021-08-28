@@ -19,7 +19,7 @@ import (
 func GetSummary(pair currency.Pair, outputChart bool, forceBTC bool) {
 	//defer timeTrack(time.Now(), "sum")
 
-	exchange := engine.Bot.GetExchangeByName("Binance")
+	exchange, _ := engine.Bot.GetExchangeByName("Binance")
 	var err error
 	if forceBTC == true {
 		pair = currency.NewPair(currency.BTC, currency.USDT)
