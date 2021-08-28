@@ -14,9 +14,5 @@ func TestSetupExchanges(t *testing.T) {
 		t.Errorf("Failed to create dealer: %s\n", err)
 	}
 
-	//err = bot.SetupExchanges(GCTLog{})
-	//if err != nil {
-	//	t.Errorf("SetupExchanges posted error %s", err)
-	//}
 	t.Log("SetupExchanges succeeded.")
 }

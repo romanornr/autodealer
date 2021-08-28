@@ -55,7 +55,7 @@ func NewDealer(settigs engine.Settings) (*Dealer, error) {
 	dealer := &Dealer{
 		Settings:        engine.Settings{},
 		Config:          conf,
-		ExchangeManager: engine.ExchangeManager{},
+		ExchangeManager: *engine.SetupExchangeManager(),
 	}
 	filePath, err := config.GetAndMigrateDefaultPath(dealer.Settings.ConfigFile)
 	if err != nil {
@@ -192,8 +192,7 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 		return err
 	}
 
-	logrus.Info(exch)
-	//bot.ExchangeManager.Add(exch)
+	bot.ExchangeManager.Add(exch)
 	base := exch.GetBase()
 	if base.API.AuthenticatedSupport ||
 		base.API.AuthenticatedWebsocketSupport {
