@@ -16,8 +16,9 @@ import (
 var ErrOrdersAlreadyExists = errors.New("order already exists")
 
 // Dealer If this property in the program that shows the demand of a crypto on an exchange
-// we might add a selection in case the user logs a trade on one exchange with a purchase or a sell of the crypto
-// the user can add the price to be matched the exchange the user is logging the trade
+
+// Dealer is the main struct for the dealer
+// It contains the root strategy, the settings, the config, the exchange manager, and the order registry
 type Dealer struct {
 	// Root RootStrategy
 	Settings engine.Settings
@@ -40,14 +41,17 @@ type Dealer struct {
 // The suggested name of the property is in order to remove confusion about the green flag and make it more intuitive
 // There is a possibility for a "synchronize up to X times a second property that can be passed
 
-// Flow of the program
-// 1. Dealer is getting injected with basic configuration properties
-// 2. Dealer will use the strategy as placeholder for future functions
-// 3. The registry will be an object to provide persistence
-// 4. Dealer will wire the "asset" table from the configuration table in gocryptotrader.conf
+
+// 1. First you create a variable called `dealer` which is of type `*Dealer` This refers to the above struct
+// 2. Next is the declaration of NewDealer. Notice that `settings` is of type engine.Settings, whereas `dealer` is of type `*Dealer`.
+// This means that NewDealer may take any struct type as its first parameter (where the struct needs to fulfill the Signature of engine.Settings such as
+// having a ConfigFile or a EnableDryRun field), and that dealer is a pointer to a Dealer struct, not a naked Dealer. Note also that the returned value
+// is a pointer to Dealer as well. In other words: NewDealer takes any settings struct, and returns a pointer to a Dealer struct satisfying some arbitrary interface.
+// The interface is satisfied just by having a field called `Root` of type RootStrategy.
+// 3. Here we set the defaults for the engine.Settings (which is the incoming struct type), and instantiate the The configuration struct type.
+// 4. Reading the configuration from file happens in two parts: First we get the default path to the file using GetAndMigrateDefaultPath, then we set ReadConfigFromFile by the path.
 // 5. Dealer will request a new initialization every time a new Dealer object has been initiated with a new root strategy
 // 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
-// 7. To avoid confusion about the green flag the property that enables this should have an alternative name ?
 
 func NewDealer(settings engine.Settings) (*Dealer, error) {
 	settings.ConfigFile = util.ConfigFile(settings.ConfigFile)
@@ -102,9 +106,12 @@ var (
 	ErrExchangeFailedToLoad = errors.New("exchange failed to load")
 )
 
-// loadExchange is an unchanged copy of Engine.LoadExchange.
-//
-// nolint
+// LoadExchange creates an exchange object for the loaded exchange by calling ExchangeManager.NewExchangeByName.
+// We check that the exchange loaded supports the expected base currency by calling CurrencyPairs.IsAssetEnabled.
+// call to the exchange object's Setup function which checks the exchange for its name and retrieves all the configurable values for the exchange. Setup is called by both the ExchangeManager and the Base.
+// call to validate credentials, which checks whether or not the exchange supports the asset's currency. If validation is successful, we log an INFO message and pass.
+// check the actual auth status of the exchange and make sure that there is no mismatch between the configured auth and the actual auth. If there is a mismatch with isAuthenticatedSupport and AuthenticatedSupport status, we log a WARN message and set the AutheticatedSupport attributes to false.
+// We test exchange name is set correctly and make sure that the exchange is set up  normal and we then start the exchange. This last step is performed by both the ExchangeManager and the Base.
 func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) error {
 	exch, err := bot.ExchangeManager.NewExchangeByName(name)
 	if err != nil {
@@ -132,6 +139,10 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 			var pairs currency.Pairs
 			pairs, err = exchCfg.CurrencyPairs.GetPairs(assets[x], false)
 			if err != nil {
+				gctlog.Errorf(gctlog.ExchangeSys,
+					"%s: Failed to get pairs for asset type %s. Error: %s\n", exch.GetName(),
+					assets[x].String(),
+					err)
 				return err
 			}
 			exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
@@ -237,6 +248,10 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 // The "admin" bot will try to get a list of all exchanges and look for any that say they are disabled. If an exchange is disabled, the bot will not load it.
 // The idea is to have control over what settings are enabled and which ones are not.
 // defer wg.Done() statement is to finish executing the go-routine once the for loop has finished. This is important if we are going to do more than one iteration of the loop with different exchanges.
+
+// SetupExchanges is a function that sets up the exchanges
+// It takes in a GCTLog struct
+// It returns an error
 func (bot *Dealer) SetupExchanges(gctlog GCTLog) error {
 	var wg sync.WaitGroup
 	configs := bot.Config.GetAllExchangeConfigs()
