@@ -57,6 +57,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		exchange, _ := engine.Bot.GetExchangeByName(exchangeNameReq)
+
 		assetInfo.Exchange = exchange.GetName()
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 

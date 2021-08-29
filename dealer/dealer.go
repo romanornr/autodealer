@@ -49,8 +49,8 @@ type Dealer struct {
 // 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
 // 7. To avoid confusion about the green flag the property that enables this should have an alternative name ?
 
-func NewDealer(settigs engine.Settings) (*Dealer, error) {
-	settigs.ConfigFile = util.ConfigFile(settigs.ConfigFile)
+func NewDealer(settings engine.Settings) (*Dealer, error) {
+	settings.ConfigFile = util.ConfigFile(settings.ConfigFile)
 	var conf config.Config
 	dealer := &Dealer{
 		Settings:        engine.Settings{},
