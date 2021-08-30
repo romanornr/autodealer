@@ -12,27 +12,37 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/engine"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gopkg.in/errgo.v2/fmt/errors"
 	"net/http"
 	"strings"
 	"time"
 )
 
-// DepositResponse which embeds an Asset. It defines an Asset struct and embeds the base asset struct
+// depositResponse which embeds an Asset. It defines an Asset struct and embeds the base asset struct
 // which ensures that DepositResponse has access to the id, amount, and address fields
 // It then specifies the Time field and specifies that it's time.Time
 // In the end, DepositResponse has all the fields of both Asset and base Asset
-type DepositResponse struct {
-	*Asset
-	Time time.Time `json:"time"`
+type depositResponse struct {
+	Asset   *currency.Item `json:"asset"`
+	Code    currency.Code  `json:"code"`
+	Address string         `json:"address"`
+	Time    time.Time      `json:"time"`
+	Balance float64        `json:"balance"`
+	Err     error          `json:"error"`
+	Account string         `json:"account"`
 }
 
-// Render DepositResponse takes an interface as input (which means that we can use concrete types to render its BSON form).
-// Look at the data type (a DepositResponse) and try to map its elements to BSON values. It's easy because they have identical names.
-// Set the Timestamp field to the current time if it's empty.
-// Return the input parameter, encoded as BSON.
-func (d DepositResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (d *depositResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	d.Time = time.Now()
-	return nil
+	return d.Err
+}
+
+func ErrDepositRender(err error) render.Renderer {
+	return &depositResponse{
+		Err: err,
+	}
 }
 
 // DepositHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
@@ -51,14 +61,13 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 // Our server will return a 422 error instead. Finally, we return the depositInfo variable to the user
 func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	assetInfo, ok := ctx.Value("depositInfo").(*Asset)
+	depositResponse, ok := ctx.Value("response").(*depositResponse)
 	if !ok {
 		http.Error(w, http.StatusText(422), 422)
-		render.Render(w, r, ErrNotFound)
+		render.Render(w, r, ErrDepositRender(errors.Newf("Failed to render deposit response")))
 		return
 	}
-	depositInfo := DepositResponse{assetInfo, time.Now()}
-	render.Render(w, r, depositInfo)
+	render.Render(w, r, depositResponse)
 	return
 }
 
@@ -67,31 +76,40 @@ func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 // Next, it runs the next middleware handler in the chain. In our case, this is the router object, and this continues with the original request.
 // The next handler is provided with the updated context and proceeds in the usual way.
 func DepositAddressCtx(next http.Handler) http.Handler {
-	assetInfo := new(Asset)
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		var settings engine.Settings
-		d, err := dealer.New(settings)
+		d, err := dealer.New(engine.Settings{})
 
 		engineExchange, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
 		}
 
+		accounts, err := engineExchange.FetchAccountInfo(asset.Spot)
+		if err != nil {
+			logrus.Errorf("failed to get exchange account 0: %s\n", err)
+		}
+		var accountReq account.SubAccount
+		for _, a := range accounts.Accounts {
+			if a.ID == "main" {
+				accountReq.ID = "main"
+			}
+		}
+
 		request = request.WithContext(context.WithValue(request.Context(), "exchange", engineExchange))
-		logrus.Infof("request: %v\n", request)
 
-		assetInfo.Exchange = engineExchange.GetName()
-		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
-
-		assetInfo.Address, err = engineExchange.GetDepositAddress(assetInfo.Code, "")
+		var deposit depositResponse
+		deposit.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
+		deposit.Asset = deposit.Code.Item
+		deposit.Account = accountReq.ID
+		deposit.Address, err = engineExchange.GetDepositAddress(deposit.Code, deposit.Account)
 		if err != nil {
 			logrus.Errorf("failed to get address: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))
 			return
 		}
 
-		ctx := context.WithValue(request.Context(), "depositInfo", assetInfo)
+		ctx := context.WithValue(request.Context(), "response", &deposit)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})
 }

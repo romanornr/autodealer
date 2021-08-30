@@ -24,6 +24,7 @@ type Dealer struct {
 	Settings        engine.Settings
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager
+	WithdrawManager engine.WithdrawManager
 	// registry OrderRegistry
 }
 
@@ -59,6 +60,7 @@ func New(settings engine.Settings) (*Dealer, error) {
 		Settings:        engine.Settings{},
 		Config:          conf,
 		ExchangeManager: *engine.SetupExchangeManager(),
+		WithdrawManager: engine.WithdrawManager{},
 	}
 	filePath, err := config.GetAndMigrateDefaultPath(dealer.Settings.ConfigFile)
 	if err != nil {

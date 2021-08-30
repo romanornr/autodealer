@@ -5,6 +5,7 @@ import (
 	_ "fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/engine"
@@ -49,6 +50,11 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		var err error
 		assetInfo := new(Asset)
 
+		dealer, err := dealer.New(engine.Settings{})
+		if err != nil {
+			logrus.Errorf("failed to create dealer %s\n", err)
+		}
+
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		destinationAddress := chi.URLParam(request, "destinationAddress")
 		sizeReq := chi.URLParam(request, "size")
@@ -62,7 +68,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		assetInfo.Code.Item.Role = currency.Cryptocurrency
 
-		exchangeEngine, err := engine.Bot.GetExchangeByName(exchangeNameReq)
+		exchangeEngine, err := dealer.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("Failed to return exchange %s\n", err)
 		}
@@ -79,7 +85,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 			},
 		}
 
-		response, err := engine.Bot.WithdrawManager.SubmitWithdrawal(wi)
+		response, err := dealer.WithdrawManager.SubmitWithdrawal(wi) //engine.Bot.WithdrawManager.SubmitWithdrawal(wi)
 		if err != nil {
 			logrus.Errorf("failed to withdraw crypto asset %s %s\n", assetInfo.Code, err)
 			render.Render(w, request, ErrWithdawRender(err))
