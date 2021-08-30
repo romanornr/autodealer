@@ -32,15 +32,6 @@ func (t TWAP) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-//type SyntheticAverageCandle struct {
-//	Open    float64
-//	Close   float64
-//	High    float64
-//	Low     float64
-//	Average float64
-//	Counted float64
-//}
-
 func (t TWAP) Handle() error {
 	time.Sleep(time.Minute * 5)
 	return nil
@@ -55,55 +46,6 @@ func (t TWAP) Handle() error {
 //		Queue: q,
 //	}
 //	return service
-//}
-
-//func (t TWAP) GetValue() (decimal.Decimal, error) {
-//	openTime := time.Now().Add(-time.Duration(t.KlineInterval) * time.Duration(t.KlineCount))
-//	exchange := engine.Bot.GetExchangeByName(t.Exchange)
-//	if err := exchange.SetPairs(currency.Pairs{t.Pair}, t.Asset, true); err != nil {
-//		return decimal.Decimal{}, fmt.Errorf("exchange %s failed to enable pair: %s\n", exchange.GetName(), t.Pair.String())
-//	}
-//
-//	var klines kline.Item
-//	klines, err := exchange.GetHistoricCandles(t.Pair, t.Asset, openTime, time.Now(), kline.OneDay)
-//	if err != nil {
-//		klines, err = exchange.GetHistoricCandlesExtended(t.Pair, t.Asset, openTime, t.End, kline.OneDay)
-//		if err != nil {
-//			return decimal.Decimal{}, errors.New(fmt.Sprintf("Failed getting historical candles %s: %s\n", t.Pair.String(), err))
-//		}
-//	}
-//
-//	averageCandle := new(SyntheticAverageCandle)
-//	averageCandle.Counted = float64(len(klines.Candles))
-//
-//	if averageCandle.Counted < 1 {
-//		return decimal.Decimal{}, errors.New("counted candles is less than 1")
-//	}
-//
-//	for k := range klines.Candles {
-//		averageCandle.Open += klines.Candles[k].Open
-//		averageCandle.Close += klines.Candles[k].Close
-//		averageCandle.High += klines.Candles[k].High
-//		averageCandle.Low += klines.Candles[k].Low
-//		averageCandle.Average += (averageCandle.Open + averageCandle.Close + averageCandle.High + averageCandle.Low) / 4
-//	}
-//
-//	averagePrice := averageCandle.Average / averageCandle.Counted
-//
-//	wap := decimal.NewFromFloat(averagePrice)
-//
-//	ticker, err := exchange.FetchTicker(t.Pair, t.Asset)
-//	if err != nil {
-//		return decimal.Decimal{}, err
-//	}
-//
-//	closeAmount := decimal.NewFromFloat(ticker.Last)
-//
-//	if closeAmount.GreaterThanOrEqual(wap) {
-//		t.OverBought = true
-//	}
-//
-//	return wap.Round(7), err
 //}
 
 func (t *TWAP) Execute(targetAmount float64, baseMinSize, baseMaxSize float64, mode string) {
@@ -185,10 +127,8 @@ func (t TWAP) AverageSizeFillPerSecond(amount decimal.Decimal) decimal.Decimal {
 }
 
 func (t TWAP) Submit(price float64, amount decimal.Decimal, mode string) (order.SubmitResponse, error) {
-	fmt.Println("teeest")
 	wapAmount, _ := amount.Float64()
 	wapAmount, _ = new(big.Float).SetPrec(2).SetFloat64(wapAmount).Float64()
-	///exchangeEngine := engine.Bot.GetExchangeByName(t.Exchange)
 	logrus.Infof("fetching ticker order from")
 	ticker, err := t.Exchange.FetchTicker(t.Pair, t.Asset)
 	if err != nil {
