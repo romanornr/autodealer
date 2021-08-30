@@ -26,14 +26,6 @@ func main() {
 		if err != nil {
 			logrus.Errorf("failed to load settings dealer: %s\n", err)
 		}
-
-		//engineManager.StartMainEngine()
-		//if err := engine.Bot.WaitForInitialCurrencySync(); err != nil {
-		//	logrus.Errorf("Failed to wait for initial currency sync: %s\n", err)
-		//}
-		//if engine.Bot.IsOnline() != true {
-		//	logrus.Error("Connection manager is not online")
-		//}
 	}()
 	go webserver.New()
 	interrupt := signaler.WaitForInterrupt()
