@@ -97,6 +97,7 @@ func apiSubrouter() http.Handler {
 
 	r.Route("/deposit/{exchange}/{asset}", func(r chi.Router) {
 		r.Use(DepositAddressCtx)
+		r.Use(BalanceCtx)
 		r.Get("/", getDepositAddress)
 	})
 
