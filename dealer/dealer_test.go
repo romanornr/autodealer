@@ -9,7 +9,7 @@ func TestSetupExchanges(t *testing.T) {
 	t.Log("Setup")
 
 	var settings engine.Settings
-	_, err := NewDealer(settings)
+	_, err := New(settings)
 	if err != nil {
 		t.Errorf("Failed to create dealer: %s\n", err)
 	}

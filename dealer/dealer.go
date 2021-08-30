@@ -53,7 +53,7 @@ type Dealer struct {
 // 5. Dealer will request a new initialization every time a new Dealer object has been initiated with a new root strategy
 // 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
 
-func NewDealer(settings engine.Settings) (*Dealer, error) {
+func New(settings engine.Settings) (*Dealer, error) {
 	settings.ConfigFile = util.ConfigFile(settings.ConfigFile)
 	var conf config.Config
 	dealer := &Dealer{
