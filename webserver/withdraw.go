@@ -34,7 +34,7 @@ func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 
 func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	exchangeResponse, ok := ctx.Value("response").(*exchangeWithdrawResponse)   // TODO fix
+	exchangeResponse, ok := ctx.Value("response").(*exchangeWithdrawResponse) // TODO fix
 	if !ok {
 		http.Error(w, http.StatusText(422), 422)
 		render.Render(w, r, ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))

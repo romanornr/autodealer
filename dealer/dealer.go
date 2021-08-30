@@ -21,11 +21,11 @@ var ErrOrdersAlreadyExists = errors.New("order already exists")
 // It contains the root strategy, the settings, the config, the exchange manager, and the order registry
 type Dealer struct {
 	// Root RootStrategy
-	Settings engine.Settings
-	Config config.Config
+	Settings        engine.Settings
+	Config          config.Config
 	ExchangeManager engine.ExchangeManager
 	// registry OrderRegistry
- }
+}
 
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
 // The root strategy is a used as a placeholder for future functions. A registry object is created and set as a property of this object
@@ -40,7 +40,6 @@ type Dealer struct {
 // The new config.dealer.defaultCurrency property for the config.DEALER.SETTINGS.ACCOUNT will be initialized using the dealer.Config.DefaultCurrency property
 // The suggested name of the property is in order to remove confusion about the green flag and make it more intuitive
 // There is a possibility for a "synchronize up to X times a second property that can be passed
-
 
 // 1. First you create a variable called `dealer` which is of type `*Dealer` This refers to the above struct
 // 2. Next is the declaration of NewDealer. Notice that `settings` is of type engine.Settings, whereas `dealer` is of type `*Dealer`.

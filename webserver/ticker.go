@@ -62,6 +62,7 @@ func getTicker(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, TickerResponse{*tickerInfo})
 	return
 }
+
 type ToUSDResponse struct {
 	Price float64 `json:"price"`
 }

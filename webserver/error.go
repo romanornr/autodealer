@@ -70,4 +70,3 @@ func ErrRender(err error) render.Renderer {
 
 var ErrNotFound = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
 var ErrWithdaw = &ErrResponse{HTTPStatusCode: 404, StatusText: "Failed to withdraw."}
-

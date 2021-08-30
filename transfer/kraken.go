@@ -6,12 +6,12 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/kraken"
-	_"github.com/thrasher-corp/gocryptotrader/exchanges/kraken"
+	_ "github.com/thrasher-corp/gocryptotrader/exchanges/kraken"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/banking"
-	_"github.com/thrasher-corp/gocryptotrader/portfolio/banking"
+	_ "github.com/thrasher-corp/gocryptotrader/portfolio/banking"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
-	_"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
+	_ "github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
 	"gopkg.in/errgo.v2/fmt/errors"
 )
 

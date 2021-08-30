@@ -18,7 +18,6 @@ func init() {
 	go gctscript.Setup()
 }
 
-
 func main() {
 	go func() {
 		settings, _ := flagparser.DefaultEngineSettings()

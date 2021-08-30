@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 )
+
 // DepositResponse which embeds an Asset. It defines an Asset struct and embeds the base asset struct
 // which ensures that DepositResponse has access to the id, amount, and address fields
 // It then specifies the Time field and specifies that it's time.Time
@@ -61,7 +62,6 @@ func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
 // DepositAddressCtx wraps the incoming API http request to request context and adds a depositInfo structure to it with the exchange and code assigned.
 // This depositInfo structure is then used to look up the deposit address and deposit instructions for a particular exchange and asset pair.
 // Next, it runs the next middleware handler in the chain. In our case, this is the router object, and this continues with the original request.
@@ -80,7 +80,6 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		request = request.WithContext(context.WithValue(request.Context(), "exchange", engineExchange))
 		logrus.Infof("request: %v\n", request)
-
 
 		assetInfo.Exchange = engineExchange.GetName()
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))

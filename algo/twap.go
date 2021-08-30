@@ -17,15 +17,15 @@ import (
 )
 
 type TWAP struct {
-	Exchange      exchange.IBotExchange
-	Pair          currency.Pair
-	Asset         asset.Item // SPOT, FUTURES, INDEX
-	MaxChangePct  float64
-	Start         time.Time
-	End           time.Time
-	WapPrice      float64
-	OverBought    bool
-	Side          order.Side
+	Exchange     exchange.IBotExchange
+	Pair         currency.Pair
+	Asset        asset.Item // SPOT, FUTURES, INDEX
+	MaxChangePct float64
+	Start        time.Time
+	End          time.Time
+	WapPrice     float64
+	OverBought   bool
+	Side         order.Side
 }
 
 func (t TWAP) Render(w http.ResponseWriter, r *http.Request) error {
