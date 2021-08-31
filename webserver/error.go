@@ -50,8 +50,6 @@ func ErrNotEnoughAccountBalance(err error) render.Renderer {
 	}
 }
 
-
-
 func ErrRender(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,

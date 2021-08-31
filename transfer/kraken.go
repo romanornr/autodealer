@@ -1,27 +1,27 @@
 package transfer
 
 import (
+	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/kraken"
-	_ "github.com/thrasher-corp/gocryptotrader/exchanges/kraken"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/banking"
-	_ "github.com/thrasher-corp/gocryptotrader/portfolio/banking"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
-	_ "github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
 	"gopkg.in/errgo.v2/fmt/errors"
 )
 
 func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
-	krakenEngine, err := engine.Bot.GetExchangeByName("Kraken")
+	dealerEngine, err := dealer.New(engine.Settings{})
 	if err != nil {
-		return order.SubmitResponse{}, errors.Newf("failed to get exchange %s\n", err)
+		return order.SubmitResponse{}, err
+	}
+	exchange, err := dealerEngine.ExchangeManager.GetExchangeByName("Kraken")
+	if err != nil {
+		return order.SubmitResponse{}, err
 	}
 
-	accounts, err := krakenEngine.FetchAccountInfo(asset.Spot)
+	accounts, err := exchange.FetchAccountInfo(asset.Spot)
 	if err != nil {
 		return order.SubmitResponse{}, errors.Newf("failed to submit order: %s\n", err)
 	}
@@ -39,7 +39,7 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 
 	o := &order.Submit{
 		Amount:    value,
-		Exchange:  krakenEngine.GetName(),
+		Exchange:  exchange.GetName(),
 		Type:      order.Market,
 		Side:      order.Sell,
 		AssetType: asset.Spot,
@@ -50,7 +50,7 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 		return order.SubmitResponse{}, errors.Newf("Account doesn't have enough USDT': %f\n", value)
 	}
 
-	response, err := krakenEngine.SubmitOrder(o)
+	response, err := exchange.SubmitOrder(o)
 	if err != nil {
 		return order.SubmitResponse{}, errors.Newf("failed to submit order: %s\n", err)
 	}
@@ -59,11 +59,19 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 	return response, nil
 }
 
-func KrakenInternationalBankAccountWithdrawal() (string, error) {
-	krakenEngine, _ := engine.Bot.GetExchangeByName("Kraken")
-	accounts, err := krakenEngine.FetchAccountInfo(asset.Spot)
+func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error) {
+	dealerEngine, err := dealer.New(engine.Settings{})
 	if err != nil {
-		return "", errors.Newf("failed to submit order: %s\n", err)
+		return ExchangeWithdrawResponse{}, err
+	}
+	exchange, err := dealerEngine.ExchangeManager.GetExchangeByName("Kraken")
+	if err != nil {
+		return ExchangeWithdrawResponse{}, err
+	}
+
+	accounts, err := exchange.FetchAccountInfo(asset.Spot)
+	if err != nil {
+		return ExchangeWithdrawResponse{}, errors.Newf("failed to submit order: %s\n", err)
 	}
 
 	var value float64
@@ -77,16 +85,16 @@ func KrakenInternationalBankAccountWithdrawal() (string, error) {
 
 	logrus.Infof("account balance euro before withdraw: %f\n", value)
 	if value < 10 {
-		return "", errors.Newf("The minimal size to withdraw is 10 euro and the current account balance is: %f\n", value)
+		return ExchangeWithdrawResponse{}, errors.Newf("The minimal size to withdraw is 10 euro and the current account balance is: %f\n", value)
 	}
 
-	baccount, err := banking.GetBankAccountByID("romanornr_abn_amro")
+	baccount, err := dealerEngine.Config.GetExchangeBankAccounts(exchange.GetName(), "romanornr_abn_amro", currency.EUR.String())
 	if err != nil {
 		logrus.Errorf("failed to get bank account: %v", err)
 	}
 
 	var errValid []string
-	errValid = baccount.ValidateForWithdrawal("kraken", currency.EUR)
+	errValid = baccount.ValidateForWithdrawal(exchange.GetName(), currency.EUR)
 	if errValid != nil {
 		logrus.Errorf("failed to validate bank account: %v\n", errValid)
 	}
@@ -94,7 +102,7 @@ func KrakenInternationalBankAccountWithdrawal() (string, error) {
 	logrus.Infof("baccount %v\n", baccount)
 
 	withdrawRequest := &withdraw.Request{
-		Exchange:    krakenEngine.GetName(),
+		Exchange:    exchange.GetName(),
 		Currency:    currency.EUR,
 		Description: "",
 		Amount:      value,
@@ -118,14 +126,9 @@ func KrakenInternationalBankAccountWithdrawal() (string, error) {
 
 	err = withdrawRequest.Validate()
 	if err != nil {
-		return "", errors.Newf("validation error withdraw request: %s\n", err)
+		return ExchangeWithdrawResponse{}, errors.Newf("validation error withdraw request: %s\n", err)
 	}
 
-	k := kraken.Kraken{Base: *krakenEngine.GetBase()}
-	result, err := k.Withdraw(currency.EUR.String(), baccount.ID, value)
-	if err != nil {
-		return "", errors.Newf("failed international bank withdraw request: %s\n", err)
-	}
-
+	result := CreateExchangeWithdrawResponse(withdrawRequest, &dealerEngine.ExchangeManager)
 	return result, nil
 }

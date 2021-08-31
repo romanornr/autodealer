@@ -30,8 +30,11 @@
                 <div v-if="loading" class="loading">
                     Loading...
                 </div>
-                <div v-if="error" class="error">
-                    ${ error }
+                <div v-if="errored" class="errored">
+                    error: ${ result["error"]["message"] }
+                </div>
+                <div>
+                    ${ result }
                 </div>
 
                 <div v-if="address" class="content">
@@ -62,6 +65,7 @@
                 exchangeName: "",
                 address: "",
                 balance: "",
+                result: "",
             }
         },
         methods: {
@@ -87,6 +91,7 @@
             },
             handleData(result) {
                 const data = result.data
+                this.result = data
                 this.address = data.address
                 this.symbol = data.code
                 this.balance = data.balance

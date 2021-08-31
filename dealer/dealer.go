@@ -6,10 +6,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"sync"
 )
 
@@ -136,18 +136,19 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 	if bot.Settings.EnableAllPairs &&
 		exchCfg.CurrencyPairs != nil {
 		assets := exchCfg.CurrencyPairs.GetAssetTypes(false)
-		for x := range assets {
-			var pairs currency.Pairs
-			pairs, err = exchCfg.CurrencyPairs.GetPairs(assets[x], false)
-			if err != nil {
-				gctlog.Errorf(gctlog.ExchangeSys,
-					"%s: Failed to get pairs for asset type %s. Error: %s\n", exch.GetName(),
-					assets[x].String(),
-					err)
-				return err
-			}
-			exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
-		}
+		ShowAssetTypes(assets, exchCfg)
+		//for x := range assets {
+		//	var pairs currency.Pairs
+		//	pairs, err = exchCfg.CurrencyPairs.GetPairs(assets[x], false)
+		//	if err != nil {
+		//		gctlog.Errorf(gctlog.ExchangeSys,
+		//			"%s: Failed to get pairs for asset type %s. Error: %s\n", exch.GetName(),
+		//			assets[x].String(),
+		//			err)
+		//		return err
+		//	}
+		//	exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
+		//}
 	}
 
 	if bot.Settings.EnableExchangeVerbose {
@@ -240,6 +241,16 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 	}
 
 	return nil
+}
+
+func ShowAssetTypes(assets asset.Items, exchCfg *config.ExchangeConfig) {
+	for x := range assets {
+		pairs, err := exchCfg.CurrencyPairs.GetPairs(assets[x], false)
+		if err != nil {
+			gctlog.Errorf(gctlog.ExchangeSys, "%s: Failed to get pairs for asset type %s. Error: %s\n", exchCfg.Name, assets[x].String(), err)
+		}
+		exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
+	}
 }
 
 // SetupExchanges will setup all the servers that are needed to log transactions on an exchange.
