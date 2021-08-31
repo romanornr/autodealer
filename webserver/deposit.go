@@ -20,10 +20,9 @@ import (
 	"time"
 )
 
-// depositResponse which embeds an Asset. It defines an Asset struct and embeds the base asset struct
-// which ensures that DepositResponse has access to the id, amount, and address fields
-// It then specifies the Time field and specifies that it's time.Time
-// In the end, DepositResponse has all the fields of both Asset and base Asset
+// depositResponse struct with pre-defined members. This response may be populated by a deposit response from the exchange or an error.
+// If it's populated by a deposit response from the exchange, the depositResponse struct fills the fields.
+// If it's populated by an error, then the Err member will contain an error object.
 type depositResponse struct {
 	Asset   *currency.Item `json:"asset"`
 	Code    currency.Code  `json:"code"`
@@ -34,11 +33,17 @@ type depositResponse struct {
 	Account string         `json:"account"`
 }
 
+// Render depositResponse assigns the Time value to a new special variable called time.Now().
+// This value represents the time when the validation function is called.
+// The d.Time value changes and gets updated with the current time every time we make a validation.
+// Then it assigns the error value, which represents the errors data passed in the http response, to a new special variable called d.Err.
 func (d *depositResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	d.Time = time.Now()
 	return d.Err
 }
 
+// ErrDepositRender checks for the error. If the error exists, it then returns
+// a DepositRender wrapper that contains that error in it.
 func ErrDepositRender(err error) render.Renderer {
 	return &depositResponse{
 		Err: err,
@@ -55,7 +60,7 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getDepositAddress extracts the `*Asset` from the context. This will make sure we are
+// getDepositAddress extracts the `*DepositResponse` from the context. This will make sure we are
 // always working with the correct type and will allow us to return an error if the type is wrong Next, we check if the depositInfo is not nil.
 // We will have to check this in order to ensure that problems in the middleware doesn't cause the whole request to fail.
 // Our server will return a 422 error instead. Finally, we return the depositInfo variable to the user
@@ -71,8 +76,8 @@ func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// DepositAddressCtx wraps the incoming API http request to request context and adds a depositInfo structure to it with the exchange and code assigned.
-// This depositInfo structure is then used to look up the deposit address and deposit instructions for a particular exchange and asset pair.
+// DepositAddressCtx wraps the incoming API http request to request context and adds a depositResponse structure to it with the exchange and code assigned.
+// This depositResponse structure is then used to look up the deposit address and deposit instructions for a particular exchange and asset pair.
 // Next, it runs the next middleware handler in the chain. In our case, this is the router object, and this continues with the original request.
 // The next handler is provided with the updated context and proceeds in the usual way.
 func DepositAddressCtx(next http.Handler) http.Handler {

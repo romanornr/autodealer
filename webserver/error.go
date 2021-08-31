@@ -50,14 +50,7 @@ func ErrNotEnoughAccountBalance(err error) render.Renderer {
 	}
 }
 
-func ErrWithdawRender(err error) render.Renderer {
-	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: 400,
-		StatusText:     "Failed to withdraw",
-		ErrorText:      err.Error(),
-	}
-}
+
 
 func ErrRender(err error) render.Renderer {
 	return &ErrResponse{

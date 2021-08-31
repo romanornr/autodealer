@@ -16,7 +16,7 @@ import (
 var tpl *template.Template
 
 const (
-	httpConnTimeout = 10
+	httpConnTimeout = 160
 	port            = 3333
 	// notifyRoute is a route used for general notifications.
 	notifyRoute = "notify"
@@ -62,7 +62,7 @@ func New() {
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		MaxAge:           900, // Maximum value not ignored by any of major browsers
 	})
 	r.Use(chiCors.Handler)
 
@@ -81,7 +81,7 @@ func New() {
 		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
 		Handler:      r,
 		ReadTimeout:  httpConnTimeout * time.Second,
-		WriteTimeout: httpConnTimeout * time.Second,
+		WriteTimeout: httpConnTimeout * (time.Second * 30),
 	}
 
 	err := httpServer.ListenAndServe()

@@ -11,7 +11,7 @@ require (
 	github.com/charmbracelet/charm v0.8.6
 	github.com/charmbracelet/lipgloss v0.3.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
-	github.com/go-chi/chi/v5 v5.0.3
+	github.com/go-chi/chi/v5 v5.0.4
 	github.com/go-chi/render v1.0.1
 	github.com/go-echarts/go-echarts v1.0.0
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -27,7 +27,7 @@ require (
 	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.1 // indirect
-	github.com/thrasher-corp/gocryptotrader v0.0.0-20210827023134-c9ab0b1164b3
+	github.com/thrasher-corp/gocryptotrader v0.0.0-20210830235704-4d1994afb681
 	github.com/toorop/go-pusher v0.0.0-20180521062818-4521e2eb39fb // indirect
 	github.com/urfave/cli v1.22.5 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
@@ -39,7 +39,7 @@ require (
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/tools v0.1.5 // indirect
 	gonum.org/v1/gonum v0.9.0
-	google.golang.org/genproto v0.0.0-20210827211047-25e5f791fe06 // indirect
+	google.golang.org/genproto v0.0.0-20210830153122-0bac4d21c8ea // indirect
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.0.0 // indirect
 	google.golang.org/grpc/examples v0.0.0-20200825214159-c4ba4cc6af4a // indirect
 	gopkg.in/errgo.v2 v2.1.0
