@@ -35,7 +35,7 @@ type ExchangeWithdrawResponse struct {
 func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeManager *engine.ExchangeManager) ExchangeWithdrawResponse { // withdrawManager *engine.WithdrawManager) exchangeWithdrawResponse {
 	manager, err := exchangeManager.GetExchangeByName(withdrawRequest.Exchange)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("failed to create exchangeManager by name %s\n", err))
+		err = fmt.Errorf("failed to create exchangeManager by name %s\n", err))
 	}
 
 	var exchangeResponse *withdraw.ExchangeResponse
@@ -52,7 +52,7 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 	if withdrawRequest.Type == withdraw.Crypto {
 		response.ExchangeResponse, err = manager.WithdrawCryptocurrencyFunds(withdrawRequest)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("failed to withdraw crypto asset %s\n", err))
+			err = fmt.Errorf("failed to withdraw crypto asset %s\n", err))
 		}
 		response.DestinationAddress = withdrawRequest.Crypto.Address
 	}
@@ -62,7 +62,7 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 		k := kraken.Kraken{Base: *manager.GetBase()}
 		response.ExchangeResponse.ID, err = k.Withdraw(currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("failed international bank withdraw request: %s\n", err))
+			err = fmt.Errorf("failed international bank withdraw request: %s\n", err))
 		}
 	}
 	return response
