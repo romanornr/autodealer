@@ -31,7 +31,6 @@ func getTwap(w http.ResponseWriter, r *http.Request) {
 
 func TwapCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-
 		baseCode := strings.ToUpper(chi.URLParam(request, "base"))
 		quoteCode := strings.ToUpper(chi.URLParam(request, "quote"))
 		quantityReq := chi.URLParam(request, "quantity")

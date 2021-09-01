@@ -3,20 +3,21 @@ package webserver
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func getBalance(w http.ResponseWriter, r *http.Request) {
 	exchangeName := r.Context().Value("exchange").(exchange.IBotExchange)
-	//account := r.Context().Value("accounts").(*exchange.AccountInfo)
+	// account := r.Context().Value("accounts").(*exchange.AccountInfo)
 	balance := r.Context().Value("balance").(float64)
 
 	res := Asset{
@@ -37,7 +38,7 @@ func BalanceCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		assetInfo := new(Asset)
 		exchangeEngine := request.Context().Value("exchange").(exchange.IBotExchange)
-		//accountID := request.Context().Value("accountID").(string)
+		// accountID := request.Context().Value("accountID").(string)
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 
 		accounts, err := exchangeEngine.FetchAccountInfo(asset.Spot)

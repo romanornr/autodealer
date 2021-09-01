@@ -6,6 +6,10 @@ package webserver
 
 import (
 	"context"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/romanornr/autodealer/dealer"
@@ -15,9 +19,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"gopkg.in/errgo.v2/fmt/errors"
-	"net/http"
-	"strings"
-	"time"
 )
 
 // depositResponse struct with pre-defined members. This response may be populated by a deposit response from the exchange or an error.
@@ -76,24 +77,38 @@ func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// DepositAddressCtx wraps the incoming API http request to request context and adds a depositResponse structure to it with the exchange and code assigned.
-// This depositResponse structure is then used to look up the deposit address and deposit instructions for a particular exchange and asset pair.
-// Next, it runs the next middleware handler in the chain. In our case, this is the router object, and this continues with the original request.
+// DepositAddressCtx wraps the incoming API http request to request context
+// and adds a depositResponse structure to it with the exchange and code assigned.
+// This depositResponse structure is then used to look up the deposit address
+// and deposit instructions for a particular exchange and asset pair.
+// Next, it runs the next middleware handler in the chain.
+// In our case, this is the router object, and this continues with the original request.
 // The next handler is provided with the updated context and proceeds in the usual way.
 func DepositAddressCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
+
 		d, err := dealer.New(engine.Settings{})
+		if err != nil {
+			logrus.Errorf("failed to get a dealer: %w", err)
+			render.Render(w, request, ErrInvalidRequest(err))
+			return
+		}
 
 		engineExchange, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
+			render.Render(w, request, ErrInvalidRequest(err))
+			return
 		}
 
 		accounts, err := engineExchange.FetchAccountInfo(asset.Spot)
 		if err != nil {
-			logrus.Errorf("failed to get exchange account 0: %s\n", err)
+			logrus.Errorf("failed to get exchange account: %s\n", err)
+			render.Render(w, request, ErrInvalidRequest(err))
+			return
 		}
+
 		var accountReq account.SubAccount
 		for _, a := range accounts.Accounts {
 			if a.ID == "main" {
@@ -119,7 +134,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 	})
 }
 
-//func getBalance(w http.ResponseWriter, r *http.Request) {
+// func getBalance(w http.ResponseWriter, r *http.Request) {
 //	exchangeName := r.Context().Value("exchange").(exchange.IBotExchange)
 //	//account := r.Context().Value("accounts").(*exchange.AccountInfo)
 //	balance := r.Context().Value("balance").(float64)
@@ -133,12 +148,12 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 //
 //	logrus.Infof("res %+v", res)
 //	render.JSON(w, r, res)
-//}
+// }
 //
-//// BalanceCtx amend the request to be within the context of the asset name.
-//// Get the account info from the exchange engine. Find the asset code in the account and get the balance.
-//// Return the amended request. Add a balance cookie to the response.
-//func BalanceCtx(next http.Handler) http.Handler {
+// // BalanceCtx amend the request to be within the context of the asset name.
+// // Get the account info from the exchange engine. Find the asset code in the account and get the balance.
+// // Return the amended request. Add a balance cookie to the response.
+// func BalanceCtx(next http.Handler) http.Handler {
 //	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 //		assetInfo := new(Asset)
 //		exchangeEngine := request.Context().Value("exchange").(exchange.IBotExchange)
@@ -163,4 +178,4 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 //
 //		next.ServeHTTP(w, request)
 //	})
-//}
+// }

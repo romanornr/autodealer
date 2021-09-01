@@ -25,7 +25,9 @@ func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrWithdawRender(errors.Newf("kraken international bank account request failed CTX")))
 		return
 	}
+
 	render.Render(w, r, exchangeResponse)
+
 	return
 }
 

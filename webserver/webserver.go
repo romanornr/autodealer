@@ -2,15 +2,16 @@ package webserver
 
 import (
 	"fmt"
+	"html/template"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
-	"html/template"
-	"log"
-	"net/http"
-	"time"
 )
 
 var tpl *template.Template
@@ -18,16 +19,29 @@ var tpl *template.Template
 const (
 	httpConnTimeout = 160
 	port            = 3333
+
 	// notifyRoute is a route used for general notifications.
 	notifyRoute = "notify"
+
 	// The basis for content-security-policy. connect-src must be the final
 	// directive so that it can be reliably supplemented on startup.
 	baseCSP = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
 )
 
+type Asset struct {
+	Name       string        `json:"name"`
+	Item       currency.Item `json:"item"`
+	AssocChain string        `json:"chain"`
+	Code       currency.Code `json:"code"`
+	Exchange   string        `json:"exchange"`
+	Address    string        `json:"address"`
+	Balance    string        `json:"balance"`
+	Rate       float64       `json:"rate"`
+}
+
 func init() {
-	//lvl, _ := logrus.ParseLevel("debug")
-	//logrus.SetLevel(lvl)
+	// lvl, _ := logrus.ParseLevel("debug")
+	// logrus.SetLevel(lvl)
 	tpl = template.Must(template.ParseGlob("site/html/*.html"))
 }
 
@@ -41,10 +55,12 @@ func init() {
 // The RequestId middleware handles uuid generation for each request and setting it to Mux context.
 // Middleware that will automatically refresh the user's token and pass it to requests.
 // Mount router to our main router. Route matches with api/* will be bind to api router.
-// We have defined apiSubrouter function, which we used to get our api router with extended middleware, which creates with two more middleware:
+// We have defined apiSubrouter function, which we used to get our api router with extended middleware,
+// which creates with two more middleware:
 // apiSubrouter function is same as func subrouter addition which generates a new router for each sub route.
 // Finally, Start to serve on defined port localhost:port and listenAndServe does block of function.
-// In interrupt handler we handle SIGINT and terminate gracefully and Logs which contain a success message end node's process.is. Rest of errors are loggued.
+// In interrupt handler we handle SIGINT and terminate gracefully
+// and Logs which contain a success message end node's process.is. Rest of errors are logged.
 func New() {
 	r := chi.NewRouter()
 
@@ -58,12 +74,19 @@ func New() {
 	chiCors := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           900, // Maximum value not ignored by any of major browsers
 	})
+
 	r.Use(chiCors.Handler)
 
 	r.Get("/", HomeHandler)
@@ -84,10 +107,10 @@ func New() {
 		WriteTimeout: httpConnTimeout * (time.Second * 30),
 	}
 
-	err := httpServer.ListenAndServe()
-	if err != nil {
+	if err := httpServer.ListenAndServe(); err != nil {
 		logrus.Errorf("failed to start listening: %v", err)
 	}
+
 	logrus.Infof("start listening")
 }
 
@@ -100,15 +123,15 @@ func apiSubrouter() http.Handler {
 		log.Println("brrrrr")
 	})
 
-	//r.Get("/accounts", func(w http.ResponseWriter, r *http.Request) {
+	// r.Get("/accounts", func(w http.ResponseWriter, r *http.Request) {
 	//	engine.RESTGetAllEnabledAccountInfo(w, r)
-	//})
+	// })
 
 	r.Route("/deposit/{exchange}/{asset}", func(r chi.Router) {
 		r.Use(DepositAddressCtx)
 		r.Get("/", getDepositAddress)
-		//r.Use(BalanceCtx)
-		//r.Get("/address", getBalance)
+		// r.Use(BalanceCtx)
+		// r.Get("/address", getBalance)
 	})
 
 	r.Route("/withdraw/{exchange}/{asset}/{size}/{destinationAddress}", func(r chi.Router) {
@@ -150,15 +173,4 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
 		logrus.Errorf("error template: %s\n", err)
 	}
-}
-
-type Asset struct {
-	Name       string        `json:"name"`
-	Item       currency.Item `json:"item"`
-	AssocChain string        `json:"chain"`
-	Code       currency.Code `json:"code"`
-	Exchange   string        `json:"exchange"`
-	Address    string        `json:"address"`
-	Balance    string        `json:"balance"`
-	Rate       float64       `json:"rate"`
 }
