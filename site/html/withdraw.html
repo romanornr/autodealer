@@ -38,7 +38,10 @@
                     <span class="input-group-text">Amount</span>
                     <input type="number" class="form-control" id="amount" v-model="amount" step="any">
                 </div>
-                    <button type="submit" class="btn btn-primary" :disabled="isDisabled">Transfer</button>
+                    <button class="btn btn-primary" type="submit" :disabled="loading">
+                        <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span v-if="loading">Loading...</span><span v-else>Transfer</span>
+                    </button>
                 </form>
 
                 <br>
