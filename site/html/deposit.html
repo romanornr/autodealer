@@ -22,7 +22,11 @@
                         <input type="input" class="form-control" id="assetName" v-model="assetName" aria-describedby="assetInput" min="0" autocomplete="off">
                         <div id="assetInput" class="form-text">ETH</div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Deposit</button>
+
+                    <button class="btn btn-primary" type="submit" :disabled="loading">
+                        <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span v-if="loading">Loading...</span><span v-else>Deposit</span>
+                    </button>
                 </form>
                 <br>
 
