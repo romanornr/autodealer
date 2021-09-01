@@ -24,9 +24,12 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Deposit</button>
                 </form>
-                <div v-if="loading" class="loading">
-                    Loading...
+                <br>
+
+                <div v-if="loading" class="spinner-border text-primary" role="status">
+                    <span class="sr-only"></span>
                 </div>
+
                 <div v-if="error" class="error">
                     ${ error }
                 </div>
