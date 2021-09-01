@@ -2,6 +2,11 @@ package webserver
 
 import (
 	"context"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/romanornr/autodealer/dealer"
@@ -11,16 +16,18 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
 	"gopkg.in/errgo.v2/fmt/errors"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
-// ExchangeWithdrawResponse is a struct that is designed to represent the response from the ExchangesWithdrawals API call. ExchangesWithdrawals is a simple function which returns deposit, withdraw, trade and withdrawal information so we will only add the information there which we are interested in:
-// ExchangesResponse is a struct that includes information about the request as well as the response, we're only interested in the response hence why we've added resp.
-// We've used the Withdrawal struct as that is the response from the exchange (withdraw.ExchangeResponse). The Exchange key is the exchange used to make the request.
-// The Type key represents the type of information requested in the Call function. The DestinationAddress is the address the withdrawal was sent to if the request used the DepositAddress field.
+// ExchangeWithdrawResponse is a struct that is designed to represent
+// the response from the ExchangesWithdrawals API call.
+// ExchangesWithdrawals is a simple function which returns deposit, withdraw,
+// trade and withdrawal information so we will only add the information there which we are interested in:
+// ExchangesResponse is a struct that includes information about the request as well as the response,
+// we're only interested in the response hence why we've added resp.
+// We've used the Withdrawal struct as that is the response from the exchange (withdraw.ExchangeResponse).
+// The Exchange key is the exchange used to make the request.
+// The Type key represents the type of information requested in the Call function.
+// The DestinationAddress is the address the withdrawal was sent to if the request used the DepositAddress field.
 // The Time key is when the request was made and the Err field returns errors if any occurred.
 type ExchangeWithdrawResponse struct {
 	ExchangeResponse   *withdraw.ExchangeResponse
@@ -67,7 +74,9 @@ func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
 		return
 	}
+
 	render.Render(w, r, exchangeResponse)
+
 	return
 }
 
@@ -79,9 +88,9 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		var err error
 		assetInfo := new(Asset)
 
-		dealer, err := dealer.New(engine.Settings{})
+		d, err := dealer.New(engine.Settings{})
 		if err != nil {
-			logrus.Errorf("failed to create dealer %s\n", err)
+			logrus.Errorf("failed to create a dealer %s\n", err)
 		}
 
 		exchangeNameReq := chi.URLParam(request, "exchange")
@@ -97,9 +106,9 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		assetInfo.Code.Item.Role = currency.Cryptocurrency
 
-		exchangeEngine, err := dealer.ExchangeManager.GetExchangeByName(exchangeNameReq)
+		exchangeEngine, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
-			logrus.Errorf("Failed to return exchange %s\n", err)
+			logrus.Errorf("failed to return exchange %s\n", err)
 		}
 
 		wi := &withdraw.Request{
@@ -114,7 +123,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 			},
 		}
 
-		response := transfer.CreateExchangeWithdrawResponse(wi, &dealer.ExchangeManager)
+		response := transfer.CreateExchangeWithdrawResponse(wi, &d.ExchangeManager)
 
 		logrus.Infof("exchange withdraw response %v", response)
 		ctx := context.WithValue(request.Context(), "response", &response)

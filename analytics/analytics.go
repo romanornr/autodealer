@@ -2,6 +2,9 @@ package analytics
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/go-echarts/go-echarts/charts"
 	"github.com/jinzhu/now"
 	"github.com/sirupsen/logrus"
@@ -10,14 +13,12 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
 	"gonum.org/v1/gonum/stat"
-	"os"
-	"strconv"
 )
 
 // TODO IGNORE FOR NOW
 
 func GetSummary(pair currency.Pair, outputChart bool, forceBTC bool) {
-	//defer timeTrack(time.Now(), "sum")
+	// defer timeTrack(time.Now(), "sum")
 
 	exchange, _ := engine.Bot.GetExchangeByName("Binance")
 	var err error
@@ -26,8 +27,8 @@ func GetSummary(pair currency.Pair, outputChart bool, forceBTC bool) {
 		exchange.SetPairs(currency.Pairs{pair}, asset.Spot, true)
 	}
 
-	//dailyOpen := time.Now().Add(-24 * time.Hour)
-	//yesterdayOpen := time.Date(dailyOpen.Year(), dailyOpen.Month(), dailyOpen.Day(), 1, 0, 0, 0, dailyOpen.Location())
+	// dailyOpen := time.Now().Add(-24 * time.Hour)
+	// yesterdayOpen := time.Date(dailyOpen.Year(), dailyOpen.Month(), dailyOpen.Day(), 1, 0, 0, 0, dailyOpen.Location())
 
 	klines, err := exchange.GetHistoricCandles(pair, asset.Spot, now.BeginningOfWeek(), now.EndOfDay(), kline.FifteenMin)
 	if err != nil {

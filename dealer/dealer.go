@@ -2,6 +2,8 @@ package dealer
 
 import (
 	"errors"
+	"sync"
+
 	"github.com/romanornr/autodealer/util"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/common"
@@ -10,7 +12,6 @@ import (
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
-	"sync"
 )
 
 var ErrOrdersAlreadyExists = errors.New("order already exists")
@@ -137,7 +138,7 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 		exchCfg.CurrencyPairs != nil {
 		assets := exchCfg.CurrencyPairs.GetAssetTypes(false)
 		ShowAssetTypes(assets, exchCfg)
-		//for x := range assets {
+		// for x := range assets {
 		//	var pairs currency.Pairs
 		//	pairs, err = exchCfg.CurrencyPairs.GetPairs(assets[x], false)
 		//	if err != nil {
@@ -148,7 +149,7 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 		//		return err
 		//	}
 		//	exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
-		//}
+		// }
 	}
 
 	if bot.Settings.EnableExchangeVerbose {

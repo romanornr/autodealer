@@ -5,13 +5,14 @@
 package webserver
 
 import (
-	"github.com/go-chi/render"
 	"net/http"
+
+	"github.com/go-chi/render"
 )
 
-//--
+// --
 // Error response payloads & renderers
-//--
+// --
 
 // ErrResponse renderer type for handling all sorts of errors.
 //

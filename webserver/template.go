@@ -2,11 +2,12 @@ package webserver
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"html/template"
 	"net/url"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type pageTemplate struct {

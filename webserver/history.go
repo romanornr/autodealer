@@ -2,14 +2,15 @@ package webserver
 
 import (
 	"context"
+	"net/http"
+	"strings"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"net/http"
-	"strings"
 )
 
 func (history WithdrawHistoryResponse) Render(w http.ResponseWriter, r *http.Request) error {
