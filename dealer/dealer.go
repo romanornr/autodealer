@@ -80,6 +80,19 @@ func New(settings engine.Settings) (*Dealer, error) {
 	return dealer, nil
 }
 
+func (d *Dealer) Run() {
+	var wg sync.WaitGroup
+	for _, x := range d.ExchangeManager.GetExchanges() {
+		wg.Add(1)
+		go func(x exchange.IBotExchange) {
+			defer wg.Done()
+			err := Stream(d, x)
+			panic(err)
+		}(x)
+	}
+	wg.Wait()
+}
+
 // GCTLog struct has functions for each log type - the Warnf(), Errorf(), and Debugf() functions. The LoadExchange() method for Keep wants an *out log pointer of GCTLog type.
 // The bot variable is an interface which does not contain a struct that has methods for each log type and variable has to be changed to a struct for GCTLog type or a new struct needs to be created that has functions for each log type and use that as the input for LoadExchange().
 // For this code, it is preferred that GCTLog struct is changed to a struct of a log type

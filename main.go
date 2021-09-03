@@ -21,10 +21,11 @@ func init() {
 func main() {
 	go func() {
 		settings, _ := flagparser.DefaultEngineSettings()
-		_, err := dealer.New(settings)
+		d, err := dealer.New(settings)
 		if err != nil {
 			logrus.Errorf("failed to load settings dealer: %s\n", err)
 		}
+		d.Run()
 	}()
 	go webserver.New()
 	interrupt := signaler.WaitForInterrupt()
