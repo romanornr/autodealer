@@ -53,6 +53,8 @@ func ErrWithdawRender(err error) render.Renderer {
 	}
 }
 
+
+
 // WithdrawHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
 // The second argument will be the file named deposit.html inside the folder templates.
 // The function can now be used as part of the router by adding the path to the function.

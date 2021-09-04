@@ -34,6 +34,15 @@ func Stream(d *Dealer, e exchange.IBotExchange) error {
 		panic("unexpected end of channel")
 }
 
+// 1.Make sure the exchange can do websockets
+// 2. Make sure the exchange has websockets enabled
+// 3. Get the bridge to the exchange
+// 4. Connect
+// 5. FlushChannels
+
+// OpenWebsocket checks if the client is sending a query to the interface instance, blocking on a channel, which was a select on a chan
+// while the bolt process has a rule queuing, while the rest of the engine while be blocked on a chan
+// So, non-blocking options were applied to get a non-blocked client and a non-blocked engine.
 func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
 	if !e.IsWebsocketEnabled() {
 		return nil, ErrWebsocketNotEnabled
