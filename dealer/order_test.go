@@ -1,7 +1,6 @@
 package dealer
 
 import (
-	"fmt"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"testing"
 )
@@ -15,8 +14,7 @@ func TestOrderRegistry(t *testing.T) {
 	r := NewOrderRegistry()
 	r.Store("ftx", response, nil)
 
-	orderValue, found := r.GetOrderValue("ftx", orderID)
-	fmt.Println(found)
+	orderValue, _ := r.GetOrderValue("ftx", orderID)
 	if orderValue.SubmitResponse.OrderID != orderID {
 		t.Logf("error should %s, but got %s\n", orderID, orderValue.SubmitResponse.OrderID)
 
@@ -24,11 +22,62 @@ func TestOrderRegistry(t *testing.T) {
 
 	if orderValue.UserData != orderID {
 		t.Logf("error should %s, but got %s\n", orderID, orderValue.SubmitResponse.OrderID)
-
 	}
 
 	if r.length != 1 {
 		t.Errorf("Order Registry length count not incremented correctly")
+		t.Failed()
+	}
+}
+
+
+func TestOrderRegistryDuplicate(t *testing.T) {
+	orderID := "fake-order-id2"
+	response := order.SubmitResponse{
+		OrderID:       orderID,
+		IsOrderPlaced: true,
+	}
+
+	r := NewOrderRegistry()
+	duplicate := r.Store("ftx", response, nil)
+	if duplicate {
+		t.Failed()
+	}
+
+	if r.length != 1 {
+		t.Errorf("Order Registry length count not incremented correctly")
+		t.Failed()
+	}
+
+	duplicate2 := r.Store("ftx", response, nil)
+	if duplicate2 == true {
+		t.Logf("failed")
+		t.Failed()
+	}
+
+	if r.length != 1 {
+		t.Errorf("Order Registry length count not incremented correctly")
+		t.Failed()
+	}
+}
+
+func TestOrderRegistryGetExistingValue(t *testing.T) {
+	r := NewOrderRegistry()
+	response := order.SubmitResponse{
+		OrderID:       "fake-order-id",
+		IsOrderPlaced: true,
+	}
+
+	r.Store("ftx", response, nil)
+
+	storedOrder, ok := r.GetOrderValue("ftx", "fake-order-id")
+	if !ok {
+		t.Error("order not found")
+		t.Failed()
+	}
+
+	if response.IsOrderPlaced != storedOrder.SubmitResponse.IsOrderPlaced {
+		t.Error("components mismatch")
 		t.Failed()
 	}
 }
