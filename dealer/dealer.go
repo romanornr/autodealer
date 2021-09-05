@@ -54,6 +54,8 @@ type Dealer struct {
 // 5. Dealer will request a new initialization every time a new Dealer object has been initiated with a new root strategy
 // 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
 
+// New returns a fully configured engine dealer
+// accessible by the provided settings.
 func New(settings engine.Settings) (*Dealer, error) {
 	settings.ConfigFile = util.ConfigFile(settings.ConfigFile)
 	var conf config.Config
@@ -80,6 +82,8 @@ func New(settings engine.Settings) (*Dealer, error) {
 	return dealer, nil
 }
 
+// Run starts the bot manager, streams every exchange for this bot
+// assuming all data providers are ready
 func (d *Dealer) Run() {
 	var wg sync.WaitGroup
 	for _, x := range d.ExchangeManager.GetExchanges() {
@@ -275,9 +279,8 @@ func ShowAssetTypes(assets asset.Items, exchCfg *config.ExchangeConfig) {
 // The idea is to have control over what settings are enabled and which ones are not.
 // defer wg.Done() statement is to finish executing the go-routine once the for loop has finished. This is important if we are going to do more than one iteration of the loop with different exchanges.
 
-// SetupExchanges is a function that sets up the exchanges
-// It takes in a GCTLog struct
-// It returns an error
+// SetupExchanges sets up supported exchanges and sets exchange to ready state ready for polling.
+// This function is the entry point all the top level functions in SetupExchange() will be invoked from.
 func (bot *Dealer) SetupExchanges(gctlog GCTLog) error {
 	var wg sync.WaitGroup
 	configs := bot.Config.GetAllExchangeConfigs()
