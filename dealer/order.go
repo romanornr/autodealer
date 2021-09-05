@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"sync"
 	"sync/atomic"
@@ -8,46 +9,42 @@ import (
 
 type OrderKey struct {
 	ExchangeName string
-	OrderID string
+	OrderID      string
 }
 
 type OrderValue struct {
 	SubmitResponse order.SubmitResponse
-	userData interface{}
- }
-
-//type OrderRegistry struct {
-//	length int32
-//	values sync.Map
-//}
+	UserData       interface{}
+}
 
 type OrderRegistry struct {
 	length int32
-	values map[string]*OrderKey
-	Mutex sync.RWMutex
+	values sync.Map
+	Mutex  sync.RWMutex
 }
 
 func NewOrderRegistry() *OrderRegistry {
 	return &OrderRegistry{
 		length: 0,
-		values: make(map[string]*OrderKey),
+		values: sync.Map{},
 		Mutex:  sync.RWMutex{},
 	}
 }
 
-func (r *OrderRegistry) Store(exchangeName string, response order.SubmitResponse, userdata interface{}) bool {
+func (r *OrderRegistry) Store(exchangeName string, response order.SubmitResponse, userData interface{}) bool {
 	key := OrderKey{
 		ExchangeName: exchangeName,
 		OrderID:      response.OrderID,
 	}
-	r.Mutex.Lock()
-	if _, loaded := r.values[key.OrderID]; !loaded {
-		r.values[key.OrderID] = &key
-		r.Mutex.Unlock()
-		atomic.AddInt32(&r.length, 1)
-		return true
+	value := OrderValue{
+		SubmitResponse: response,
+		UserData:       userData,
 	}
-	r.Mutex.Unlock()
+
+	if _, loaded := r.values.LoadOrStore(key, value); !loaded {
+		atomic.AddInt32(&r.length, 1)
+		return loaded
+	}
 	return false
 }
 
@@ -56,18 +53,20 @@ func (r *OrderRegistry) GetOrderValue(exchangeName, orderID string) (OrderValue,
 		ExchangeName: exchangeName,
 		OrderID:      orderID,
 	}
-	r.Mutex.RLock()
-	defer r.Mutex.RUnlock()
-	val, ok := r.values[key.OrderID]
-	if !ok {
-		return OrderValue{}, ok
+
+	var (
+		ok   bool
+		val  interface{}
+		want OrderValue
+	)
+
+	val, ok = r.values.Load(key)
+
+	if ok {
+		want, ok = val.(OrderValue)
+		if !ok {
+			logrus.Fatalf("have %T, want OrderValue", val)
+		}
 	}
-
-	return OrderValue{
-		SubmitResponse: order.SubmitResponse{},
-		userData:       val.UserData,
- 	}, true
+	return want, ok
 }
-
-
-
