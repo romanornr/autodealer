@@ -17,12 +17,17 @@ type OrderValue struct {
 	UserData       interface{}
 }
 
+// An OrderRegistry is a struct for keeping track of bookings; it has two
+// exported properties: 'length' and 'values'.
+// OrderRegistry is safe for concurrent use by multiple goroutines.
 type OrderRegistry struct {
 	length int32
 	values sync.Map
 	Mutex  sync.RWMutex
 }
 
+// NewOrderRegistry creates a new OrderRegistry
+// Short is unique per unique song id. This is the only value stored, so it is guaranteed to be unique
 func NewOrderRegistry() *OrderRegistry {
 	return &OrderRegistry{
 		length: 0,
@@ -31,6 +36,9 @@ func NewOrderRegistry() *OrderRegistry {
 	}
 }
 
+// Store Stores an order.submit response in the order registry. If the response already exists in
+// the order registry it is not stored again. Returns `true` if an order value was stored in
+// the registry and `false` otherwise.
 func (r *OrderRegistry) Store(exchangeName string, response order.SubmitResponse, userData interface{}) bool {
 	key := OrderKey{
 		ExchangeName: exchangeName,
@@ -48,6 +56,8 @@ func (r *OrderRegistry) Store(exchangeName string, response order.SubmitResponse
 	return false
 }
 
+// GetOrderValue returns the order value for the given exchange name and
+// order ID, or false if it's not found. Sees to that the type assertion is valid.
 func (r *OrderRegistry) GetOrderValue(exchangeName, orderID string) (OrderValue, bool) {
 	key := OrderKey{
 		ExchangeName: exchangeName,
