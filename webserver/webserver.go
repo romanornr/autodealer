@@ -114,8 +114,7 @@ func New() {
 	logrus.Infof("start listening")
 }
 
-// A completely separate router for API routes
-//
+// apiSubrouter is identical to apiSubrouter but only returns the generic response object
 func apiSubrouter() http.Handler {
 	r := chi.NewRouter()
 

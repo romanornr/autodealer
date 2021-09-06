@@ -19,10 +19,10 @@ func bankTransferHandler(w http.ResponseWriter, r *http.Request) {
 
 func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	exchangeResponse, ok := ctx.Value("response").(*ExchangeWithdrawResponse)
+	exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse)
 	if !ok {
 		http.Error(w, http.StatusText(422), 422)
-		render.Render(w, r, ErrWithdawRender(errors.Newf("kraken international bank account request failed CTX")))
+		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("kraken international bank account request failed CTX")))
 		return
 	}
 
@@ -39,7 +39,7 @@ func BankTransferCtx(next http.Handler) http.Handler {
 		response, err := transfer.KrakenInternationalBankAccountWithdrawal()
 		if err != nil {
 			logrus.Errorf("Failed to get bank account transfer: %s\n", err)
-			render.Render(w, request, ErrWithdawRender(err))
+			render.Render(w, request, transfer.ErrWithdawRender(err))
 			return
 		}
 

@@ -38,20 +38,20 @@ type ExchangeWithdrawResponse struct {
 	Err                error                `json:"err"`
 }
 
-// Render exchangeWithdrawResponse implements the error interface to show the user an error occured if exchangeWithdrawRequest returns an error.
-func (e ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	e.Time = time.Now()
-	return e.Err
-}
+//// Render exchangeWithdrawResponse implements the error interface to show the user an error occured if exchangeWithdrawRequest returns an error.
+//func (e transfer.ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request) error {
+//	e.Time = time.Now()
+//	return e.Err
+//}
 
 // ErrWithdawRender as JSON if err is not nil.
 // If err is nil, then Render http.StatusOK. If err then Render an Error response if it implements AbsError we log the error message.
 // If it does not implement AbsError we log to err type.
-func ErrWithdawRender(err error) render.Renderer {
-	return &ExchangeWithdrawResponse{
-		Err: err,
-	}
-}
+//func ErrWithdawRender(err error) render.Renderer {
+//	return &ExchangeWithdrawResponse{
+//		Err: err,
+//	}
+//}
 
 
 
@@ -70,10 +70,11 @@ func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 // expected for what the function defines.
 func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	exchangeResponse, ok := ctx.Value("response").(*ExchangeWithdrawResponse) // TODO fix
+	exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse) // TODO fix
 	if !ok {
+		logrus.Errorf("Got unexpected response %T instead of *ExchangeWithdrawResponse", exchangeResponse)
 		http.Error(w, http.StatusText(422), 422)
-		render.Render(w, r, ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
+		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
 		return
 	}
 
@@ -81,6 +82,7 @@ func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 
 	return
 }
+
 
 // WithdrawCtx is an HTTP handler function which stores the request input with the help of chi.URLParams get method
 // in the response and call the createExchangeWithdrawResponse to create an exchange withdrawal transaction
@@ -102,7 +104,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		size, err := strconv.ParseFloat(sizeReq, 64)
 		if err != nil {
 			logrus.Errorf("failed to parse size %s\n", err) // 3.14159265
-			render.Render(w, request, ErrWithdawRender(err))
+			render.Render(w, request, transfer.ErrWithdawRender(err))
 		}
 
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
