@@ -2,7 +2,9 @@ package dealer
 
 import (
 	"errors"
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/romanornr/autodealer/util"
 	"github.com/sirupsen/logrus"
@@ -16,7 +18,98 @@ import (
 
 var ErrOrdersAlreadyExists = errors.New("order already exists")
 
-// Dealer If this property in the program that shows the demand of a crypto on an exchange
+type (
+	AugmentConfigFunc func(config2 *config.Config) error
+)
+
+type DealerBuilder struct {
+	augment            AugmentConfigFunc
+	balanceRefreshRate time.Duration
+	//factory            ExchangeFactory
+	settings           engine.Settings
+}
+
+// NewDealerBuilder returns a new or configured keep builder
+func NewDealerBuilder() *DealerBuilder {
+	var settings engine.Settings
+	return &DealerBuilder{
+		augment:            nil,
+		balanceRefreshRate: 0,
+		settings:           settings,
+	}
+}
+
+// Augment augments the exposed functions of the generated service interface, change this to modify the exposed service definition
+func (b *DealerBuilder) Augment(f AugmentConfigFunc) *DealerBuilder {
+	b.augment = f
+	return b
+}
+
+func (b *DealerBuilder) Balances(refresh time.Duration) *DealerBuilder {
+	b.balanceRefreshRate = refresh
+	return b
+}
+
+//func (b *DealerBuilder) CustomExchange(name string, fn ExchangeCreatorFunc) {
+//	b.factory.Register(name, fn)
+//	return b
+//}
+
+func (b *DealerBuilder) Settings(s engine.Settings) *DealerBuilder {
+	b.settings = s
+	return b
+}
+
+// Build constructs a new dealer from a provides settings template argument. In case the provided template is nil, a default template will be used as a starting point.
+// In both cases the template config file the read from filepath. If the filepath can not be read, it may be imported from the directory.
+// Only if no filepath is provided, filepath.DefaultConfig will be used as an initial config for this dealer
+// If the template is a zero value but non nil, a default template will be returned. If the template config is non-zero, it will be constructed from template itself.
+// In case the template config can't be successfully constructed, an error will be returned. Along with a resulting *Dealer instance
+// This function will also return an error.
+func (b DealerBuilder) Build() (*Dealer, error) {
+	b.settings.ConfigFile = util.ConfigFile(b.settings.ConfigFile)
+	filePath, err := config.GetAndMigrateDefaultPath(b.settings.ConfigFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		conf   config.Config
+		dealer = &Dealer{
+			Settings:        b.settings,
+			Config:          conf,
+			ExchangeManager: *engine.SetupExchangeManager(),
+			registry:        *NewOrderRegistry(),
+			//WithdrawManager: engine.WithdrawManager{},
+		}
+	)
+
+	if b.balanceRefreshRate > 0 {
+		// balance sttrategy
+	}
+
+	logrus.Infof("loading configuration file %s\n", filePath)
+	if err := dealer.Config.ReadConfigFromFile(filePath, b.settings.EnableDryRun); err != nil {
+		return nil, err
+	}
+
+	// Optionally augment config.
+	if b.augment != nil {
+		if err := b.augment(&dealer.Config); err != nil {
+			return dealer, err
+		}
+	}
+
+	// Assign custom exchange builder.
+	dealer.ExchangeManager.Builder = b.factory
+
+	// Create and setup exchanges.
+	if err := dealer.setupExchanges(GCTLog{nil}); err != nil {
+		return dealer, err
+	}
+
+	return dealer, nil
+}
 
 // Dealer is the main struct for the dealer
 // It contains the root strategy, the settings, the config, the exchange manager, and the order registry
@@ -26,7 +119,7 @@ type Dealer struct {
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager
 	WithdrawManager engine.WithdrawManager
-	// registry OrderRegistry
+	registry        OrderRegistry
 }
 
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
@@ -54,33 +147,33 @@ type Dealer struct {
 // 5. Dealer will request a new initialization every time a new Dealer object has been initiated with a new root strategy
 // 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
 
-// New returns a fully configured engine dealer
-// accessible by the provided settings.
-func New(settings engine.Settings) (*Dealer, error) {
-	settings.ConfigFile = util.ConfigFile(settings.ConfigFile)
-	var conf config.Config
-	dealer := &Dealer{
-		Settings:        engine.Settings{},
-		Config:          conf,
-		ExchangeManager: *engine.SetupExchangeManager(),
-		WithdrawManager: engine.WithdrawManager{},
-	}
-	filePath, err := config.GetAndMigrateDefaultPath(dealer.Settings.ConfigFile)
-	if err != nil {
-		return dealer, err
-	}
-	logrus.Infof("Loading configuration from %s", filePath)
-
-	if err := dealer.Config.ReadConfigFromFile(filePath, dealer.Settings.EnableDryRun); err != nil {
-		return dealer, err
-	}
-
-	if err := dealer.SetupExchanges(GCTLog{nil}); err != nil {
-		return dealer, err
-	}
-
-	return dealer, nil
-}
+//// New returns a fully configured engine dealer
+//// accessible by the provided settings.
+//func New(settings engine.Settings) (*Dealer, error) {
+//	settings.ConfigFile = util.ConfigFile(settings.ConfigFile)
+//	var conf config.Config
+//	dealer := &Dealer{
+//		Settings:        engine.Settings{},
+//		Config:          conf,
+//		ExchangeManager: *engine.SetupExchangeManager(),
+//		WithdrawManager: engine.WithdrawManager{},
+//	}
+//	filePath, err := config.GetAndMigrateDefaultPath(dealer.Settings.ConfigFile)
+//	if err != nil {
+//		return dealer, err
+//	}
+//	logrus.Infof("Loading configuration from %s", filePath)
+//
+//	if err := dealer.Config.ReadConfigFromFile(filePath, dealer.Settings.EnableDryRun); err != nil {
+//		return dealer, err
+//	}
+//
+//	if err := dealer.setupExchanges(GCTLog{nil}); err != nil {
+//		return dealer, err
+//	}
+//
+//	return dealer, nil
+//}
 
 // Run starts the bot manager, streams every exchange for this bot
 // assuming all data providers are ready
@@ -95,6 +188,27 @@ func (d *Dealer) Run() {
 		}(x)
 	}
 	wg.Wait()
+}
+
+// GetOrderValue function retrieves order details from the given bot's store.
+func (bot *Dealer) GetOrderValue(exchangeName, orderID string) (OrderValue, bool) {
+	return bot.registry.GetOrderValue(exchangeName, orderID)
+}
+
+// getExchange function returns an interface to IBotExchange from either an instance or a name of an exchange
+func (bot *Dealer) getExchange(x interface{}) exchange.IBotExchange {
+	switch x := x.(type) {
+	case exchange.IBotExchange:
+		return x
+	case string:
+		e, err := bot.ExchangeManager.GetExchangeByName(x)
+		if err != nil {
+			panic(fmt.Sprintf("unable to find %s exchange\n", x))
+		}
+		return e
+	default:
+		panic("exchangeOrName should be either an instance of exchange.IBotExchange or a string\n")
+	}
 }
 
 // GCTLog struct has functions for each log type - the Warnf(), Errorf(), and Debugf() functions. The LoadExchange() method for Keep wants an *out log pointer of GCTLog type.
@@ -271,17 +385,9 @@ func ShowAssetTypes(assets asset.Items, exchCfg *config.ExchangeConfig) {
 	}
 }
 
-// SetupExchanges will setup all the servers that are needed to log transactions on an exchange.
-// The first thing is initialize sync.WaitGroup. The WaitGroup is used to wait for a group of go-routines to finish before continuing.
-// Serialize section also has a WaitGroup, but it does not have a defer wg.Done statement.
-// If there was no gesture like this at the end of the "for x:" loop the process would be unresponsive because it would not wait for the others go-routines to finish.
-// The "admin" bot will try to get a list of all exchanges and look for any that say they are disabled. If an exchange is disabled, the bot will not load it.
-// The idea is to have control over what settings are enabled and which ones are not.
-// defer wg.Done() statement is to finish executing the go-routine once the for loop has finished. This is important if we are going to do more than one iteration of the loop with different exchanges.
-
-// SetupExchanges sets up supported exchanges and sets exchange to ready state ready for polling.
+// setupExchanges sets up supported exchanges and sets exchange to ready state ready for polling.
 // This function is the entry point all the top level functions in SetupExchange() will be invoked from.
-func (bot *Dealer) SetupExchanges(gctlog GCTLog) error {
+func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
 	var wg sync.WaitGroup
 	configs := bot.Config.GetAllExchangeConfigs()
 
