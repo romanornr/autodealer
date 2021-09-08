@@ -38,13 +38,15 @@ func (e ExchangeFactory) NewExchangeByName(name string) (exchange.IBotExchange, 
 		return nil, ErrCreatorNotRegistered
 	}
 
-	// Get the newly created exchange
-	newExchange, err := fn()
-	if err != nil {
-		return nil, err
-	}
+	return fn()
 
-	return newExchange, err
+	//// Get the newly created exchange
+	//newExchange, err := fn()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//return newExchange, err
 }
 
 
