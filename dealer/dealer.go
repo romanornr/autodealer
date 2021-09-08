@@ -22,17 +22,17 @@ type (
 	AugmentConfigFunc func(config2 *config.Config) error
 )
 
-type DealerBuilder struct {
+type Builder struct {
 	augment            AugmentConfigFunc
 	balanceRefreshRate time.Duration
-	//factory            ExchangeFactory
+	factory            ExchangeFactory
 	settings           engine.Settings
 }
 
 // NewDealerBuilder returns a new or configured keep builder
-func NewDealerBuilder() *DealerBuilder {
+func NewDealerBuilder() *Builder {
 	var settings engine.Settings
-	return &DealerBuilder{
+	return &Builder{
 		augment:            nil,
 		balanceRefreshRate: 0,
 		settings:           settings,
@@ -40,12 +40,12 @@ func NewDealerBuilder() *DealerBuilder {
 }
 
 // Augment augments the exposed functions of the generated service interface, change this to modify the exposed service definition
-func (b *DealerBuilder) Augment(f AugmentConfigFunc) *DealerBuilder {
+func (b *Builder) Augment(f AugmentConfigFunc) *Builder {
 	b.augment = f
 	return b
 }
 
-func (b *DealerBuilder) Balances(refresh time.Duration) *DealerBuilder {
+func (b *Builder) Balances(refresh time.Duration) *Builder {
 	b.balanceRefreshRate = refresh
 	return b
 }
@@ -55,7 +55,7 @@ func (b *DealerBuilder) Balances(refresh time.Duration) *DealerBuilder {
 //	return b
 //}
 
-func (b *DealerBuilder) Settings(s engine.Settings) *DealerBuilder {
+func (b *Builder) Settings(s engine.Settings) *Builder {
 	b.settings = s
 	return b
 }
@@ -66,7 +66,7 @@ func (b *DealerBuilder) Settings(s engine.Settings) *DealerBuilder {
 // If the template is a zero value but non nil, a default template will be returned. If the template config is non-zero, it will be constructed from template itself.
 // In case the template config can't be successfully constructed, an error will be returned. Along with a resulting *Dealer instance
 // This function will also return an error.
-func (b DealerBuilder) Build() (*Dealer, error) {
+func (b Builder) Build() (*Dealer, error) {
 	b.settings.ConfigFile = util.ConfigFile(b.settings.ConfigFile)
 	filePath, err := config.GetAndMigrateDefaultPath(b.settings.ConfigFile)
 	if err != nil {
