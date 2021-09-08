@@ -1,18 +1,9 @@
 package dealer
 
-import (
-	"github.com/thrasher-corp/gocryptotrader/engine"
-	"testing"
-)
+//func TestBuild(t *testing.T) {
+//	d, _ := NewBuilder().Build()
+//	//Root.Add("verbose", VerboseStrategy{}) //nolint:exhaustiveness
+//	d.Run()
+//}
 
-func TestSetupExchanges(t *testing.T) {
-	t.Log("Setup")
 
-	var settings engine.Settings
-	_, err := New(settings)
-	if err != nil {
-		t.Errorf("Failed to create dealer: %s\n", err)
-	}
-
-	t.Log("SetupExchanges succeeded.")
-}

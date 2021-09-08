@@ -29,8 +29,8 @@ type Builder struct {
 	settings           engine.Settings
 }
 
-// NewDealerBuilder returns a new or configured keep builder
-func NewDealerBuilder() *Builder {
+// NewBuilder returns a new or configured keep builder
+func NewBuilder() *Builder {
 	var settings engine.Settings
 	return &Builder{
 		augment:            nil,
