@@ -6,7 +6,6 @@ package main
 
 import (
 	"github.com/romanornr/autodealer/dealer"
-	"github.com/romanornr/autodealer/flagparser"
 	"github.com/romanornr/autodealer/webserver"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
@@ -20,10 +19,10 @@ func init() {
 
 func main() {
 	go func() {
-		settings, _ := flagparser.DefaultEngineSettings()
-		d, err := dealer.New(settings)
+		b := dealer.NewBuilder()
+		d, err := b.Build()
 		if err != nil {
-			logrus.Errorf("failed to load settings dealer: %s\n", err)
+			logrus.Errorf("Failed to build builder: %v\n", err)
 		}
 		d.Run()
 	}()
