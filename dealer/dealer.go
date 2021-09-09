@@ -147,34 +147,6 @@ type Dealer struct {
 // 5. Dealer will request a new initialization every time a new Dealer object has been initiated with a new root strategy
 // 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
 
-//// New returns a fully configured engine dealer
-//// accessible by the provided settings.
-//func New(settings engine.Settings) (*Dealer, error) {
-//	settings.ConfigFile = util.ConfigFile(settings.ConfigFile)
-//	var conf config.Config
-//	dealer := &Dealer{
-//		Settings:        engine.Settings{},
-//		Config:          conf,
-//		ExchangeManager: *engine.SetupExchangeManager(),
-//		WithdrawManager: engine.WithdrawManager{},
-//	}
-//	filePath, err := config.GetAndMigrateDefaultPath(dealer.Settings.ConfigFile)
-//	if err != nil {
-//		return dealer, err
-//	}
-//	logrus.Infof("Loading configuration from %s", filePath)
-//
-//	if err := dealer.Config.ReadConfigFromFile(filePath, dealer.Settings.EnableDryRun); err != nil {
-//		return dealer, err
-//	}
-//
-//	if err := dealer.setupExchanges(GCTLog{nil}); err != nil {
-//		return dealer, err
-//	}
-//
-//	return dealer, nil
-//}
-
 // Run starts the bot manager, streams every exchange for this bot
 // assuming all data providers are ready
 func (d *Dealer) Run() {

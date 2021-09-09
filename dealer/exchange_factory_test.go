@@ -22,3 +22,11 @@ func TestExchangeFactoryRegister(t *testing.T) {
 		t.Errorf("NewExchangeByName failed: incorrect exchange name: %v\n", testExchange.GetName())
 	}
 }
+
+func TestExchangeFactoryCreatorNotRegistered(t *testing.T) {
+	factory := make(ExchangeFactory)
+	_, err := factory.NewExchangeByName("invalid")
+	if err != ErrCreatorNotRegistered {
+		t.Errorf("Exchange creation failed: expected error: %v\n", ErrCreatorNotRegistered)
+	}
+}
