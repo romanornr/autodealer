@@ -17,21 +17,21 @@ var (
 // routing the messages to the appropriate channels.
 func Stream(d *Dealer, e exchange.IBotExchange) error {
 	ws, err := OpenWebsocket(e)
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		// This goroutine is supposed to never finish
-		for data := range ws.ToRoutine {
-			data := data
-			go func() {
-				err := handleData(d, e, data)
-				if err != nil {
-					logrus.Errorf("error handling data: %s\n", err)
-				}
-			}()
-		}
-		panic("unexpected end of channel")
+	// This goroutine is supposed to never finish
+	for data := range ws.ToRoutine {
+		data := data
+		go func() {
+			err := handleData(d, e, data)
+			if err != nil {
+				logrus.Errorf("error handling data: %s\n", err)
+			}
+		}()
+	}
+	panic("unexpected end of channel")
 }
 
 // 1.Make sure the exchange can do websockets

@@ -26,7 +26,6 @@ type ExchangeWithdrawResponse struct {
 	Err                error                `json:"err"`
 }
 
-
 // Render implement rest.Render to render the Response of the ExchangeWithdraw call
 func (e ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	e.Time = time.Now()
@@ -41,6 +40,7 @@ func ErrWithdawRender(err error) render.Renderer {
 		Err: err,
 	}
 }
+
 // CreateExchangeWithdrawResponse function creates a withraw request using exchangeManager and returns the exchangeWithdrawResponse including response
 // It first creates an exchange manager by name which will fetch the exchange name from the engine.
 // This function will fetch the exchange details from the exchange name and returns the balance of an asset for a user.

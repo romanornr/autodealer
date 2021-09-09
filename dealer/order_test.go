@@ -31,7 +31,6 @@ func TestOrderRegistry(t *testing.T) {
 	}
 }
 
-
 func TestOrderRegistryDuplicate(t *testing.T) {
 	orderID := "fake-order-id2"
 	response := order.SubmitResponse{
@@ -86,7 +85,7 @@ func TestOrderRegistryGetExistingValue(t *testing.T) {
 func TestOrderRegistryGetNonExistingValue(t *testing.T) {
 	r := NewOrderRegistry()
 	response := order.SubmitResponse{
-		OrderID: "fake-order-id",
+		OrderID:       "fake-order-id",
 		IsOrderPlaced: true,
 	}
 
@@ -117,7 +116,7 @@ func TestOrderRegistryGetNonExistingValue(t *testing.T) {
 func TestOrderRegistryContains(t *testing.T) {
 	r := NewOrderRegistry()
 	response := order.SubmitResponse{
-		OrderID: "fake-order-id",
+		OrderID:       "fake-order-id",
 		IsOrderPlaced: true,
 	}
 
@@ -135,4 +134,3 @@ func TestOrderRegistryContains(t *testing.T) {
 		t.Failed()
 	}
 }
-

@@ -5,5 +5,3 @@ package dealer
 //	//Root.Add("verbose", VerboseStrategy{}) //nolint:exhaustiveness
 //	d.Run()
 //}
-
-

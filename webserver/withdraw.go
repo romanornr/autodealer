@@ -53,8 +53,6 @@ type ExchangeWithdrawResponse struct {
 //	}
 //}
 
-
-
 // WithdrawHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
 // The second argument will be the file named deposit.html inside the folder templates.
 // The function can now be used as part of the router by adding the path to the function.
@@ -82,7 +80,6 @@ func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 
 	return
 }
-
 
 // WithdrawCtx is an HTTP handler function which stores the request input with the help of chi.URLParams get method
 // in the response and call the createExchangeWithdrawResponse to create an exchange withdrawal transaction
