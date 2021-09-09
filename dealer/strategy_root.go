@@ -12,6 +12,7 @@ var (
 	ErrNotStrategy      = errors.New("given object is not a strategy")
 )
 
+//RootStrategy is a strategy implementation
 type RootStrategy struct {
 	strategies sync.Map
 }
