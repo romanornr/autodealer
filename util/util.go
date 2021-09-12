@@ -1,9 +1,12 @@
 package util
 
 import (
+	"github.com/sirupsen/logrus"
 	"os"
 	"runtime"
 	"strings"
+	"sync"
+	"time"
 )
 
 // Location attempts to write the name of the caller function's parent.
@@ -81,4 +84,71 @@ func ExpandUser(path string) string {
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
+}
+
+
+// +---------+
+// | Checker |
+// +---------+
+
+// Checker is a simple tool to check if everything initialized is subsequently
+// deinitialized.  Works from simple open/close calls to gourintes.
+type resourceChecker struct {
+	m         sync.Mutex
+	resources map[string]int
+}
+
+// nolint:gochecknoglobals
+var defaultResourceChecker = resourceChecker{
+	m:         sync.Mutex{},
+	resources: make(map[string]int),
+}
+
+func CheckerPush(xs ...string) {
+	var name string
+
+	switch len(xs) {
+	case 0:
+		name = Location2()
+	case 1:
+		name = xs[0]
+	default:
+		panic("invalid argument")
+	}
+
+	defaultResourceChecker.m.Lock()
+	defaultResourceChecker.resources[name]++
+	defaultResourceChecker.m.Unlock()
+}
+
+func CheckerPop(xs ...string) {
+	var name string
+
+	switch len(xs) {
+	case 0:
+		name = Location2()
+	case 1:
+		name = xs[0]
+	default:
+		panic("invalid argument")
+	}
+
+	defaultResourceChecker.m.Lock()
+	defaultResourceChecker.resources[name]--
+	defaultResourceChecker.m.Unlock()
+}
+
+// CheckerAssert should be defer-called in main().
+func CheckerAssert() {
+	logrus.Infof("checking resources...")
+	time.Sleep(1 * time.Second)
+
+	defaultResourceChecker.m.Lock()
+	defer defaultResourceChecker.m.Unlock()
+
+	for k, v := range defaultResourceChecker.resources {
+		if v != 0 {
+			logrus.Warnf("counter %v unit %v leaked resources", v, k)
+		}
+	}
 }
