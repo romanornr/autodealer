@@ -3,6 +3,7 @@ package dealer
 import (
 	"errors"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"go.uber.org/multierr"
 	"sync"
 )
@@ -51,10 +52,11 @@ func (m *RootStrategy) Get(name string) (Strategy, error) {
 // Returns nil on success, or Function specific error on failure
 func (m *RootStrategy) each(f func(Strategy) error) error {
 	var err error
+
 	m.strategies.Range(func(key, value interface{}) bool {
 		s, ok := value.(Strategy)
 		if !ok {
-			err = multierr.Append(err, ErrStrategyNotFound)
+			err = multierr.Append(err, ErrNotStrategy)
 		} else {
 			err = multierr.Append(err, f(s))
 		}
@@ -66,4 +68,8 @@ func (m *RootStrategy) each(f func(Strategy) error) error {
 // Init Initialize strategies of Dealer
 func (m *RootStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
 	return m.each(func(s Strategy) error { return s.Init(d, e) })
+}
+
+func (m *RootStrategy) OnFunding(d *Dealer, e exchange.IBotExchange, x stream.FundingData) error {
+	return m.each(func(s Strategy) error { return s.OnFunding(d, e, x) })
 }
