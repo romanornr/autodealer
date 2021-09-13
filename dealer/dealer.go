@@ -114,7 +114,7 @@ func (b Builder) Build() (*Dealer, error) {
 // Dealer is the main struct for the dealer
 // It contains the root strategy, the settings, the config, the exchange manager, and the order registry
 type Dealer struct {
-	// Root RootStrategy
+	Root RootStrategy
 	Settings        engine.Settings
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager
