@@ -12,6 +12,14 @@ import (
 	"sync"
 )
 
+// Adding a new strategy is going to be returning two things. The RootStrategy itself, and a specific Strategy that is the type of the Strategy that was requested.
+// The ability to add a strategy will create a Map, Map[string] full of RootStrategies. When the end user adds a new strategy, they can give it a unique identifier
+// and when they do, we will add a new value to the map. Second, we have a function after the line where a new RootStrategy object is defined; a function called Get
+// which takes a string. To get a strategy from a Root Strategy, we simply use this function. We check if the given string matches the String identifier in the Map
+// returning the corresponding value in the map. Let's assume similarity with an exchange. Anytime a strategy needs to do something, it will do so through the Dealer,
+// which is passing necessary information. Just looking at this graph without talking about the internals, it is easy to see how this system can grow.
+// Any additional advanced features or algorithms can be added through additional Function calls, without changing the underlying code of the strategies.
+
 var (
 	ErrStrategyNotFound = errors.New("strategy not found")
 	ErrNotStrategy      = errors.New("given object is not a strategy")
