@@ -2,6 +2,8 @@ package dealer
 
 import (
 	"errors"
+	"sync"
+
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -9,7 +11,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
 	"go.uber.org/multierr"
-	"sync"
 )
 
 // Adding a new strategy is going to be returning two things. The RootStrategy itself, and a specific Strategy that is the type of the Strategy that was requested.
@@ -25,7 +26,7 @@ var (
 	ErrNotStrategy      = errors.New("given object is not a strategy")
 )
 
-//RootStrategy is a strategy implementation
+// RootStrategy is a strategy implementation
 type RootStrategy struct {
 	strategies sync.Map
 }

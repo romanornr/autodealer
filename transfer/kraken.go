@@ -4,7 +4,6 @@ import (
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
@@ -12,7 +11,7 @@ import (
 )
 
 func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
-	dealerEngine, err := dealer.New(engine.Settings{})
+	dealerEngine, err := dealer.NewBuilder().Build()
 	if err != nil {
 		return order.SubmitResponse{}, err
 	}
@@ -60,7 +59,7 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 }
 
 func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error) {
-	dealerEngine, err := dealer.New(engine.Settings{})
+	dealerEngine, err := dealer.NewBuilder().Build()
 	if err != nil {
 		return ExchangeWithdrawResponse{}, err
 	}

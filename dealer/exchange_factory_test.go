@@ -1,9 +1,10 @@
 package dealer
 
 import (
+	"testing"
+
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ftx"
-	"testing"
 )
 
 func TestExchangeFactoryRegister(t *testing.T) {

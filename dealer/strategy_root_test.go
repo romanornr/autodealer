@@ -59,7 +59,7 @@ func TestRootStrategyEach(t *testing.T) {
 	}
 }
 
-//func TestNewRootStrategyInit(t *testing.T) {
+// func TestNewRootStrategyInit(t *testing.T) {
 //	s := NewRootStrategy()
 //	s.Add("test", &s)
 //	d, err := NewBuilder().Build()
@@ -83,9 +83,9 @@ func TestRootStrategyEach(t *testing.T) {
 //		t.Fatalf("expected err to be %v, got %v", nil, err)
 //	}
 //
-//}
+// }
 
-//func TestNewRootStrategyInit(t *testing.T) {
+// func TestNewRootStrategyInit(t *testing.T) {
 //	s := NewRootStrategy()
 //	s.Add("test", &s)
 //	d, err := NewBuilder().Build()
@@ -97,7 +97,7 @@ func TestRootStrategyEach(t *testing.T) {
 //		t.Fatal(err)
 //	}
 
-//if err = s.Init(d, nil); err != ErrStrategyNotFound {
+// if err = s.Init(d, nil); err != ErrStrategyNotFound {
 //	t.Fatalf("expected err to be %v, got %v", ErrNotStrategy, err)
-//}
-//}
+// }
+// }

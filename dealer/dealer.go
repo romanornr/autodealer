@@ -50,10 +50,10 @@ func (b *Builder) Balances(refresh time.Duration) *Builder {
 	return b
 }
 
-//func (b *DealerBuilder) CustomExchange(name string, fn ExchangeCreatorFunc) {
+// func (b *DealerBuilder) CustomExchange(name string, fn ExchangeCreatorFunc) {
 //	b.factory.Register(name, fn)
 //	return b
-//}
+// }
 
 func (b *Builder) Settings(s engine.Settings) *Builder {
 	b.settings = s
@@ -80,7 +80,7 @@ func (b Builder) Build() (*Dealer, error) {
 			Config:          conf,
 			ExchangeManager: *engine.SetupExchangeManager(),
 			registry:        *NewOrderRegistry(),
-			//WithdrawManager: engine.WithdrawManager{},
+			// WithdrawManager: engine.WithdrawManager{},
 		}
 	)
 
@@ -114,7 +114,7 @@ func (b Builder) Build() (*Dealer, error) {
 // Dealer is the main struct for the dealer
 // It contains the root strategy, the settings, the config, the exchange manager, and the order registry
 type Dealer struct {
-	Root RootStrategy
+	Root            RootStrategy
 	Settings        engine.Settings
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager

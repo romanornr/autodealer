@@ -1,6 +1,9 @@
 package dealer
 
 import (
+	"sync"
+	"time"
+
 	"github.com/romanornr/autodealer/util"
 	"github.com/sirupsen/logrus"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
@@ -9,8 +12,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
-	"sync"
-	"time"
 )
 
 // tickers are meant to store an interval time once they are registered in the Init function.
