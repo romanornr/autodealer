@@ -126,39 +126,37 @@ func apiSubrouter() http.Handler {
 	//	engine.RESTGetAllEnabledAccountInfo(w, r)
 	// })
 
-	r.Route("/deposit/{exchange}/{asset}", func(r chi.Router) {
+	r.Route(routeGetDepositAddr, func(r chi.Router) {
 		r.Use(DepositAddressCtx)
 		r.Get("/", getDepositAddress)
-		// r.Use(BalanceCtx)
-		// r.Get("/address", getBalance)
 	})
 
-	r.Route("/withdraw/{exchange}/{asset}/{size}/{destinationAddress}", func(r chi.Router) {
+	r.Route(routeWithdraw, func(r chi.Router) {
 		r.Use(WithdrawCtx)
 		r.Get("/", getExchangeWithdrawResponse)
 	})
 
-	r.Route("/withdraw/history/{exchange}/{asset}", func(r chi.Router) {
+	r.Route(routeGetWithdrawHistory, func(r chi.Router) {
 		r.Use(withdrawHistoryCtx)
 		r.Get("/", getWithdrawHistory)
 	})
 
-	r.Route("/ticker/{exchange}/{base}/{quote}", func(r chi.Router) {
+	r.Route(routeGetTicker, func(r chi.Router) {
 		r.Use(TickerCtx)
 		r.Get("/", getTicker)
 	})
 
-	r.Route("/{exchange}/{base}/priceusd", func(r chi.Router) {
+	r.Route(routePriceToUSD, func(r chi.Router) {
 		r.Use(PriceToUSDCtx)
 		r.Get("/", getUSDPrice)
 	})
 
-	r.Route("/twap/{exchange}/{base}/{quote}/{quantity}", func(r chi.Router) {
+	r.Route(routeTWAP, func(r chi.Router) {
 		r.Use(TwapCtx)
 		r.Get("/", getTwap)
 	})
 
-	r.Route("/bank/transfer", func(r chi.Router) {
+	r.Route(routeBankTransfer, func(r chi.Router) {
 		r.Use(BankTransferCtx)
 		r.Get("/", getBankTransfer)
 	})

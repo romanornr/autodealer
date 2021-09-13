@@ -1,10 +1,11 @@
 package dealer
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"sync"
 	"sync/atomic"
+
+	"github.com/sirupsen/logrus"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 type OrderKey struct {

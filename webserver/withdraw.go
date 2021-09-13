@@ -13,7 +13,6 @@ import (
 	"github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
 	"gopkg.in/errgo.v2/fmt/errors"
 )
@@ -38,20 +37,20 @@ type ExchangeWithdrawResponse struct {
 	Err                error                `json:"err"`
 }
 
-//// Render exchangeWithdrawResponse implements the error interface to show the user an error occured if exchangeWithdrawRequest returns an error.
-//func (e transfer.ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request) error {
+// // Render exchangeWithdrawResponse implements the error interface to show the user an error occured if exchangeWithdrawRequest returns an error.
+// func (e transfer.ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request) error {
 //	e.Time = time.Now()
 //	return e.Err
-//}
+// }
 
 // ErrWithdawRender as JSON if err is not nil.
 // If err is nil, then Render http.StatusOK. If err then Render an Error response if it implements AbsError we log the error message.
 // If it does not implement AbsError we log to err type.
-//func ErrWithdawRender(err error) render.Renderer {
+// func ErrWithdawRender(err error) render.Renderer {
 //	return &ExchangeWithdrawResponse{
 //		Err: err,
 //	}
-//}
+// }
 
 // WithdrawHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
 // The second argument will be the file named deposit.html inside the folder templates.
@@ -89,7 +88,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		var err error
 		assetInfo := new(Asset)
 
-		d, err := dealer.New(engine.Settings{})
+		d, err := dealer.NewBuilder().Build()
 		if err != nil {
 			logrus.Errorf("failed to create a dealer %s\n", err)
 		}

@@ -1,14 +1,15 @@
 package dealer
 
 import (
+	"testing"
+	"time"
+
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ftx"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
-	"testing"
-	"time"
 )
 
 func TestTickerStrategy(t *testing.T) {
@@ -126,7 +127,7 @@ func TestDeleteTickerFunc(t *testing.T) {
 		Side:         order.AnySide,
 	}
 
-	if err = tickerStrategy.OnFunding(d, exchangeFactory, data); err != nil{
+	if err = tickerStrategy.OnFunding(d, exchangeFactory, data); err != nil {
 		t.Fatalf("expected err to be %v, got %v", nil, err)
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
 )
 
-
 // Strategy is an interface and defines all function needed for a user defined strategy. The RootStrategy provides a way to create and
 // use strategies and action according to given strategies.
 type Strategy interface {

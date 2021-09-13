@@ -2,6 +2,7 @@ package dealer
 
 import (
 	"errors"
+
 	"github.com/sirupsen/logrus"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
@@ -72,16 +73,16 @@ func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
 }
 
 func handleData(d *Dealer, e exchange.IBotExchange, data interface{}) error {
-	//switch x := data.(type) {
-	//case string:
+	// switch x := data.(type) {
+	// case string:
 	//	unhandledType(data, true)
-	//case error:
+	// case error:
 	//	return x
-	//case *ticker.Price:
+	// case *ticker.Price:
 	//	handleError("OnPrice", s.Onprice(k, e, *x))
-	//case stream.KlineData:
+	// case stream.KlineData:
 	//	handleError("OnKline", s.Onkline(k, e))
 	//	default:
-	//}
+	// }
 	return nil
 }
