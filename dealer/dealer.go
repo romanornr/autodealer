@@ -3,6 +3,7 @@ package dealer
 import (
 	"errors"
 	"fmt"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"sync"
 	"time"
 
@@ -188,6 +189,19 @@ func (bot *Dealer) getExchange(x interface{}) exchange.IBotExchange {
 // For this code, it is preferred that GCTLog struct is changed to a struct of a log type
 type GCTLog struct {
 	ExchangeSys interface{}
+}
+
+func (bot *Dealer) OnOrder(e exchange.IBotExchange, x order.Detail) {
+	if x.Status == order.Filled {
+		value, ok := bot.GetOrderValue(e.GetName(), x.ID)
+		if !ok {
+			return
+		}
+
+		if obs, ok := value.UserData.(OnFilledObserver); ok {
+			obs.OnFilled(bot, e, x)
+		}
+	}
 }
 
 func (g GCTLog) Warnf(_ interface{}, data string, v ...interface{}) {

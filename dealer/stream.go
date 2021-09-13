@@ -2,10 +2,13 @@ package dealer
 
 import (
 	"errors"
-
+	"fmt"
 	"github.com/sirupsen/logrus"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
 )
 
 var (
@@ -72,17 +75,37 @@ func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
 	return ws, nil
 }
 
-func handleData(d *Dealer, e exchange.IBotExchange, data interface{}) error {
-	// switch x := data.(type) {
-	// case string:
-	//	unhandledType(data, true)
-	// case error:
-	//	return x
-	// case *ticker.Price:
-	//	handleError("OnPrice", s.Onprice(k, e, *x))
-	// case stream.KlineData:
-	//	handleError("OnKline", s.Onkline(k, e))
-	//	default:
-	// }
+func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}) error {
+	switch x := data.(type) {
+	case string:
+		unhandledType(data, true)
+	case error:
+		return x
+	case stream.FundingData:
+		handleError("OnFunding", s.OnFunding(d, e, x))
+	case *stream.KlineData:
+		handleError("OnKline", s.OnKline(d, e, *x))
+	case *orderbook.Base:
+		handleError("OnOrderBook", s.OnOrderBook(d, e, *x))
+	case order.Detail:
+		d.OnOrder(e, *x)
+		handleError("OnOrder", s.OnOrder(d, *x))
+	}
 	return nil
 }
+
+func unhandledType(data interface{}, warn bool) {
+	if warn {
+		logrus.Warn()
+	}
+
+	t := fmt.Sprintf("%T\n", data)
+	logrus.Warnf("unhandledType: %v\n", t)
+}
+
+func handleError(method string, err error) {
+	if err != nil {
+		logrus.Warnf("method %v error: %s\n",method, err)
+	}
+}
+
