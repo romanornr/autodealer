@@ -156,7 +156,7 @@ func (d *Dealer) Run() {
 		wg.Add(1)
 		go func(x exchange.IBotExchange) {
 			defer wg.Done()
-			err := Stream(d, x)
+			err := Stream(d, x, &d.Root)
 			panic(err)
 		}(x)
 	}

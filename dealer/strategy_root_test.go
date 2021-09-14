@@ -1,7 +1,6 @@
 package dealer
 
 import (
-	"errors"
 	"testing"
 )
 
@@ -47,17 +46,17 @@ func TestNewRootStrategy(t *testing.T) {
 	}
 }
 
-func TestRootStrategyEach(t *testing.T) {
-	s := NewRootStrategy()
-	s.Add("test", &s)
-	s.Add("test2", &s)
-	if err := s.each(func(Strategy) error { return nil }); err != nil {
-		t.Fatalf("expected err to be %v, got %v", nil, err)
-	}
-	if err := s.each(func(Strategy) error { return errors.New("error") }); err == nil {
-		t.Fatalf("expected err to be %v, got %v", ErrStrategyNotFound, nil)
-	}
-}
+//func TestRootStrategyEach(t *testing.T) {
+//	s := NewRootStrategy()
+//	s.Add("test", &s)
+//	s.Add("test2", &s)
+//	if err := s.each(func(Strategy) error { return nil }); err != nil {
+//		t.Fatalf("expected err to be %v, got %v", nil, err)
+//	}
+//	if err := s.each(func(Strategy) error { return errors.New("error") }); err == nil {
+//		t.Fatalf("expected err to be %v, got %v", ErrStrategyNotFound, nil)
+//	}
+//}
 
 // func TestNewRootStrategyInit(t *testing.T) {
 //	s := NewRootStrategy()

@@ -47,7 +47,7 @@ type TickerStrategy struct {
 // Returns:
 //     error - any errors that occurred
 func (s *TickerStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
-	ticker := *time.NewTicker(s.Interval)
+	ticker1 := *time.NewTicker(s.Interval)
 
 	if s.TickerFunc != nil {
 		go func() {
@@ -56,12 +56,12 @@ func (s *TickerStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
 
 			// Call now initially
 			s.TickerFunc(d, e)
-			for range ticker.C {
+			for range ticker1.C {
 				s.TickerFunc(d, e)
 			}
 		}()
 	}
-	_, loaded := s.tickers.LoadOrStore(e.GetName(), ticker)
+	_, loaded := s.tickers.LoadOrStore(e.GetName(), ticker1)
 	if loaded {
 		panic("one exchange can have just one ticker")
 	}
