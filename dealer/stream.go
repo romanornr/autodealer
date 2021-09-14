@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 // Stream opens a websocket connection for the data stream, passing the market data to be processed as it's received.
 // data passed to the FSM, there's a corresponding response channel depending on the data passed to it
 // routing the messages to the appropriate channels.
-func Stream(d *Dealer, e exchange.IBotExchange) error {
+func Stream(d *Dealer, e exchange.IBotExchange, s Strategy) error {
 	ws, err := OpenWebsocket(e)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func Stream(d *Dealer, e exchange.IBotExchange) error {
 	for data := range ws.ToRoutine {
 		data := data
 		go func() {
-			err := handleData(d, e, data)
+			err := handleData(d, e, s, data)
 			if err != nil {
 				logrus.Errorf("error handling data: %s\n", err)
 			}
@@ -75,6 +75,15 @@ func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
 	return ws, nil
 }
 
+// handleData scans for any form of data like stream Warning Messages, Funding, kline events and orderbook actions
+// For Funding you’ll need to consider how funds are rolled over, which will affect trading strategies work out if it shuts exchange
+// Evaluate subscriptions changes for stops, liquidation etc. If applicable, send to trade module see if the type is unrecognized
+// If this is the case, you’ll want to make notes about it. Mostly like for like exchange subscription errors.
+// This type is only used when you’re not able to decipher what’s happened return an error if you need to
+
+// handleData looks at the data passing it for appropriate security,
+// addons, & addons, then passes it up to the bot core through the data channel.
+// OnError is used when something goes wrong, lets the user know there was a problem.
 func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}) error {
 	switch x := data.(type) {
 	case string:
@@ -87,9 +96,23 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 		handleError("OnKline", s.OnKline(d, e, *x))
 	case *orderbook.Base:
 		handleError("OnOrderBook", s.OnOrderBook(d, e, *x))
-	case order.Detail:
+	case *order.Detail:
 		d.OnOrder(e, *x)
-		handleError("OnOrder", s.OnOrder(d, *x))
+		handleError("OnOrder", s.OnOrder(d, e, *x))
+	case *order.Modify:
+		handleError("OnModify", s.OnModify(d, e, *x))
+	case order.ClassificationError:
+		unhandledType(data, true)
+		if x.Err == nil {
+			panic("unexpected error")
+		}
+		return x.Err
+	case stream.UnhandledMessageWarning:
+		unhandledType(data, true)
+	case account.Change:
+		handleError("OnBalanceChange", s.OnBalanceChange(d, e, x))
+	default:
+		handleError("OnUnrecognized", s.OnUnrecognized(d, e, x))
 	}
 	return nil
 }
@@ -105,7 +128,6 @@ func unhandledType(data interface{}, warn bool) {
 
 func handleError(method string, err error) {
 	if err != nil {
-		logrus.Warnf("method %v error: %s\n",method, err)
+		logrus.Warnf("method %v error: %s\n", method, err)
 	}
 }
-
