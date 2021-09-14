@@ -7,7 +7,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/ftx"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 )
@@ -18,24 +17,17 @@ func TestTickerStrategy(t *testing.T) {
 		t.Fatalf("expected err to be %v, got %v", nil, err)
 	}
 
-	factory := make(ExchangeFactory)
-	testExchange := ftx.FTX{}
-	factory.Register("ftx", func() (exchange.IBotExchange, error) {
-		return &testExchange, nil
-	})
-
-	exchangeFactory, err := factory.NewExchangeByName("ftx")
+	e, err := d.ExchangeManager.GetExchangeByName("FTX")
 	if err != nil {
-		t.Fatalf("failed to create exchange factory: %v\n", err)
+		t.Errorf("expected no error, got %s\n", err)
 	}
-
 	strategy := TickerStrategy{
 		Interval: time.Millisecond * 5,
 		TickerFunc: func(d *Dealer, e exchange.IBotExchange) {
 			t.Log("failed")
 		},
 	}
-	err = strategy.Init(d, exchangeFactory)
+	err = strategy.Init(d, e)
 	if err != nil {
 		t.Failed()
 	}
@@ -47,15 +39,9 @@ func TestTickerStrategyOnFunding(t *testing.T) {
 		t.Fatalf("expected err to be %v, got %v", nil, err)
 	}
 
-	factory := make(ExchangeFactory)
-	testExchange := ftx.FTX{}
-	factory.Register("ftx", func() (exchange.IBotExchange, error) {
-		return &testExchange, nil
-	})
-
-	exchangeFactory, err := factory.NewExchangeByName("ftx")
+	e, err := d.ExchangeManager.GetExchangeByName("FTX")
 	if err != nil {
-		t.Fatalf("failed to create exchange factory: %v\n", err)
+		t.Errorf("expected no error, got %s\n", err)
 	}
 
 	tickerStrategy := TickerStrategy{
@@ -65,7 +51,7 @@ func TestTickerStrategyOnFunding(t *testing.T) {
 		},
 	}
 
-	err = tickerStrategy.Init(d, exchangeFactory)
+	err = tickerStrategy.Init(d, e)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -81,7 +67,7 @@ func TestTickerStrategyOnFunding(t *testing.T) {
 		Side:         order.AnySide,
 	}
 
-	err = tickerStrategy.OnFunding(d, exchangeFactory, data)
+	err = tickerStrategy.OnFunding(d, e, data)
 	if err != nil {
 		t.Fatalf("expected err to be %v, got %v", nil, err)
 	}
@@ -93,15 +79,9 @@ func TestDeleteTickerFunc(t *testing.T) {
 		t.Fatalf("expected err to be %v, got %v", nil, err)
 	}
 
-	factory := make(ExchangeFactory)
-	testExchange := ftx.FTX{}
-	factory.Register("ftx", func() (exchange.IBotExchange, error) {
-		return &testExchange, nil
-	})
-
-	exchangeFactory, err := factory.NewExchangeByName("ftx")
+	e, err := d.ExchangeManager.GetExchangeByName("FTX")
 	if err != nil {
-		t.Fatalf("failed to create exchange factory: %v\n", err)
+		t.Errorf("expected no error, got %s\n", err)
 	}
 
 	tickerStrategy := TickerStrategy{
@@ -111,7 +91,7 @@ func TestDeleteTickerFunc(t *testing.T) {
 		},
 	}
 
-	err = tickerStrategy.Init(d, exchangeFactory)
+	err = tickerStrategy.Init(d, e)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -127,7 +107,7 @@ func TestDeleteTickerFunc(t *testing.T) {
 		Side:         order.AnySide,
 	}
 
-	if err = tickerStrategy.OnFunding(d, exchangeFactory, data); err != nil {
+	if err = tickerStrategy.OnFunding(d, e, data); err != nil {
 		t.Fatalf("expected err to be %v, got %v", nil, err)
 	}
 }
