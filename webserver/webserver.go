@@ -141,20 +141,20 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getWithdrawHistory)
 	})
 
-	r.Route(routeGetTicker, func(r chi.Router) {
-		r.Use(TickerCtx)
-		r.Get("/", getTicker)
-	})
-
-	r.Route(routePriceToUSD, func(r chi.Router) {
-		r.Use(PriceToUSDCtx)
-		r.Get("/", getUSDPrice)
-	})
-
-	r.Route(routeTWAP, func(r chi.Router) {
-		r.Use(TwapCtx)
-		r.Get("/", getTwap)
-	})
+	//r.Route(routeGetTicker, func(r chi.Router) {
+	//	r.Use(TickerCtx)
+	//	r.Get("/", getTicker)
+	//})
+	//
+	//r.Route(routePriceToUSD, func(r chi.Router) {
+	//	r.Use(PriceToUSDCtx)
+	//	r.Get("/", getUSDPrice)
+	//})
+	//
+	//r.Route(routeTWAP, func(r chi.Router) {
+	//	r.Use(TwapCtx)
+	//	r.Get("/", getTwap)
+	//})
 
 	r.Route(routeBankTransfer, func(r chi.Router) {
 		r.Use(BankTransferCtx)

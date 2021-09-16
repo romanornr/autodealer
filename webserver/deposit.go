@@ -6,13 +6,13 @@ package webserver
 
 import (
 	"context"
+	"github.com/romanornr/autodealer/dealer"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
@@ -92,7 +92,6 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to create a dealer %s\n", err)
 		}
 
-
 		engineExchange, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
@@ -100,7 +99,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		accounts, err := engineExchange.FetchAccountInfo(asset.Spot)
+		accounts, err := engineExchange.FetchAccountInfo(request.Context(), asset.Spot)
 		if err != nil {
 			logrus.Errorf("failed to get exchange account: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))
@@ -120,7 +119,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		deposit.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		deposit.Asset = deposit.Code.Item
 		deposit.Account = accountReq.ID
-		deposit.Address, err = engineExchange.GetDepositAddress(deposit.Code, deposit.Account)
+		deposit.Address, err = engineExchange.GetDepositAddress(request.Context(), deposit.Code, deposit.Account)
 		if err != nil {
 			logrus.Errorf("failed to get address: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))

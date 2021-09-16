@@ -1,8 +1,10 @@
 package dealer
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"sync"
 	"time"
@@ -150,18 +152,22 @@ type Dealer struct {
 
 // Run starts the bot manager, streams every exchange for this bot
 // assuming all data providers are ready
-func (d *Dealer) Run() {
-	var wg sync.WaitGroup
-	for _, x := range d.ExchangeManager.GetExchanges() {
-		wg.Add(1)
-		go func(x exchange.IBotExchange) {
-			defer wg.Done()
-			err := Stream(d, x, &d.Root)
-			panic(err)
-		}(x)
-	}
-	wg.Wait()
-}
+//func (d *Dealer) Run() {
+//	var wg sync.WaitGroup
+//	e, err := d.ExchangeManager.GetExchanges()
+//	if err != nil {
+//		logrus.Errorf("exchange manager error: %v", err)
+//	}
+//	for _, x := range   d.ExchangeManager.GetExchanges() {
+//		wg.Add(1)
+//		go func(x exchange.IBotExchange) {
+//			defer wg.Done()
+//			err := Stream(d, x, &d.Root)
+//			panic(err)
+//		}(x)
+//	}
+//	wg.Wait()
+//}
 
 // GetOrderValue function retrieves order details from the given bot's store.
 func (bot *Dealer) GetOrderValue(exchangeName, orderID string) (OrderValue, bool) {
@@ -217,7 +223,7 @@ func (g GCTLog) Debugf(_ interface{}, data string, v ...interface{}) {
 }
 
 func (bot *Dealer) LoadExchange(name string, wg *sync.WaitGroup) error {
-	return bot.loadExchange(name, wg, GCTLog{nil})
+	return bot.LoadExchange(name, wg)
 }
 
 var (
@@ -231,7 +237,7 @@ var (
 // call to validate credentials, which checks whether or not the exchange supports the asset's currency. If validation is successful, we log an INFO message and pass.
 // check the actual auth status of the exchange and make sure that there is no mismatch between the configured auth and the actual auth. If there is a mismatch with isAuthenticatedSupport and AuthenticatedSupport status, we log a WARN message and set the AutheticatedSupport attributes to false.
 // We test exchange name is set correctly and make sure that the exchange is set up  normal and we then start the exchange. This last step is performed by both the ExchangeManager and the Base.
-func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) error {
+func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup) error {
 	exch, err := bot.ExchangeManager.NewExchangeByName(name)
 	if err != nil {
 		return err
@@ -254,19 +260,14 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 	if bot.Settings.EnableAllPairs &&
 		exchCfg.CurrencyPairs != nil {
 		assets := exchCfg.CurrencyPairs.GetAssetTypes(false)
-		ShowAssetTypes(assets, exchCfg)
-		// for x := range assets {
-		//	var pairs currency.Pairs
-		//	pairs, err = exchCfg.CurrencyPairs.GetPairs(assets[x], false)
-		//	if err != nil {
-		//		gctlog.Errorf(gctlog.ExchangeSys,
-		//			"%s: Failed to get pairs for asset type %s. Error: %s\n", exch.GetName(),
-		//			assets[x].String(),
-		//			err)
-		//		return err
-		//	}
-		//	exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
-		// }
+		for x := range assets {
+			var pairs currency.Pairs
+			pairs, err = exchCfg.CurrencyPairs.GetPairs(assets[x], false)
+			if err != nil {
+				return err
+			}
+			exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
+		}
 	}
 
 	if bot.Settings.EnableExchangeVerbose {
@@ -337,7 +338,7 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) 
 			useAsset = assetTypes[a]
 			break
 		}
-		err = exch.ValidateCredentials(useAsset)
+		err = exch.ValidateCredentials(context.TODO(), useAsset)
 		if err != nil {
 			gctlog.Warnf(gctlog.ExchangeSys,
 				"%s: Cannot validate credentials, authenticated support has been disabled, Error: %s\n",
@@ -401,8 +402,8 @@ func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
 		}(configs[x])
 	}
 	wg.Wait()
-	if len(bot.ExchangeManager.GetExchanges()) == 0 {
-		return ErrNoExchangesLoaded
-	}
+	//if len(bot.GetExchanges()) == 0 {
+	//	return ErrNoExchangesLoaded
+	//}
 	return nil
 }

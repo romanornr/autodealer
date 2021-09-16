@@ -65,8 +65,10 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 		Err:              err,
 	}
 
+	var r *http.Request
+
 	if withdrawRequest.Type == withdraw.Crypto {
-		response.ExchangeResponse, err = manager.WithdrawCryptocurrencyFunds(withdrawRequest)
+		response.ExchangeResponse, err = manager.WithdrawCryptocurrencyFunds(r.Context(), withdrawRequest)
 		if err != nil {
 			err = fmt.Errorf("failed to withdraw crypto asset %s\n", err)
 		}
@@ -77,7 +79,7 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 	if withdrawRequest.Type == withdraw.Fiat && manager.GetName() == "Kraken" {
 		logrus.Info("withdaw kraken")
 		k := kraken.Kraken{Base: *manager.GetBase()}
-		response.ExchangeResponse.ID, err = k.Withdraw(currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
+		response.ExchangeResponse.ID, err = k.Withdraw(r.Context(), currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
 		if err != nil {
 			err = fmt.Errorf("failed international bank withdraw request: %s\n", err)
 		}

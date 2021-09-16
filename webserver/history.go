@@ -45,7 +45,7 @@ func withdrawHistoryCtx(next http.Handler) http.Handler {
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		exchangeEngine, _ := engine.Bot.GetExchangeByName(exchangeNameReq)
 		code := currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
-		history, err := exchangeEngine.GetWithdrawalsHistory(code)
+		history, err := exchangeEngine.GetWithdrawalsHistory(request.Context(), code)
 		if err != nil {
 			logrus.Errorf("failed fetch history: %s", err)
 		}

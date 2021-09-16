@@ -41,7 +41,7 @@ func BalanceCtx(next http.Handler) http.Handler {
 		// accountID := request.Context().Value("accountID").(string)
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 
-		accounts, err := exchangeEngine.FetchAccountInfo(asset.Spot)
+		accounts, err := exchangeEngine.FetchAccountInfo(request.Context(), asset.Spot)
 		if err != nil {
 			logrus.Errorf("failed to fetch accounts: %s\n", err)
 		}

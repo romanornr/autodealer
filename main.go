@@ -5,9 +5,7 @@
 package main
 
 import (
-	"github.com/romanornr/autodealer/dealer"
 	"github.com/romanornr/autodealer/webserver"
-	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
@@ -18,14 +16,13 @@ func init() {
 }
 
 func main() {
-	go func() {
-		b := dealer.NewBuilder()
-		d, err := b.Build()
-		if err != nil {
-			logrus.Errorf("Failed to build builder: %v\n", err)
-		}
-		d.Run()
-	}()
+	//go func() {
+	//	d, err := dealer.NewBuilder().Build()
+	//	if err != nil {
+	//		logrus.Errorf("Failed to build builder: %v\n", err)
+	//	}
+	//	//d.Run()
+	//}()
 	go webserver.New()
 	interrupt := signaler.WaitForInterrupt()
 	gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
