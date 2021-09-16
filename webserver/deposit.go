@@ -15,7 +15,6 @@ import (
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"gopkg.in/errgo.v2/fmt/errors"
@@ -88,12 +87,11 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
 
-		d, err := dealer.New(engine.Settings{})
+		d, err := dealer.NewBuilder().Build()
 		if err != nil {
-			logrus.Errorf("failed to get a dealer: %w", err)
-			render.Render(w, request, ErrInvalidRequest(err))
-			return
+			logrus.Errorf("failed to create a dealer %s\n", err)
 		}
+
 
 		engineExchange, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
