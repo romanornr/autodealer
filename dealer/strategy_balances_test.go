@@ -75,3 +75,4 @@ func TestInitBalancesStrategyError(t *testing.T) {
 		t.Errorf("expected no error, got %v\n", err)
 	}
 }
+
