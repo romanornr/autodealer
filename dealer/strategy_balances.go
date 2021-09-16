@@ -31,11 +31,11 @@ func NewBalancesStrategy(refreshRate time.Duration) Strategy {
 		balances: sync.Map{},
 		ticker:   TickerStrategy{
 			Interval: refreshRate,
-			TickerFunc: nil,
+			TickFunc: nil,
 			tickers: sync.Map{},
 		},
 	}
-	b.ticker.TickerFunc = b.tick
+	b.ticker.TickFunc = b.tick
 	return b
 }
 

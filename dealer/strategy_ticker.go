@@ -30,11 +30,11 @@ import (
 
 // TickerStrategy is a struct that implements the TickerStrategy interface.
 // Interval is the time interval between tickers.
-// TickerFunc is a function that returns a ticker.
+// TickFunc is a function that returns a ticker.
 // tickers is a map of tickers.
 type TickerStrategy struct {
 	Interval   time.Duration
-	TickerFunc func(d *Dealer, e exchange.IBotExchange)
+	TickFunc func(d *Dealer, e exchange.IBotExchange)
 	tickers    sync.Map
 }
 
@@ -47,21 +47,23 @@ type TickerStrategy struct {
 // Returns:
 //     error - any errors that occurred
 func (s *TickerStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
-	ticker1 := *time.NewTicker(s.Interval)
-
-	if s.TickerFunc != nil {
+	ti := *time.NewTicker(s.Interval)
+	if s.TickFunc != nil {
 		go func() {
 			util.CheckerPush()
+
 			defer util.CheckerPop()
 
-			// Call now initially
-			s.TickerFunc(d, e)
-			for range ticker1.C {
-				s.TickerFunc(d, e)
+			// Call now initially.
+			s.TickFunc(d, e)
+
+			for range ti.C {
+				s.TickFunc(d, e)
 			}
 		}()
 	}
-	_, loaded := s.tickers.LoadOrStore(e.GetName(), ticker1)
+
+	_, loaded := s.tickers.LoadOrStore(e.GetName(), ti)
 	if loaded {
 		panic("one exchange can have just one ticker")
 	}

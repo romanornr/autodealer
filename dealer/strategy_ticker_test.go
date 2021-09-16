@@ -22,8 +22,8 @@ func TestTickerStrategy(t *testing.T) {
 		t.Errorf("expected no error, got %s\n", err)
 	}
 	strategy := TickerStrategy{
-		Interval: time.Millisecond * 5,
-		TickerFunc: func(d *Dealer, e exchange.IBotExchange) {
+		Interval: time.Second * 1,
+		TickFunc: func(d *Dealer, e exchange.IBotExchange) {
 			t.Log("failed")
 		},
 	}
@@ -45,8 +45,8 @@ func TestTickerStrategyOnFunding(t *testing.T) {
 	}
 
 	tickerStrategy := TickerStrategy{
-		Interval: time.Millisecond * 5,
-		TickerFunc: func(d *Dealer, e exchange.IBotExchange) {
+		Interval: time.Second * 1,
+		TickFunc: func(d *Dealer, e exchange.IBotExchange) {
 			t.Log("failed barf")
 		},
 	}
@@ -86,7 +86,7 @@ func TestDeleteTickerFunc(t *testing.T) {
 
 	tickerStrategy := TickerStrategy{
 		Interval: time.Millisecond * 5,
-		TickerFunc: func(d *Dealer, e exchange.IBotExchange) {
+		TickFunc: func(d *Dealer, e exchange.IBotExchange) {
 			t.Log("failed barf")
 		},
 	}
