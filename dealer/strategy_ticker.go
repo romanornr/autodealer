@@ -33,9 +33,9 @@ import (
 // TickFunc is a function that returns a ticker.
 // tickers is a map of tickers.
 type TickerStrategy struct {
-	Interval   time.Duration
+	Interval time.Duration
 	TickFunc func(d *Dealer, e exchange.IBotExchange)
-	tickers    sync.Map
+	tickers  sync.Map
 }
 
 // Init starts the ticker for the given exchange

@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewBalancesStrategy(t *testing.T) {
-	b := NewBalancesStrategy(100*time.Millisecond)
+	b := NewBalancesStrategy(100 * time.Millisecond)
 	if b == nil {
 		t.Logf("expected balances strategy to not nil")
 		t.Failed()
@@ -46,7 +46,7 @@ func TestInitBalancesStrategy(t *testing.T) {
 	}
 
 	if err = b.Init(d, e); err != nil {
-		t.Errorf("expected no error, got %v",err)
+		t.Errorf("expected no error, got %v", err)
 	}
 }
 
@@ -75,4 +75,3 @@ func TestInitBalancesStrategyError(t *testing.T) {
 		t.Errorf("expected no error, got %v\n", err)
 	}
 }
-

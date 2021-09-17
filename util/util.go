@@ -86,7 +86,6 @@ func FileExists(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-
 // +---------+
 // | Checker |
 // +---------+

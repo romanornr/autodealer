@@ -24,7 +24,6 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 		return order.SubmitResponse{}, err
 	}
 
-
 	accounts, err := exchange.FetchAccountInfo(r.Context(), asset.Spot)
 	if err != nil {
 		return order.SubmitResponse{}, errors.Newf("failed to submit order: %s\n", err)

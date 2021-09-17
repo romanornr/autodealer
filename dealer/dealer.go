@@ -223,7 +223,7 @@ func (g GCTLog) Debugf(_ interface{}, data string, v ...interface{}) {
 }
 
 func (bot *Dealer) LoadExchange(name string, wg *sync.WaitGroup) error {
-	return bot.LoadExchange(name, wg)
+	return bot.loadExchange(name, wg)
 }
 
 var (
