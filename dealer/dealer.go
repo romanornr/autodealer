@@ -402,8 +402,12 @@ func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
 		}(configs[x])
 	}
 	wg.Wait()
-	//if len(bot.GetExchanges()) == 0 {
-	//	return ErrNoExchangesLoaded
-	//}
+	exchanges, err := bot.ExchangeManager.GetExchanges()
+	if err != nil {
+		logrus.Errorf("Failed to get exchange list: %s\n", err)
+	}
+	if len(exchanges) == 0 {
+		return ErrNoExchangesLoaded
+	}
 	return nil
 }
