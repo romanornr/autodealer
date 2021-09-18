@@ -122,9 +122,9 @@ func apiSubrouter() http.Handler {
 		log.Println("brrrrr")
 	})
 
-	// r.Get("/accounts", func(w http.ResponseWriter, r *http.Request) {
+	//r.Get("/accounts", func(w http.ResponseWriter, r *http.Request) {
 	//	engine.RESTGetAllEnabledAccountInfo(w, r)
-	// })
+	//})
 
 	r.Route(routeGetDepositAddr, func(r chi.Router) {
 		r.Use(DepositAddressCtx)

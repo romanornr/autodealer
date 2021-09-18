@@ -51,7 +51,12 @@ func (b *Builder) Augment(f AugmentConfigFunc) *Builder {
 	return b
 }
 
-func(b *Builder) Context(ctx context.Context) *Builder {
+func (b *Builder) Contex(ctx context.Context) *Builder {
+	b.ctx = ctx
+	return b
+}
+
+func(b *Builder) Ctx(ctx context.Context) *Builder {
 	b.ctx = ctx
 	return b
 }

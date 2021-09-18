@@ -77,7 +77,7 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 	}
 
 	if withdrawRequest.Type == withdraw.Fiat && manager.GetName() == "Kraken" {
-		logrus.Info("withdaw kraken")
+		logrus.Info("withdraw kraken")
 		k := kraken.Kraken{Base: *manager.GetBase()}
 		response.ExchangeResponse.ID, err = k.Withdraw(r.Context(), currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
 		if err != nil {

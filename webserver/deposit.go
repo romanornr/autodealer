@@ -126,6 +126,8 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			return
 		}
 
+		logrus.Info(deposit)
+
 		ctx := context.WithValue(request.Context(), "response", &deposit)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})
