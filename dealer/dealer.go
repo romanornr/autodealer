@@ -28,6 +28,7 @@ type (
 type Builder struct {
 	augment            AugmentConfigFunc
 	balanceRefreshRate time.Duration
+	ctx                context.Context
 	factory            ExchangeFactory
 	settings           engine.Settings
 }
@@ -38,6 +39,8 @@ func NewBuilder() *Builder {
 	return &Builder{
 		augment:            nil,
 		balanceRefreshRate: 0,
+		ctx:                context.Background(),
+		factory:            ExchangeFactory{},
 		settings:           settings,
 	}
 }
@@ -48,15 +51,20 @@ func (b *Builder) Augment(f AugmentConfigFunc) *Builder {
 	return b
 }
 
+func(b *Builder) Context(ctx context.Context) *Builder {
+	b.ctx = ctx
+	return b
+}
+
 func (b *Builder) Balances(refresh time.Duration) *Builder {
 	b.balanceRefreshRate = refresh
 	return b
 }
 
-// func (b *DealerBuilder) CustomExchange(name string, fn ExchangeCreatorFunc) {
-//	b.factory.Register(name, fn)
-//	return b
-// }
+func (b *Builder) CustomExchange(name string, fn ExchangeCreatorFunc) *Builder {
+	b.factory.Register(name, fn)
+	return b
+}
 
 func (b *Builder) Settings(s engine.Settings) *Builder {
 	b.settings = s
@@ -82,13 +90,15 @@ func (b Builder) Build() (*Dealer, error) {
 			Settings:        b.settings,
 			Config:          conf,
 			ExchangeManager: *engine.SetupExchangeManager(),
+			Root:            NewRootStrategy(),
+			ctx:             b.ctx,
 			registry:        *NewOrderRegistry(),
 			// WithdrawManager: engine.WithdrawManager{},
 		}
 	)
 
 	if b.balanceRefreshRate > 0 {
-		// balance sttrategy
+		dealer.Root.Add("balances", NewBalancesStrategy(b.balanceRefreshRate))
 	}
 
 	logrus.Infof("loading configuration file %s\n", filePath)
@@ -123,6 +133,7 @@ type Dealer struct {
 	ExchangeManager engine.ExchangeManager
 	WithdrawManager engine.WithdrawManager
 	registry        OrderRegistry
+	ctx             context.Context
 }
 
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
@@ -152,22 +163,22 @@ type Dealer struct {
 
 // Run starts the bot manager, streams every exchange for this bot
 // assuming all data providers are ready
-//func (d *Dealer) Run() {
-//	var wg sync.WaitGroup
-//	e, err := d.ExchangeManager.GetExchanges()
-//	if err != nil {
-//		logrus.Errorf("exchange manager error: %v", err)
-//	}
-//	for _, x := range   d.ExchangeManager.GetExchanges() {
-//		wg.Add(1)
-//		go func(x exchange.IBotExchange) {
-//			defer wg.Done()
-//			err := Stream(d, x, &d.Root)
-//			panic(err)
-//		}(x)
-//	}
-//	wg.Wait()
-//}
+func (d *Dealer) Run() {
+	var wg sync.WaitGroup
+	e, err := d.ExchangeManager.GetExchanges()
+	if err != nil {
+		logrus.Errorf("exchange manager error: %v\n", err)
+	}
+	for _, x := range e {
+		wg.Add(1)
+		go func(x exchange.IBotExchange) {
+			defer wg.Done()
+			err := Stream(d, x, &d.Root)
+			panic(err)
+		}(x)
+	}
+	wg.Wait()
+}
 
 // GetOrderValue function retrieves order details from the given bot's store.
 func (bot *Dealer) GetOrderValue(exchangeName, orderID string) (OrderValue, bool) {
@@ -338,7 +349,7 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup) error {
 			useAsset = assetTypes[a]
 			break
 		}
-		err = exch.ValidateCredentials(context.TODO(), useAsset)
+		err = exch.ValidateCredentials(context.Background(), useAsset)
 		if err != nil {
 			gctlog.Warnf(gctlog.ExchangeSys,
 				"%s: Cannot validate credentials, authenticated support has been disabled, Error: %s\n",
