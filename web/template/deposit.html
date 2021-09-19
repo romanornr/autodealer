@@ -10,12 +10,15 @@
             {{template "dashboard"}}
             <div id="app">
                 <form class="deposit-form" @submit.prevent="onSubmit">
-                    <label class="form-label">Exchange name</label>
-                    <select class="form-select" v-model="exchangeName" id="exchangeName">
-                        <option v-for="option in options" :value="option.value">
-                            ${ option.text }
-                        </option>
-                    </select>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">Exchange</span>
+                        <select class="form-select" v-model="exchangeName" id="exchangeName" aria-label="Default select exchange">
+                            <option v-for="option in options" :value="option.value">
+                                ${ option.text }
+                            </option>
+                        </select>
+                    </div>
 
                     <div class="mb-3">
                         <label for="assetName" class="form-label">Asset</label>

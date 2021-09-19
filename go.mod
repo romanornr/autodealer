@@ -17,11 +17,11 @@ require (
 	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20210915214749-c084706c2272 // indirect
 	golang.org/x/exp v0.0.0-20201008143054-e3b2a7f2fdc7 // indirect
-	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 // indirect
-	golang.org/x/sys v0.0.0-20210915083310-ed5796bab164 // indirect
+	golang.org/x/net v0.0.0-20210917221730-978cfadd31cf // indirect
+	golang.org/x/sys v0.0.0-20210917161153-d61c044b1678 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	gonum.org/v1/gonum v0.9.0
-	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
+	google.golang.org/genproto v0.0.0-20210917145530-b395a37504d4 // indirect
 	gopkg.in/errgo.v2 v2.1.0
 )
