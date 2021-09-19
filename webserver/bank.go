@@ -33,7 +33,10 @@ func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 
 func BankTransferCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		submitResponse, _ := transfer.KrakenConvertUSDTtoEuro()
+		submitResponse, err := transfer.KrakenConvertUSDTtoEuro()
+		if err != nil {
+			logrus.Errorf("Failed to sell USDT to Euro: %s\n", err)
+		}
 		logrus.Infof("submit response %v\n", submitResponse)
 
 		response, err := transfer.KrakenInternationalBankAccountWithdrawal()

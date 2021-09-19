@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"context"
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -8,12 +9,9 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
 	"gopkg.in/errgo.v2/fmt/errors"
-	"net/http"
 )
 
 func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
-
-	var r *http.Request
 
 	dealerEngine, err := dealer.NewBuilder().Build()
 	if err != nil {
@@ -24,7 +22,7 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 		return order.SubmitResponse{}, err
 	}
 
-	accounts, err := exchange.FetchAccountInfo(r.Context(), asset.Spot)
+	accounts, err := exchange.FetchAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
 		return order.SubmitResponse{}, errors.Newf("failed to submit order: %s\n", err)
 	}
@@ -53,7 +51,7 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 		return order.SubmitResponse{}, errors.Newf("Account doesn't have enough USDT': %f\n", value)
 	}
 
-	response, err := exchange.SubmitOrder(r.Context(), o)
+	response, err := exchange.SubmitOrder(context.Background(), o)
 	if err != nil {
 		return order.SubmitResponse{}, errors.Newf("failed to submit order: %s\n", err)
 	}
@@ -63,7 +61,6 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 }
 
 func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error) {
-	var r *http.Request
 
 	dealerEngine, err := dealer.NewBuilder().Build()
 	if err != nil {
@@ -74,7 +71,7 @@ func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error
 		return ExchangeWithdrawResponse{}, err
 	}
 
-	accounts, err := exchange.FetchAccountInfo(r.Context(), asset.Spot)
+	accounts, err := exchange.FetchAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
 		return ExchangeWithdrawResponse{}, errors.Newf("failed to submit order: %s\n", err)
 	}

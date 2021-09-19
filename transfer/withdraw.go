@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
@@ -79,7 +80,7 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 	if withdrawRequest.Type == withdraw.Fiat && manager.GetName() == "Kraken" {
 		logrus.Info("withdraw kraken")
 		k := kraken.Kraken{Base: *manager.GetBase()}
-		response.ExchangeResponse.ID, err = k.Withdraw(r.Context(), currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
+		response.ExchangeResponse.ID, err = k.Withdraw(context.Background(), currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
 		if err != nil {
 			err = fmt.Errorf("failed international bank withdraw request: %s\n", err)
 		}

@@ -25,14 +25,17 @@
                             </option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Withdraw to international bank account</button>
+                <button class="btn btn-primary" type="submit" :disabled="loading">
+                    <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span v-if="loading">Loading...</span><span v-else>Transfer</span>
+                </button>
                 </form>
-                <div v-if="loading" class="loading">
-                    Loading...
+                <br>
+                <div v-if="loading" class="spinner-border text-primary" role="status">
+                    <span class="sr-only"></span>
                 </div>
-                <div v-if="errored" class="errored">
-                    error: ${ result["error"]["message"] }
-                </div>
+
+                <div v-if="error" class="error">${ error }</div>
                 <div>
                     ${ result }
                 </div>
