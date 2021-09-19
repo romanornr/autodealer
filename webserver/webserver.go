@@ -42,7 +42,7 @@ type Asset struct {
 func init() {
 	// lvl, _ := logrus.ParseLevel("debug")
 	// logrus.SetLevel(lvl)
-	tpl = template.Must(template.ParseGlob("site/html/*.html"))
+	tpl = template.Must(template.ParseGlob("web/template/*.html"))
 }
 
 // TODO api subrouter
