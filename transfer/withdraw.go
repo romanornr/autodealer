@@ -66,10 +66,8 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 		Err:              err,
 	}
 
-	var r *http.Request
-
 	if withdrawRequest.Type == withdraw.Crypto {
-		response.ExchangeResponse, err = manager.WithdrawCryptocurrencyFunds(r.Context(), withdrawRequest)
+		response.ExchangeResponse, err = manager.WithdrawCryptocurrencyFunds(context.Background(), withdrawRequest)
 		if err != nil {
 			err = fmt.Errorf("failed to withdraw crypto asset %s\n", err)
 		}

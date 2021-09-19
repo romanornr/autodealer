@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"github.com/rs/zerolog/log"
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -28,6 +29,7 @@ func Stream(d *Dealer, e exchange.IBotExchange, s Strategy) error {
 	// This goroutine is supposed to never finish
 	for data := range ws.ToRoutine {
 		data := data
+		logrus.Info(data)
 		go func() {
 			err := handleData(d, e, s, data)
 			if err != nil {
@@ -118,12 +120,15 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 }
 
 func unhandledType(data interface{}, warn bool) {
+	e := log.Debug()
 	if warn {
-		logrus.Warn()
+		e = log.Warn()
 	}
 
 	t := fmt.Sprintf("%T\n", data)
-	logrus.Warnf("unhandledType: %v\n", t)
+	e = e.Interface("data", data).Str("type", t)
+
+	logrus.Warnf("unhandledType: %v\n", e)
 }
 
 func handleError(method string, err error) {
