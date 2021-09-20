@@ -21,12 +21,15 @@ var (
 	ErrHoldingsNotFound    = errors.New("holdings not found")
 )
 
+// BalancesStrategy struct initialises to nil, keeps reference of the associated `TickerStrategy` struct and ensures the `TickerStrategy` receives an initial value.
+// The ticker struct contains information related to it's own `Interval`, `TickFunc`, associated `dealer` and `exchanges`.
 type BalancesStrategy struct {
 	balances sync.Map
 	ticker   TickerStrategy
 }
 
-//NewBalancesStrategy creates a new *BalancesStrategy using a given new TickerStrategy
+// NewBalancesStrategy creates a new instance of the `BalancesStrategy` struct.
+// It takes in a `refreshRate` parameter which is the time interval in which the balances are refreshed.
 func NewBalancesStrategy(refreshRate time.Duration) Strategy {
 	b := &BalancesStrategy{
 		balances: sync.Map{},
@@ -40,7 +43,10 @@ func NewBalancesStrategy(refreshRate time.Duration) Strategy {
 	return b
 }
 
-// tick runs at the interval given by RefreshRate. It updates the balance for the passed Owner.
+// tick creates a basic form of load balancing. If the ticker type strategy has already been created for this exchange
+// then no action will be taken because the orders are still submit through the existing ticker type strategy.
+// All the TickFunc check ensures that all balances happen more or less at the same time.
+// A periodic check of the accounts info avoids the chances of a new ticker taking a huge load off of a single one of the secrets.
 func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
 	holdings, err := e.UpdateAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
@@ -50,7 +56,7 @@ func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
 	}
 }
 
-// Store stores the holdings from an account on a given exchange
+// Store stores holdings information into the balances strategy
 func (b *BalancesStrategy) Store(holdings account.Holdings) {
 	b.balances.Store(holdings.Exchange, holdings)
 }
@@ -70,7 +76,7 @@ func (b *BalancesStrategy) Load(exchangeName string) (holdings account.Holdings,
 	return holdings, ok
 }
 
-// Currency using the literal descriptions of the items in the balances array
+// Currency returns a balance from a currency from a specific account at a specific exchange.
 func (b *BalancesStrategy) Currency(exchangeName string, code string, accountID string) (account.Balance, error) {
 	holdings, loaded := b.Load(exchangeName)
 	if !loaded {
@@ -94,19 +100,25 @@ func (b *BalancesStrategy) Currency(exchangeName string, code string, accountID 
 // | Strategy interface |
 // +--------------------+
 
-// Init sets up the strategy
+// Init is called when the strategy is first initialized. It takes in a `Dealer` and an `exchange.IBotExchange` as parameters.\
+// We get the refresh rate from `b`
 func (b *BalancesStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
 	return b.ticker.Init(d, e)
 }
 
+// OnFunding is called when a funding event occurs. The `FundingData` struct contains the funding data.
+// Updates the holdings of the account. It basically looks at the side of the OCO(1), then the price of the oco the amount is either reduced by the FundingRate
+// which means it has increased our balance, either by getting removed altogether, which means is has decreased our balance.
 func (b *BalancesStrategy) OnFunding(d *Dealer, e exchange.IBotExchange, x stream.FundingData) error {
 	return nil
 }
 
+// OnPrice method is called every time a new price is received from the exchange.
 func (b *BalancesStrategy) OnPrice(d *Dealer, e exchange.IBotExchange, x ticker.Price) error {
 	return nil
 }
 
+// OnKline is called when a new kline is received.
 func (b *BalancesStrategy) OnKline(d *Dealer, e exchange.IBotExchange, x stream.KlineData) error {
 	return nil
 }
@@ -131,6 +143,7 @@ func (b *BalancesStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x 
 	return nil
 }
 
+// Deinit should be called when the bot is shutting down or closing functions given by the exchange's API interface.It is used to stop the ticker.
 func (b *BalancesStrategy) Deinit(d *Dealer, e exchange.IBotExchange) error {
 	return b.ticker.Init(d, e)
 }
