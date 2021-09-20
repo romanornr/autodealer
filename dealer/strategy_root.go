@@ -21,24 +21,33 @@ import (
 // which is passing necessary information. Just looking at this graph without talking about the internals, it is easy to see how this system can grow.
 // Any additional advanced features or algorithms can be added through additional Function calls, without changing the underlying code of the strategies.
 
+// This dynamic initialization system of functionality has several advantages.
+// It allows of the base Dealer to be generic and essentially allow for new additional functionality to be added to it at any time by just adding a new package to the folder structure.
+// By using this system it is possible to create a fully fledged Exchange or a versatile universal JSON constructor. Neither of the two situations would be possible using a static approach
+// as a static approach leads to a lot of increased code duplication and factoring. This allows for ideas and less explainable of the code.
+
 var (
 	ErrStrategyNotFound = errors.New("strategy not found")
 	ErrNotStrategy      = errors.New("given object is not a strategy")
 )
 
-// RootStrategy is a strategy implementation
+// RootStrategy is a struct that contains a map of strategies. The map is a sync.Map, which is a thread safe map. The map is initialized with a sync.Map{} and then we can add strategies to it.
+// The map is a map of string to Strategy. The string is the name of the strategy and the Strategy is the implementation of the strategy.
 type RootStrategy struct {
 	strategies sync.Map
 }
 
-// NewRootStrategy is a constructor for a Stock Exchange
+// NewRootStrategy returns the RootStrategy object. The RootStrategy object has several functions (each).
+// creating a RootStrategy variable which is an object. Then we are iterating through each of the additional strategies and adding them to the NewRootStrategy,
+// so they are available as the final implementation is created after they have been created
 func NewRootStrategy() RootStrategy {
 	return RootStrategy{
 		strategies: sync.Map{},
 	}
 }
 
-// Add inserts a strategy with a specific name
+// Add function takes a string that identifies a implementation of the Strategy, and the implementation of the implementation of the Strategy implementation itself.
+// It stores an implementation of a strategy implementation under a string named after the strategy implementation. Which resolves to the correct implementation of the Strategy.
 func (m *RootStrategy) Add(name string, s Strategy) {
 	m.strategies.Store(name, s)
 }
@@ -61,8 +70,8 @@ func (m *RootStrategy) Get(name string) (Strategy, error) {
 	return x.(Strategy), nil
 }
 
-// each iterates over each Strategy, calling Function f once per Strategy
-// Returns nil on success, or Function specific error on failure
+// each function is a function that iterates over all of the current strategies and calls a specific function once for each strategy.
+// The closure of the function is the implementation of the Strategy. The function returns an error.
 func (m *RootStrategy) each(f func(Strategy) error) error {
 	var err error
 
@@ -78,23 +87,24 @@ func (m *RootStrategy) each(f func(Strategy) error) error {
 	return err
 }
 
-// Init Initialize strategies of Dealer
+// Init function loops through each of the imported Strategy implementations and calls their init functions to initialize them.
+// Ordering of implementations is important and if an implementation depends on something another requires you should order the strategy implementations.
 func (m *RootStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
 	return m.each(func(strategy Strategy) error {
 		return strategy.Init(d, e)
 	})
 }
 
-// OnFunding Each strategy is called for each Funding order. When all your
-// strategies have been applied, it returns a list of errors from the
-// Apply methods of the returned strategies
+// OnFunding function for the Root strategy. The first line of the function is to call the same function on each_ it is the interface method for the Strategy.
+// A new function is called, which is more of an interface for the Strategy called OnFunding. Which allows the user to choose how they want to pass this event to the strategy.
 func (m *RootStrategy) OnFunding(d *Dealer, e exchange.IBotExchange, x stream.FundingData) error {
 	return m.each(func(strategy Strategy) error {
 		return strategy.OnFunding(d, e, x)
 	})
 }
 
-// OnPrice is called whenever a price update is published for a ticker
+// The OnPrice implementation of the Strategy is different from above.
+// It does not let the user choose how they want to use this information and passes all the information to the specific implementation of that data.
 func (m *RootStrategy) OnPrice(d *Dealer, e exchange.IBotExchange, x ticker.Price) error {
 	return m.each(func(strategy Strategy) error {
 		return strategy.OnPrice(d, e, x)
