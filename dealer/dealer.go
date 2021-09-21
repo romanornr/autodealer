@@ -25,6 +25,11 @@ type (
 	AugmentConfigFunc func(config2 *config.Config) error
 )
 
+// Builder struct holds state. In this case it specifically has a definition function Augment().
+// It also stores internal values such as the path the configs will be read from, the closures/recipe function it will use while conditioning config values.
+// Our Augment() will run before the Build() code is called. In this case, the config itself may have been read from a filepath.
+// In this case, our function augments with a value from the dealerBuilder struct/obj. That function is then run, and various further functions that had been defined for this.
+// Finally, if a file wasn't found, one of the directives within our builder will be constructed a new default template as an alternative to the expected input not found (the expected input "initial")
 type Builder struct {
 	augment            AugmentConfigFunc
 	balanceRefreshRate time.Duration
@@ -34,6 +39,7 @@ type Builder struct {
 }
 
 // NewBuilder returns a new or configured keep builder
+// NewBuilder function is used to build the Dealer object. When we call `dealer, err := builder.build()` we get a *dealer and an error back.
 func NewBuilder() *Builder {
 	var settings engine.Settings
 	return &Builder{
@@ -46,12 +52,16 @@ func NewBuilder() *Builder {
 }
 
 // Augment augments the exposed functions of the generated service interface, change this to modify the exposed service definition
+// Augment function, which you can change, compiles any code in the go code in this environment upon running application.
 func (b *Builder) Augment(f AugmentConfigFunc) *Builder {
 	b.augment = f
 	return b
 }
 
-func (b *Builder) Contex(ctx context.Context) *Builder {
+
+// Context creates an instance. As a result, this method will return a *keepBuilder from the keep package's Builder function.
+// We have a variable ctx while creating an instance. This is so that we may enable a go procedure to terminate upon receiving a specific signal from a context.
+func (b *Builder) Context(ctx context.Context) *Builder {
 	b.ctx = ctx
 	return b
 }
@@ -61,16 +71,22 @@ func(b *Builder) Ctx(ctx context.Context) *Builder {
 	return b
 }
 
+// Balances function will set the refresh interval to fetch balances which in our could be 10 seconds for example.
+// This interval will determine how often the bot will make an API call for fetching latest prices.
+// My assumption is that it's done 10 seconds to minimize amount of data fetched in-between trades to reduce fees.
 func (b *Builder) Balances(refresh time.Duration) *Builder {
 	b.balanceRefreshRate = refresh
 	return b
 }
 
+// CustomExchange function exports a variable called "CustomExchange", which will be registered in each pair's "ExchangeCreatorFunc".
+// Via *Builder's CustomExchange function we can insert a custom Exchange Creator.
+// Since the name is the only customization we have with this builder, we have to have a factory interface which can instantiate ExchangeCreatorFunc.
 func (b *Builder) CustomExchange(name string, fn ExchangeCreatorFunc) *Builder {
 	b.factory.Register(name, fn)
 	return b
 }
-
+// Settings can be used to construct custom settings for the exchange. Since it is optional, the configuration would only have the parts by being assigned in code.
 func (b *Builder) Settings(s engine.Settings) *Builder {
 	b.settings = s
 	return b
@@ -129,8 +145,9 @@ func (b Builder) Build() (*Dealer, error) {
 	return dealer, nil
 }
 
-// Dealer is the main struct for the dealer
-// It contains the root strategy, the settings, the config, the exchange manager, and the order registry
+// Dealer struct holds all the information about an instance of an autodealer (`root`, `settings`, `config`, `httpFactory`, `wg`, `ctx`, `exchangeManager`).
+// It has inner structs which are instances of ExchangeManager, WithdrawManager.  It has functions such as NewExchangeManager() and return an instance of ExchangeManager.
+// This is used for looking up exchange support to enable, and we control it through NewExchangeManager() and WithdrawManager instance.
 type Dealer struct {
 	Root            RootStrategy
 	Settings        engine.Settings
@@ -168,6 +185,12 @@ type Dealer struct {
 
 // Run starts the bot manager, streams every exchange for this bot
 // assuming all data providers are ready
+
+// Run function is the main entry point of the dealer functionality provided by autodealer.
+// By calling Run() we begin Auto Dealing, and we enter a go routine (so 1 Run() call at a time).
+//This routine tick’s over every 1 sec, and starts the main routine which iterates over all loaded exchanges and sends an engine call to process each balance.
+//If a strategy method returns a SymbolBalance instance it gets stored, by calling StoreOrder marginOrder is called on gct engine running under the engine server which
+// using the Symbol data structure information, will simply store the order locally on the affected exchange as a ‘margin’ order (aka short amount).
 func (d *Dealer) Run() {
 	var wg sync.WaitGroup
 	e, err := d.ExchangeManager.GetExchanges()
@@ -213,6 +236,11 @@ type GCTLog struct {
 	ExchangeSys interface{}
 }
 
+// OnOrder function calls the GetOrderValue method to see if an order exists with that dealer.
+// We have a GetValue method in the handler file. We modify the obtained value by setting its UserData to the OnFilled Observer required to perform the appropriate strategy.
+// In n our instance, our order may include two methods. One provides us with a transaction, while the other provides us with profit and loss information (P&L).
+// When we get an order, we set the User data to OnFilledObserver using the Value property and leave the handler code. Within the Handler.
+// OnFilled, we check two criteria to verify whether they are present in Value in order to optimize the strategy's execution.
 func (bot *Dealer) OnOrder(e exchange.IBotExchange, x order.Detail) {
 	if x.Status == order.Filled {
 		value, ok := bot.GetOrderValue(e.GetName(), x.ID)
@@ -388,8 +416,9 @@ func ShowAssetTypes(assets asset.Items, exchCfg *config.ExchangeConfig) {
 	}
 }
 
-// setupExchanges sets up supported exchanges and sets exchange to ready state ready for polling.
-// This function is the entry point all the top level functions in SetupExchange() will be invoked from.
+// setupExchanges function first determines if enabled is true or false, and then determines whether any exchanges have been loaded.
+// If the exchanges have not been loaded, the exchanges will be loaded using the GetExchanges function. Because this function implements a waitgroup, the code execution will continue.
+// The code attempts to load a single transaction and then moves on to the next stagename in the actions list, which is the setup Operations Stage.
 func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
 	var wg sync.WaitGroup
 	configs := bot.Config.GetAllExchangeConfigs()

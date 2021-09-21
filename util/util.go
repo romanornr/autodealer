@@ -15,11 +15,11 @@ import (
 // The compiler is then queried to get the function's pointer. If it succeeds, the code then performs a location and completes the phrase
 // If it cannot locate the function's pointer, it returns a question mark to indicate that it is unknown.
 func Location() string {
-	pc, _, _, ok := runtime.Caller(1)
-	if !ok {
+	pc, _, _, ok := runtime.Caller(1)	// stack here leads to E - ok returns true or false
+	if !ok {								// ok is true only when the call was successfull
 		return "?"
 	}
-	fn := runtime.FuncForPC(pc)
+	fn := runtime.FuncForPC(pc)				// Raw location of the calling func name
 	xs := strings.SplitAfterN(fn.Name(), "/", 3)
 	//nolint: gomnd
 	return xs[len(xs)-1]
@@ -37,12 +37,18 @@ func Location2() string {
 	return xs[len(xs)-1]
 }
 
+
+
 // ConfigFile there is text in the `inp` string variable, if there is not, `inp` is set to an empty string.
 // If `inp` is not empty, check to see if `inp` corresponds with multiple strings and whether `inp`'s corresponding string is a folder.
 // The function is only necessary if `inp` is not the default configuration file.
 // This utility function that is used to check for files with the name `inp` or `'inp`. These two strings are being output as such because of the file in the default configuration file, the `~/.gocryptotrader/config.json` file. If `inp` does not correspond with the `inp` filename, then `inp` is set to `""` and is returned as such.
 // If environment variable "DEALER_CONFIG" is found, it attempts to expand the string using ExpandUser(), also leading to an error if the string is empty.
 // Also check if configuration file exists based on a user-operated environment variable, the executable running, and the user's home directory. If any of these conditions are met, the configuration file will be found. If none of the conditions are met, a configuration file will not be found.
+
+// The ConfigFile function takes a string filename and the value of the environment variable $DOLA CONFIG, which defaults to nil.
+// This function checks to see whether the specified file exists and if the file exists.
+// If none of the criteria are met, route is returned as an empty string. This empty string is a desirable outcome since it will be subjected to an additional exception check.
 func ConfigFile(inp string) string {
 	if inp != "" {
 		path := ExpandUser(inp)
@@ -103,6 +109,9 @@ var defaultResourceChecker = resourceChecker{
 	resources: make(map[string]int),
 }
 
+// CheckerPush function saves a specific event in a vault structure.
+// For each function there is a vault sorted by name and obtained with a hash named history (map with key=Name and value=Number of invokes).
+// ex. (funcName,value)=push). push attaches one to the counter if it is present, or it creates a vault with 1 if it is not present.
 func CheckerPush(xs ...string) {
 	var name string
 
@@ -119,7 +128,10 @@ func CheckerPush(xs ...string) {
 	defaultResourceChecker.resources[name]++
 	defaultResourceChecker.m.Unlock()
 }
-
+// CheckerPop function is used when a resource has been created and is ready to be closed.
+// In the naming scheme, Pop simply implies teardown for a given resource following a Push.
+// The Checker function is a thread-safe map of named resources to integer counts.
+// The math is slightly different in that in a close call to Cascade, events are teardown in reverse order of how they were set up (ex: chart listeners are deleted first, then candle listeners).
 func CheckerPop(xs ...string) {
 	var name string
 

@@ -39,28 +39,17 @@ type Asset struct {
 	Rate       float64       `json:"rate"`
 }
 
+// Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
+// The Chi router selects a correct handler and middleware and hooks them together.
 func init() {
 	// lvl, _ := logrus.ParseLevel("debug")
 	// logrus.SetLevel(lvl)
 	tpl = template.Must(template.ParseGlob("web/template/*.html"))
 }
 
-// TODO api subrouter
-// api/binance/eth/deposit
-// api/ftx/eth/deposit
-// to get deposit addresses from exchanges easily
-
-// New creates a Mux/Chi router variable which is mapped to our returned value from NewRouter call.
-// The rest of callbacks are middleware stack. Logger, per RequestId and re-hopping initialized variables.
-// The RequestId middleware handles uuid generation for each request and setting it to Mux context.
-// Middleware that will automatically refresh the user's token and pass it to requests.
-// Mount router to our main router. Route matches with api/* will be bind to api router.
-// We have defined apiSubrouter function, which we used to get our api router with extended middleware,
-// which creates with two more middleware:
-// apiSubrouter function is same as func subrouter addition which generates a new router for each sub route.
-// Finally, Start to serve on defined port localhost:port and listenAndServe does block of function.
-// In interrupt handler we handle SIGINT and terminate gracefully
-// and Logs which contain a success message end node's process.is. Rest of errors are logged.
+// New imports many libraries, effectively constructing the project's "infrastructure."
+// These are based on the namespaces' chi, go-chi-middleware, and go-chi-render. Additionally, some little logging was established.
+// The remainder of the Routes(), apiSubrouter(), and init() methods configure basic handlers for each resource.
 func New() {
 	r := chi.NewRouter()
 
@@ -114,7 +103,8 @@ func New() {
 	logrus.Infof("start listening")
 }
 
-// apiSubrouter is identical to apiSubrouter but only returns the generic response object
+// apiSubrouter function will create an api route tree for each exchange, which will then be mounted into the application routing tree using the apiSubroutines.Mount method.
+// It will then apply the WithdrawCtx function to any API requests that include the /withdraw, /deposit, or /twap routes. These three features are included in sendRequestSpecific.
 func apiSubrouter() http.Handler {
 	r := chi.NewRouter()
 

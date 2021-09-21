@@ -8,8 +8,6 @@ import (
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/romanornr/autodealer/webserver"
 	"github.com/sirupsen/logrus"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
@@ -21,26 +19,6 @@ func init() {
 }
 
 func main() {
-	//go func() {
-	//	d, err := dealer.NewBuilder().Build()
-	//	if err != nil {
-	//		logrus.Errorf("Failed to build builder: %v\n", err)
-	//	}
-	//	d.Run()
-	//}()
-
-	//ts := dealer.TickerStrategy{
-	//	Interval: time.Second * 1,
-	//	TickFunc: func(d *dealer.Dealer, e exchange.IBotExchange) {
-	//		logrus.Errorf("TickFunc failed")
-	//	},
-	//}
-	//
-	//b := &dealer.BalancesStrategy{
-	//	balances: sync.Map{},
-	//	ticker:   ts,
-	//}
-
 	d, err := dealer.NewBuilder().Build()
 	if err != nil {
 		logrus.Errorf("expected no error, got %v\n", err)
@@ -55,24 +33,22 @@ func main() {
 		logrus.Errorf("expected no error, got %v\n", err)
 	}
 
-	balancesStrategy.OnPrice(d, e, ticker.Price{})
+	go func() {
+		dealer.Stream(d, e, balancesStrategy)
+	}()
 
-	logrus.Infof("%v\n", balancesStrategy.OnBalanceChange(d, e, account.Change{}))
+	var d2 = 200 * time.Second
+	var t = time.Now().Add(d2)
 
-
-
-	//a, err := e.FetchAccountInfo(context.Background(), asset.Spot)
-	//if err != nil {
-	//	logrus.Errorf("fetch account info failed: %v\n", err)
-	//}
-	//balancesStrategy.
-	//
-	//holdings, ok := b.balances.Load(e.GetName())
-	//if !ok {
-	//	t.Errorf("expected no error, got %v\n", err)
-	//}
-	//
-	//x := holdings.(account.Holdings)
+	go func() {
+		for {
+		logrus.Infof("stream strategy: %s\n", balancesStrategy)
+			if time.Now().Before(t) {
+				time.Sleep(time.Second * 5)
+				continue
+			}
+		}
+	}()
 
 	go webserver.New()
 	interrupt := signaler.WaitForInterrupt()

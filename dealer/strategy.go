@@ -11,6 +11,9 @@ import (
 
 // Strategy is an interface and defines all function needed for a user defined strategy. The RootStrategy provides a way to create and
 // use strategies and action according to given strategies.
+// Strategy interface defines all the functions that must be implemented in order for the strategy to operate correctly.
+// It has "On" functions and a data type that comprises keys and values that may be strings, interfaces, or anything else.
+// While this may seem to be a constraint on the execution of your approach, you may use the OnUnrecognized function to implement anything at an experimental stage.
 type Strategy interface {
 	Init(d *Dealer, e exchange.IBotExchange) error
 	OnFunding(d *Dealer, e exchange.IBotExchange, x stream.FundingData) error

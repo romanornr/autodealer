@@ -14,6 +14,11 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
 )
 
+// `TickerStrategy` implements basic strategy, doesn't generate any trades and is limited to measurements.
+// To regain control of your trade, it is necessary to examine how to develop your own strategy.
+// It is possible to accomplish so by more succinctly duplicating the Dealer's action function, including invoking some of the Dealer's methods.
+// It ensures that all functions return an error.
+
 // tickers are meant to store an interval time once they are registered in the Init function.
 // Once you remove the ticker from the tickers map, you are implicitly stopping the ticker.
 // You can't stop it explicitly because you have no idea when will the Init return.
@@ -38,14 +43,9 @@ type TickerStrategy struct {
 	tickers  sync.Map
 }
 
-// Init starts the ticker for the given exchange
-//
-// Parameters:
-//     d *Dealer - the dealer object
-//     e exchange.IBotExchange - the exchange to start the ticker for
-//
-// Returns:
-//     error - any errors that occurred
+// Init will call our ticker code on its own.
+// We can easily build a reoccurring ticker using the information in the ExchangeConnections struct by establishing a goroutine runtime.
+// The runtime clock enables us to manage time without the need for a goroutine.
 func (s *TickerStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
 	ti := *time.NewTicker(s.Interval)
 	if s.TickFunc != nil {

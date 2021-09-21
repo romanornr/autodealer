@@ -13,6 +13,12 @@ import (
 	"go.uber.org/multierr"
 )
 
+// This code will consist of a single RootStrategy data structure. This data structure would be the only one where Strategy Implementations are held.
+// A new RootStrategy object is created. This data structure will be passed down to the last implementation of Strategy.
+// After the Strategy Implementations are imported, the order are respective are important.
+// The order of import Strategy implementations is important because classes that depend on other classes don't rely on the root strategy in order to work
+// so in order to have a non-circular dependency, the classes should be called in a specific order.
+
 // Adding a new strategy is going to be returning two things. The RootStrategy itself, and a specific Strategy that is the type of the Strategy that was requested.
 // The ability to add a strategy will create a Map, Map[string] full of RootStrategies. When the end user adds a new strategy, they can give it a unique identifier
 // and when they do, we will add a new value to the map. Second, we have a function after the line where a new RootStrategy object is defined; a function called Get
@@ -25,6 +31,10 @@ import (
 // It allows of the base Dealer to be generic and essentially allow for new additional functionality to be added to it at any time by just adding a new package to the folder structure.
 // By using this system it is possible to create a fully fledged Exchange or a versatile universal JSON constructor. Neither of the two situations would be possible using a static approach
 // as a static approach leads to a lot of increased code duplication and factoring. This allows for ideas and less explainable of the code.
+
+// Each strategy is instantiated as the variable `m`. Then each of the strategies is passed as a function and called. The function has a Void returned Void.
+// Each of the strategy will be called and setup inside their `OnInit()` functions and run their OnInit functions, to set themselves up. Next, each of the OnInit functions will pass a selection of code developers can customize, into their OnFunding() implementations.
+// We will then iterate over the variable `rootStrategy` and call each one to execute their function, allowing us to customize each strategy individually.
 
 var (
 	ErrStrategyNotFound = errors.New("strategy not found")
@@ -52,7 +62,7 @@ func (m *RootStrategy) Add(name string, s Strategy) {
 	m.strategies.Store(name, s)
 }
 
-// Delete removes a strategy with a
+// Delete the Strategy specified by name. You get an object, get the interface's value, and then determine the interface's value.
 func (m *RootStrategy) Delete(name string) (Strategy, error) {
 	x, ok := m.strategies.LoadAndDelete(name)
 	if !ok {

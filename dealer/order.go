@@ -8,27 +8,38 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
+// OrderKey struct implements the `Key` interface of the sync.Map, which used for type assertion of the key
 type OrderKey struct {
 	ExchangeName string
 	OrderID      string
 }
 
+// OrderValue struct holds two fields, which are both stored under the `OrderValue` struct.
+// The first field is the `SubmitResponse` which comes from `Submit` function. It's the response returned from the webserver of each exchange.
+// It includes data like whether or not the order is placed, the order ID (in case the order is placed), the creation timestamp, the creation amount (unit), etc.
+// It also contains all exchange-specific error messages under `Error()`.
 type OrderValue struct {
 	SubmitResponse order.SubmitResponse
 	UserData       interface{}
 }
 
-// An OrderRegistry is a struct for keeping track of bookings; it has two
-// exported properties: 'length' and 'values'.
-// OrderRegistry is safe for concurrent use by multiple goroutines.
+// This code begins by atomically reading the length property.
+// This indicates that it loads the current atomic value of the int property defined as an anonymous field and exported through atomic.AddInt32(&r.length, 1).
+// Why are we doing this? If we attempted to change an exported field, we might wind up with a scenario in which both the outer and inner loops attempting
+// to modify and access the length property at the same time affect the same variable.
+
+// OrderRegistry struct that stores two things: The amount of orders in it and the key.
+// It has a single `int` property that represents the amount of orders currently in the registry.
+// The `int` property is an atomic.Int, which is part of the golang's atomic package.
+// It contains the modification of this `int`property that happens at the same time. The modification of an int cannot happen at two places in code in parallel. This provides a safe way to get or update integers from multiple routines, or from goroutines. In this case it’s the inner length field.
 type OrderRegistry struct {
 	length int32
 	values sync.Map
 	Mutex  sync.RWMutex
 }
 
-// NewOrderRegistry creates a new OrderRegistry
-// Short is unique per unique song id. This is the only value stored, so it is guaranteed to be unique
+// NewOrderRegistry constructs a new OrderRegistry. The function initializes the field atomic.Int32 called length with 0
+// this means your r.length is incremented after every call of this function.
 func NewOrderRegistry() *OrderRegistry {
 	return &OrderRegistry{
 		length: 0,
@@ -37,9 +48,9 @@ func NewOrderRegistry() *OrderRegistry {
 	}
 }
 
-// Store Stores an order.submit response in the order registry. If the response already exists in
-// the order registry it is not stored again. Returns `true` if an order value was stored in
-// the registry and `false` otherwise.
+// Store stores the global order data to the `OrderRegistry`. The code looks like it should just wrap structs around another struct, that is not the case.
+// First, it checks if an order with the same exchange name and order ID already exist, if not the order value will be stored in the `OrderRegistry` and `returned` will `true`.
+// Secondly, the `loaded` argument is returned. This `loaded` argument is needed to see if the order has already been added to the `OrderRegistry` and therefore we need to run the code again.
 func (r *OrderRegistry) Store(exchangeName string, response order.SubmitResponse, userData interface{}) bool {
 	key := OrderKey{
 		ExchangeName: exchangeName,
@@ -57,8 +68,10 @@ func (r *OrderRegistry) Store(exchangeName string, response order.SubmitResponse
 	return false
 }
 
-// GetOrderValue returns the order value for the given exchange name and
-// order ID, or false if it's not found. Sees to that the type assertion is valid.
+// GetOrderValue initially verifies that the exchange name and order ID exist in the OrderRegistry.
+// This results in the `want`, and `ok` variables and assignment then return if that's the case.
+// If it's not, then it's safe for r.values. LoadOrStore to return a "new" order value.
+// It will create a new OrderValue with the input `UserData` and then load the `SubmitResponse` from the `DecodedUpdates` channel. If that should fail, its logged
 func (r *OrderRegistry) GetOrderValue(exchangeName, orderID string) (OrderValue, bool) {
 	key := OrderKey{
 		ExchangeName: exchangeName,

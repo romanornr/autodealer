@@ -21,6 +21,17 @@ var (
 	ErrHoldingsNotFound    = errors.New("holdings not found")
 )
 
+// purpose is converting between the internal ticker type `TickerStrategy` with it's associated `Dealer` and exchange.IBotExchange
+// and the generic `Strategy` interface with it's associated `Dealer` and pretty much any interface.
+
+// The code implements a simple load balancing technique and binds all transactions to a single exchange for an associated ticker ( Interval , ticker type etc ).
+// Underneath, a ticker tickerStrategy struct keeps a reference to the supplied dealer, keeps a reference of the exchange for dealing requests associated
+// Additionally, it maintains a map of tickerable intervals to their associated tickers for this range of desired frequencies.
+// We use context.Background() to close out this request by registering a timeout. When things are done under the tickerStrategy functionality.
+
+// BalancesStrategy primarily intended to facilitate the process of calculating the value of our coin equivalents in an atomic and efficient manner.
+// The Load and Store operations let us get and set ( or, if desired, concurrently retrieve and set ) our Holdings.
+// The primary activity that we are concerned with is cross-checking all of our current accounts to ensure that they are in accordance with our intended holdings.
 // BalancesStrategy struct initialises to nil, keeps reference of the associated `TickerStrategy` struct and ensures the `TickerStrategy` receives an initial value.
 // The ticker struct contains information related to it's own `Interval`, `TickFunc`, associated `dealer` and `exchanges`.
 type BalancesStrategy struct {

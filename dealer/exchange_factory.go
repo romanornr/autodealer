@@ -16,23 +16,22 @@ type (
 	ExchangeFactory map[string]ExchangeCreatorFunc
 )
 
-// exchange_factory["BTC-e"] = BTCe.Create
-// Then whenever you do, exchange_factory["ftx"]()
-// You get an instantiated `ftx` bot exchange. Easy way to make all sorts of mini plugin like things, i.e. bots, but also
-// decouple them from main code and make it very simple to add new ones.
-// - `name`: the name of the exchange.
-// - `what`: the name of the function to register.
-// - `factory`: an ExchangeFactory, generally massaged using the Forge(...) call.
+// This code is helpful in development and production environments when a large number of exchanges are created.
+// Then it allows you to create a single instance of an exchange by specifying the exchange type.
+// If you had another bot on another platform, you could create an instance of the right type of exchange, but with out requiring the new platform to be written yet
 
-// Register is a mechanism to allow an exchange to register with a visibility broker e is the broker's exchange factory.
-// name is the name of the exchange (should be unique)
-// check is a channel for returning results
-// rule: rule returning the channel to channel for this exchange channel
+// This approach is that we can create new exchanges very easily and quick. All we need to do is register a new exchange, and we can immediately use it.
+// That means we can quickly pass around and reference exchanges and quickly and easily use them in our system
+// And we don't need to change any other code if we want to add or remove new exchanges because this factory allows us to register any exchange.
+
+// Register function creates a key-value pair in the ExchangeFactory that is in the form of `key` = name of exchange`value` = A reference to the function named fn.
+// In this instance, the convention is name, the exchange type in uppercase, followed by Exchange lowercase.
 func (e ExchangeFactory) Register(name string, fn ExchangeCreatorFunc) {
 	e[name] = fn
 }
 
-// NewExchangeByName creates an exchange based on the given string.
+// NewExchangeByName does a soft interpretation by determining if the exchange name requested matches one of the factory's stated functions and then initiating a connection to it.
+// If not, we instantly search for the name in the worldwide list of exchanges.
 func (e ExchangeFactory) NewExchangeByName(name string) (exchange.IBotExchange, error) {
 	fn, ok := e[name]
 	if !ok {
