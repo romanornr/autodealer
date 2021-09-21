@@ -15,11 +15,11 @@ import (
 // The compiler is then queried to get the function's pointer. If it succeeds, the code then performs a location and completes the phrase
 // If it cannot locate the function's pointer, it returns a question mark to indicate that it is unknown.
 func Location() string {
-	pc, _, _, ok := runtime.Caller(1)	// stack here leads to E - ok returns true or false
-	if !ok {								// ok is true only when the call was successfull
+	pc, _, _, ok := runtime.Caller(1) // stack here leads to E - ok returns true or false
+	if !ok {                          // ok is true only when the call was successfull
 		return "?"
 	}
-	fn := runtime.FuncForPC(pc)				// Raw location of the calling func name
+	fn := runtime.FuncForPC(pc) // Raw location of the calling func name
 	xs := strings.SplitAfterN(fn.Name(), "/", 3)
 	//nolint: gomnd
 	return xs[len(xs)-1]
@@ -36,8 +36,6 @@ func Location2() string {
 	xs := strings.SplitN(fn.Name(), "/", 3)
 	return xs[len(xs)-1]
 }
-
-
 
 // ConfigFile there is text in the `inp` string variable, if there is not, `inp` is set to an empty string.
 // If `inp` is not empty, check to see if `inp` corresponds with multiple strings and whether `inp`'s corresponding string is a folder.
@@ -128,6 +126,7 @@ func CheckerPush(xs ...string) {
 	defaultResourceChecker.resources[name]++
 	defaultResourceChecker.m.Unlock()
 }
+
 // CheckerPop function is used when a resource has been created and is ready to be closed.
 // In the naming scheme, Pop simply implies teardown for a given resource following a Push.
 // The Checker function is a thread-safe map of named resources to integer counts.

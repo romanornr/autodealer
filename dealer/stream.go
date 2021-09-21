@@ -22,7 +22,6 @@ var (
 // For now, the workflow is you write the code, and the auto-generated responses should do what you tell it to do.
 // This code should be good enough for daily trading, where every millisecond is important. You can just let the Listener run for an hour or so, and it will take care of the rest.
 
-
 // Stream is the main entry point for the bot. It is responsible for opening the websocket connection, and then listening for data on the websocket to come in.
 // When data comes through (this goroutine never dies), it handles all the types of messages available on the websocket.
 // The *exchange.IBotExchange contains the underlying Golang Websocket library, which must be imported with an alias.

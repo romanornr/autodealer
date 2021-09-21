@@ -58,7 +58,6 @@ func (b *Builder) Augment(f AugmentConfigFunc) *Builder {
 	return b
 }
 
-
 // Context creates an instance. As a result, this method will return a *keepBuilder from the keep package's Builder function.
 // We have a variable ctx while creating an instance. This is so that we may enable a go procedure to terminate upon receiving a specific signal from a context.
 func (b *Builder) Context(ctx context.Context) *Builder {
@@ -66,7 +65,7 @@ func (b *Builder) Context(ctx context.Context) *Builder {
 	return b
 }
 
-func(b *Builder) Ctx(ctx context.Context) *Builder {
+func (b *Builder) Ctx(ctx context.Context) *Builder {
 	b.ctx = ctx
 	return b
 }
@@ -86,6 +85,7 @@ func (b *Builder) CustomExchange(name string, fn ExchangeCreatorFunc) *Builder {
 	b.factory.Register(name, fn)
 	return b
 }
+
 // Settings can be used to construct custom settings for the exchange. Since it is optional, the configuration would only have the parts by being assigned in code.
 func (b *Builder) Settings(s engine.Settings) *Builder {
 	b.settings = s

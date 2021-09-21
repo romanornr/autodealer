@@ -42,7 +42,7 @@ func main() {
 
 	go func() {
 		for {
-		logrus.Infof("stream strategy: %s\n", balancesStrategy)
+			logrus.Infof("stream strategy: %s\n", balancesStrategy)
 			if time.Now().Before(t) {
 				time.Sleep(time.Second * 5)
 				continue
