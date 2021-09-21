@@ -154,6 +154,20 @@ func apiSubrouter() http.Handler {
 	return r
 }
 
+// AcceptHeaderCtx chi/middleware-package offers a wrapper for existing functions and provides Controller patterns based around to Accept header of the request, parsing and returning it to our Router
+func AcceptHeaderCtx((next http.Handler) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		accept := r.Header.Get("Accept")
+		switch accept {
+		case "application/json":
+			next.ServeHTTP(w, r)
+		default:
+			w.Header().Set("Content-Type", "application/json")
+		}
+	})
+}
+
+
 // HomeHandler handleHome is the handler for the '/' page request. It redirects the
 // requester to the markets page.
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
