@@ -42,8 +42,8 @@ type Asset struct {
 // Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
 // The Chi router selects a correct handler and middleware and hooks them together.
 func init() {
-	// lvl, _ := logrus.ParseLevel("debug")
-	// logrus.SetLevel(lvl)
+	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{})
 	tpl = template.Must(template.ParseGlob("web/template/*.html"))
 }
 
@@ -155,17 +155,17 @@ func apiSubrouter() http.Handler {
 }
 
 // AcceptHeaderCtx chi/middleware-package offers a wrapper for existing functions and provides Controller patterns based around to Accept header of the request, parsing and returning it to our Router
-func AcceptHeaderCtx((next http.Handler) {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		accept := r.Header.Get("Accept")
-		switch accept {
-		case "application/json":
-			next.ServeHTTP(w, r)
-		default:
-			w.Header().Set("Content-Type", "application/json")
-		}
-	})
-}
+//func AcceptHeaderCtx(next http.Handler) {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		accept := r.Header.Get("Accept")
+//		switch accept {
+//		case "application/json":
+//			next.ServeHTTP(w, r)
+//		default:
+//			w.Header().Set("Content-Type", "application/json")
+//		}
+//	}
+//}
 
 
 // HomeHandler handleHome is the handler for the '/' page request. It redirects the
