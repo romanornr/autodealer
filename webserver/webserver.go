@@ -11,7 +11,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
-	"github.com/thrasher-corp/gocryptotrader/currency"
 )
 
 var tpl *template.Template
@@ -28,17 +27,6 @@ const (
 	baseCSP = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
 )
 
-type Asset struct {
-	Name       string        `json:"name"`
-	Item       currency.Item `json:"item"`
-	AssocChain string        `json:"chain"`
-	Code       currency.Code `json:"code"`
-	Exchange   string        `json:"exchange"`
-	Address    string        `json:"address"`
-	Balance    string        `json:"balance"`
-	Rate       float64       `json:"rate"`
-}
-
 // Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
 // The Chi router selects a correct handler and middleware and hooks them together.
 func init() {
@@ -53,16 +41,19 @@ func init() {
 func New() {
 	r := chi.NewRouter()
 
-	// The middleware stack. Logger, per RequestId and re-hopping initialized variables.
+	// The middleware stacks. Logger, per RequestId and re-hopping initialized variables.
 	// The RequestId middleware handles uuid generation for each request and setting it to Mux context.
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	// Set a timeout value on the request context (ctx), that will signal
+	// through ctx.Done() that the request has timed out and further processing should be stopped.
+	r.Use(middleware.Timeout(60 * time.Second))
+
 	chiCors := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -96,11 +87,9 @@ func New() {
 		WriteTimeout: httpConnTimeout * (time.Second * 30),
 	}
 
-	if err := httpServer.ListenAndServe(); err != nil {
-		logrus.Errorf("failed to start listening: %v", err)
+	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logrus.Fatalf("failed to start listening: %v", err)
 	}
-
-	logrus.Infof("start listening")
 }
 
 // apiSubrouter function will create an api route tree for each exchange, which will then be mounted into the application routing tree using the apiSubroutines.Mount method.
@@ -172,6 +161,8 @@ func apiSubrouter() http.Handler {
 // requester to the markets page.
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Errorf("error template: %s\n", err)
+		return
 	}
 }
