@@ -33,7 +33,7 @@ var (
 // The Load and Store operations let us get and set ( or, if desired, concurrently retrieve and set ) our Holdings.
 // The primary activity that we are concerned with is cross-checking all of our current accounts to ensure that they are in accordance with our intended holdings.
 // BalancesStrategy struct initialises to nil, keeps reference of the associated `TickerStrategy` struct and ensures the `TickerStrategy` receives an initial value.
-// The ticker struct contains information related to it's own `Interval`, `TickFunc`, associated `dealer` and `exchanges`.
+// The ticker struct contains information related to its own `Interval`, `TickFunc`, associated `dealer` and `exchanges`.
 type BalancesStrategy struct {
 	balances sync.Map
 	ticker   TickerStrategy
@@ -57,7 +57,7 @@ func NewBalancesStrategy(refreshRate time.Duration) Strategy {
 // tick creates a basic form of load balancing. If the ticker type strategy has already been created for this exchange
 // then no action will be taken because the orders are still submit through the existing ticker type strategy.
 // All the TickFunc check ensures that all balances happen more or less at the same time.
-// A periodic check of the accounts info avoids the chances of a new ticker taking a huge load off of a single one of the secrets.
+// A periodic check of the accounts' info avoids the chances of a new ticker taking a huge load off of a single one of the secrets.
 func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
 	holdings, err := e.UpdateAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
