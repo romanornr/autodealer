@@ -51,6 +51,7 @@ func main() {
 	}()
 
 	go webserver.New()
+
 	interrupt := signaler.WaitForInterrupt()
 	gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
 }
