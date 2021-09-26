@@ -11,6 +11,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"strings"
 	"sync"
 	"time"
 )
@@ -69,15 +70,17 @@ func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
 
 // Store stores holdings information into the balances strategy
 func (b *BalancesStrategy) Store(holdings account.Holdings) {
-	b.balances.Store(holdings.Exchange, holdings)
+	key := strings.ToLower(holdings.Exchange)
+	b.balances.Store(key, holdings)
 }
 
 // Load returns an amortized holding from self.holdings of exchange exchangeName of the accountID of the key code of the asset you want
 // in exchange to go by. In loading balance of account accountID of base asset name of code you risk a panic if there is a lack
 // of a BaseBalance on exchange by accountID for base asset name of code.
 func (b *BalancesStrategy) Load(exchangeName string) (holdings account.Holdings, loaded bool) {
+	key := strings.ToLower(exchangeName)
 	var ok bool
-	pointer, loaded := b.balances.Load(exchangeName)
+	pointer, loaded := b.balances.Load(key)
 	if loaded {
 		holdings, ok = pointer.(account.Holdings)
 		if !ok {
@@ -113,8 +116,8 @@ func (b *BalancesStrategy) Currency(exchangeName string, code string, accountID 
 
 // Init is called when the strategy is first initialized. It takes in a `Dealer` and an `exchange.IBotExchange` as parameters.\
 // We get the refresh rate from `b`
-func (b *BalancesStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
-	return b.ticker.Init(d, e)
+func (b *BalancesStrategy) Init(ctx context.Context, d *Dealer, e exchange.IBotExchange) error {
+	return b.ticker.Init(ctx, d, e)
 }
 
 // OnFunding is called when a funding event occurs. The `FundingData` struct contains the funding data.
@@ -156,5 +159,5 @@ func (b *BalancesStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x 
 
 // Deinit should be called when the bot is shutting down or closing functions given by the exchange's API interface.It is used to stop the ticker.
 func (b *BalancesStrategy) Deinit(d *Dealer, e exchange.IBotExchange) error {
-	return b.ticker.Init(d, e)
+	return b.ticker.Deinit(d, e)
 }

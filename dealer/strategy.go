@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"context"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -15,7 +16,7 @@ import (
 // It has "On" functions and a data type that comprises keys and values that may be strings, interfaces, or anything else.
 // While this may seem to be a constraint on the execution of your approach, you may use the OnUnrecognized function to implement anything at an experimental stage.
 type Strategy interface {
-	Init(d *Dealer, e exchange.IBotExchange) error
+	Init(ctx context.Context, d *Dealer, e exchange.IBotExchange) error
 	OnFunding(d *Dealer, e exchange.IBotExchange, x stream.FundingData) error
 	OnPrice(d *Dealer, e exchange.IBotExchange, x ticker.Price) error
 	OnKline(d *Dealer, e exchange.IBotExchange, x stream.KlineData) error

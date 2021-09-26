@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/rs/zerolog/log"
@@ -10,6 +11,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
 )
 
 var (
@@ -26,9 +28,14 @@ var (
 // When data comes through (this goroutine never dies), it handles all the types of messages available on the websocket.
 // The *exchange.IBotExchange contains the underlying Golang Websocket library, which must be imported with an alias.
 // By using that package with the alias "exchange", we can consolidate the Exchange package into this one without problematic circular imports.
-func Stream(d *Dealer, e exchange.IBotExchange, s Strategy) error {
+func Stream(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy) error {
 	ws, err := OpenWebsocket(e)
 	if err != nil {
+		return err
+	}
+
+	// Init strategy for exchange
+	if err := s.Init(ctx, d, e); err != nil {
 		return err
 	}
 
@@ -36,13 +43,19 @@ func Stream(d *Dealer, e exchange.IBotExchange, s Strategy) error {
 	for data := range ws.ToRoutine {
 		data := data
 		logrus.Info(data)
-		go func() {
+		//go func() {
 			err := handleData(d, e, s, data)
 			if err != nil {
 				logrus.Errorf("error handling data: %s\n", err)
 			}
-		}()
+		//}()
 	}
+
+	// Deinit strategy for this exchange.
+	if err := s.Deinit(d, e); err != nil {
+		return err
+	}
+
 	panic("unexpected end of channel")
 }
 
@@ -67,11 +80,13 @@ func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
 		return nil, ErrWebsocketNotEnabled
 	}
 
+	// Instantiate a websocket.
 	ws, err := e.GetWebsocket()
 	if err != nil {
 		return nil, err
 	}
 
+	// connect
 	if !ws.IsConnecting() && !ws.IsConnecting() {
 		err = ws.Connect()
 		if err != nil {
@@ -102,6 +117,8 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 		return x
 	case stream.FundingData:
 		handleError("OnFunding", s.OnFunding(d, e, x))
+	case *ticker.Price:
+		handleError("OnPrice", s.OnPrice(k, e, *x))
 	case *stream.KlineData:
 		handleError("OnKline", s.OnKline(d, e, *x))
 	case *orderbook.Base:

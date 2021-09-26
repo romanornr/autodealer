@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -46,7 +47,7 @@ type TickerStrategy struct {
 // Init will call our ticker code on its own.
 // We can easily build a reoccurring ticker using the information in the ExchangeConnections struct by establishing a goroutine runtime.
 // The runtime clock enables us to manage time without the need for a goroutine.
-func (s *TickerStrategy) Init(d *Dealer, e exchange.IBotExchange) error {
+func (s *TickerStrategy) Init(ctx context.Context, d *Dealer, e exchange.IBotExchange) error {
 	ti := *time.NewTicker(s.Interval)
 	if s.TickFunc != nil {
 		go func() {
@@ -115,7 +116,7 @@ func (s *TickerStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x in
 }
 
 // Deinit stops the ticker for the given Exchange.
-func (s *TickerStrategy) Deinit(d *Dealer, e exchange.IBotExchange) {
+func (s *TickerStrategy) Deinit(d *Dealer, e exchange.IBotExchange) error {
 	pointer, loaded := s.tickers.LoadAndDelete(e.GetName())
 	if !loaded {
 		panic("exchange has not registered a ticker")
@@ -126,4 +127,5 @@ func (s *TickerStrategy) Deinit(d *Dealer, e exchange.IBotExchange) {
 		logrus.Panicf("want time.Ticker, got %T", pointer)
 	}
 	tickers.Stop()
+	return nil
 }

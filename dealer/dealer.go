@@ -33,7 +33,6 @@ type (
 type Builder struct {
 	augment            AugmentConfigFunc
 	balanceRefreshRate time.Duration
-	ctx                context.Context
 	factory            ExchangeFactory
 	settings           engine.Settings
 }
@@ -45,7 +44,6 @@ func NewBuilder() *Builder {
 	return &Builder{
 		augment:            nil,
 		balanceRefreshRate: 0,
-		ctx:                context.Background(),
 		factory:            ExchangeFactory{},
 		settings:           settings,
 	}
@@ -55,18 +53,6 @@ func NewBuilder() *Builder {
 // Augment function, which you can change, compiles any code in the go code in this environment upon running application.
 func (b *Builder) Augment(f AugmentConfigFunc) *Builder {
 	b.augment = f
-	return b
-}
-
-// Context creates an instance. As a result, this method will return a *keepBuilder from the keep package's Builder function.
-// We have a variable ctx while creating an instance. This is so that we may enable a go procedure to terminate upon receiving a specific signal from a context.
-func (b *Builder) Context(ctx context.Context) *Builder {
-	b.ctx = ctx
-	return b
-}
-
-func (b *Builder) Ctx(ctx context.Context) *Builder {
-	b.ctx = ctx
 	return b
 }
 
@@ -112,7 +98,6 @@ func (b Builder) Build() (*Dealer, error) {
 			Config:          conf,
 			ExchangeManager: *engine.SetupExchangeManager(),
 			Root:            NewRootStrategy(),
-			ctx:             b.ctx,
 			registry:        *NewOrderRegistry(),
 			// WithdrawManager: engine.WithdrawManager{},
 		}
@@ -191,7 +176,7 @@ type Dealer struct {
 //This routine tick’s over every 1 sec, and starts the main routine which iterates over all loaded exchanges and sends an engine call to process each balance.
 //If a strategy method returns a SymbolBalance instance it gets stored, by calling StoreOrder marginOrder is called on gct engine running under the engine server which
 // using the Symbol data structure information, will simply store the order locally on the affected exchange as a ‘margin’ order (aka short amount).
-func (d *Dealer) Run() {
+func (d *Dealer) Run(ctx context.Context) {
 	var wg sync.WaitGroup
 	e, err := d.ExchangeManager.GetExchanges()
 	if err != nil {
@@ -201,7 +186,7 @@ func (d *Dealer) Run() {
 		wg.Add(1)
 		go func(x exchange.IBotExchange) {
 			defer wg.Done()
-			err := Stream(d, x, &d.Root)
+			err := Stream(ctx, d, x, &d.Root)
 			panic(err)
 		}(x)
 	}
