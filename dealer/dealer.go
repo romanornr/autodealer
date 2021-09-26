@@ -275,6 +275,21 @@ var (
 	ErrExchangeFailedToLoad = errors.New("exchange failed to load")
 )
 
+// getExchange is an unchanged copy of Engine.GetExchanges.
+//nolint
+func (bot *Dealer) getExchanges(gctlog GCTLog) []exchange.IBotExchange {
+	exch, err := bot.ExchangeManager.GetExchanges()
+	if err != nil {
+		gctlog.Warnf(gctlog.ExchangeSys, "Cannot get exchanges: %v", err)
+		return []exchange.IBotExchange{}
+	}
+	return exch
+}
+
+func (bot *Dealer) GetExchanges() []exchange.IBotExchange {
+	return bot.getExchanges(GCTLog{nil})
+}
+
 // LoadExchange creates an exchange object for the loaded exchange by calling ExchangeManager.NewExchangeByName.
 // We check that the exchange loaded supports the expected base currency by calling CurrencyPairs.IsAssetEnabled.
 // call to the exchange object's Setup function which checks the exchange for its name and retrieves all the configurable values for the exchange. Setup is called by both the ExchangeManager and the Base.
@@ -382,7 +397,7 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup) error {
 			useAsset = assetTypes[a]
 			break
 		}
-		err = exch.ValidateCredentials(context.Background(), useAsset)
+		err = exch.ValidateCredentials(context.TODO(), useAsset)
 		if err != nil {
 			gctlog.Warnf(gctlog.ExchangeSys,
 				"%s: Cannot validate credentials, authenticated support has been disabled, Error: %s\n",
@@ -447,11 +462,7 @@ func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
 		}(configs[x])
 	}
 	wg.Wait()
-	exchanges, err := bot.ExchangeManager.GetExchanges()
-	if err != nil {
-		logrus.Errorf("Failed to get exchange list: %s\n", err)
-	}
-	if len(exchanges) == 0 {
+	if len(bot.GetExchanges()) == 0 {
 		return ErrNoExchangesLoaded
 	}
 	return nil
