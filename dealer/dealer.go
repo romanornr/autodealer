@@ -22,7 +22,7 @@ import (
 var ErrOrdersAlreadyExists = errors.New("order already exists")
 
 type (
-	AugmentConfigFunc func(config2 *config.Config) error
+	AugmentConfigFunc func(config *config.Config) error
 )
 
 // Builder struct holds state. In this case it specifically has a definition function Augment().
@@ -103,6 +103,7 @@ func (b Builder) Build() (*Dealer, error) {
 		}
 	)
 
+	// Optionally add the balances strategy that keeps track of available balances per exchange.
 	if b.balanceRefreshRate > 0 {
 		dealer.Root.Add("balances", NewBalancesStrategy(b.balanceRefreshRate))
 	}
@@ -138,9 +139,8 @@ type Dealer struct {
 	Settings        engine.Settings
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager
-	WithdrawManager engine.WithdrawManager
+	//WithdrawManager engine.WithdrawManager
 	registry        OrderRegistry
-	ctx             context.Context
 }
 
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
@@ -214,12 +214,9 @@ func (bot *Dealer) getExchange(x interface{}) exchange.IBotExchange {
 	}
 }
 
-// GCTLog struct has functions for each log type - the Warnf(), Errorf(), and Debugf() functions. The LoadExchange() method for Keep wants an *out log pointer of GCTLog type.
-// The bot variable is an interface which does not contain a struct that has methods for each log type and variable has to be changed to a struct for GCTLog type or a new struct needs to be created that has functions for each log type and use that as the input for LoadExchange().
-// For this code, it is preferred that GCTLog struct is changed to a struct of a log type
-type GCTLog struct {
-	ExchangeSys interface{}
-}
+// +-------------------------+
+// | Keep: Event observation |
+// +-------------------------+
 
 // OnOrder function calls the GetOrderValue method to see if an order exists with that dealer.
 // We have a GetValue method in the handler file. We modify the obtained value by setting its UserData to the OnFilled Observer required to perform the appropriate strategy.
@@ -237,6 +234,13 @@ func (bot *Dealer) OnOrder(e exchange.IBotExchange, x order.Detail) {
 			obs.OnFilled(bot, e, x)
 		}
 	}
+}
+
+// GCTLog struct has functions for each log type - the Warnf(), Errorf(), and Debugf() functions. The LoadExchange() method for Keep wants an *out log pointer of GCTLog type.
+// The bot variable is an interface which does not contain a struct that has methods for each log type and variable has to be changed to a struct for GCTLog type or a new struct needs to be created that has functions for each log type and use that as the input for LoadExchange().
+// For this code, it is preferred that GCTLog struct is changed to a struct of a log type
+type GCTLog struct {
+	ExchangeSys interface{}
 }
 
 func (g GCTLog) Warnf(_ interface{}, data string, v ...interface{}) {
