@@ -8,6 +8,7 @@ import (
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/romanornr/autodealer/webserver"
 	"github.com/sirupsen/logrus"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
@@ -23,7 +24,10 @@ func main() {
 	if err != nil {
 		logrus.Errorf("expected no error, got %v\n", err)
 	}
+
+	rootStrat := dealer.NewRootStrategy()
 	balancesStrategy := dealer.NewBalancesStrategy(time.Second)
+	rootStrat.Add("balanceStrat", balancesStrategy)
 
 	e, err := d.ExchangeManager.GetExchangeByName("ftx")
 	if err != nil {
@@ -33,16 +37,27 @@ func main() {
 		logrus.Errorf("expected no error, got %v\n", err)
 	}
 
+	var funding stream.FundingData
+
+
+
 	go func() {
 		dealer.Stream(d, e, balancesStrategy)
 	}()
 
+
+	if err = balancesStrategy.OnFunding(d, e, funding); err != nil {
+		logrus.Errorf("expected error, got %s\n", err)
+	}
+
+
 	var d2 = 200 * time.Second
 	var t = time.Now().Add(d2)
 
+	r, _ := rootStrat.Get("balanceStrat")
 	go func() {
 		for {
-			logrus.Infof("stream strategy: %s\n", balancesStrategy)
+			logrus.Infof("stream strategy: %v\n", r)
 			if time.Now().Before(t) {
 				time.Sleep(time.Second * 5)
 				continue
