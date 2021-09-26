@@ -16,7 +16,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 )
 
 var ErrOrdersAlreadyExists = errors.New("order already exists")
@@ -140,7 +139,7 @@ type Dealer struct {
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager
 	//WithdrawManager engine.WithdrawManager
-	registry        OrderRegistry
+	registry OrderRegistry
 }
 
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
@@ -178,11 +177,11 @@ type Dealer struct {
 // using the Symbol data structure information, will simply store the order locally on the affected exchange as a ‘margin’ order (aka short amount).
 func (d *Dealer) Run(ctx context.Context) {
 	var wg sync.WaitGroup
-	e, err := d.ExchangeManager.GetExchanges()
+	exchgs, err := d.ExchangeManager.GetExchanges()
 	if err != nil {
 		logrus.Errorf("exchange manager error: %v\n", err)
 	}
-	for _, x := range e {
+	for _, x := range exchgs {
 		wg.Add(1)
 		go func(x exchange.IBotExchange) {
 			defer wg.Done()
@@ -191,6 +190,16 @@ func (d *Dealer) Run(ctx context.Context) {
 		}(x)
 	}
 	wg.Wait()
+}
+
+// +----------------------+
+// | Keep: Exchange state |
+// +----------------------+
+
+func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.GetOrdersRequest) (
+	[]order.Detail, error,
+) {
+	return bot.getExchange(exchangeOrName).GetActiveOrders(ctx, &request)
 }
 
 // GetOrderValue function retrieves order details from the given bot's store.
@@ -256,7 +265,7 @@ func (g GCTLog) Debugf(_ interface{}, data string, v ...interface{}) {
 }
 
 func (bot *Dealer) LoadExchange(name string, wg *sync.WaitGroup) error {
-	return bot.loadExchange(name, wg)
+	return bot.loadExchange(name, wg, GCTLog{nil})
 }
 
 var (
@@ -285,7 +294,7 @@ func (bot *Dealer) GetExchanges() []exchange.IBotExchange {
 // call to validate credentials, which checks whether or not the exchange supports the asset's currency. If validation is successful, we log an INFO message and pass.
 // check the actual auth status of the exchange and make sure that there is no mismatch between the configured auth and the actual auth. If there is a mismatch with isAuthenticatedSupport and AuthenticatedSupport status, we log a WARN message and set the AutheticatedSupport attributes to false.
 // We test exchange name is set correctly and make sure that the exchange is set up  normal and we then start the exchange. This last step is performed by both the ExchangeManager and the Base.
-func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup) error {
+func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup, gctlog GCTLog) error {
 	exch, err := bot.ExchangeManager.NewExchangeByName(name)
 	if err != nil {
 		return err
@@ -408,16 +417,6 @@ func (bot *Dealer) loadExchange(name string, wg *sync.WaitGroup) error {
 	}
 
 	return nil
-}
-
-func ShowAssetTypes(assets asset.Items, exchCfg *config.ExchangeConfig) {
-	for x := range assets {
-		pairs, err := exchCfg.CurrencyPairs.GetPairs(assets[x], false)
-		if err != nil {
-			gctlog.Errorf(gctlog.ExchangeSys, "%s: Failed to get pairs for asset type %s. Error: %s\n", exchCfg.Name, assets[x].String(), err)
-		}
-		exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
-	}
 }
 
 // setupExchanges function first determines if enabled is true or false, and then determines whether any exchanges have been loaded.
