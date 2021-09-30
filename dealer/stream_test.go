@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"context"
 	"github.com/sirupsen/logrus"
 	"testing"
 )
@@ -22,7 +23,7 @@ func TestStream(t *testing.T) {
 
 	logrus.Info("opening stream")
 	go func() {
-		err = Stream(d, exchange, &s)
+		err = Stream(context.Background(), d, exchange, &s)
 	}()
 	_, err = exchange.GetWebsocket()
 	if err != nil {

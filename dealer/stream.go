@@ -42,7 +42,7 @@ func Stream(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy)
 	// This goroutine is supposed to never finish
 	for data := range ws.ToRoutine {
 		data := data
-		logrus.Info(data)
+		//logrus.Info(data)
 		//go func() {
 			err := handleData(d, e, s, data)
 			if err != nil {
@@ -118,7 +118,7 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 	case stream.FundingData:
 		handleError("OnFunding", s.OnFunding(d, e, x))
 	case *ticker.Price:
-		handleError("OnPrice", s.OnPrice(k, e, *x))
+		handleError("OnPrice", s.OnPrice(d, e, *x))
 	case *stream.KlineData:
 		handleError("OnKline", s.OnKline(d, e, *x))
 	case *orderbook.Base:
