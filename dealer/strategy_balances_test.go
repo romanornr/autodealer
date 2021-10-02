@@ -28,7 +28,6 @@ func TestNewBalancesStrategyWithError(t *testing.T) {
 }
 
 func TestInitBalancesStrategy(t *testing.T) {
-
 	ts := TickerStrategy{
 		Interval: time.Second * 1,
 		TickFunc: func(d *Dealer, e exchange.IBotExchange) {
@@ -49,7 +48,7 @@ func TestInitBalancesStrategy(t *testing.T) {
 		t.Errorf("expected error, got %s\n", err)
 	}
 
-	if err = b.Init(d, e); err != nil {
+	if err = b.Init(context.Background(), d, e); err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}
 }
@@ -75,7 +74,7 @@ func TestInitBalancesStrategyError(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected error, got %s\n", err)
 	}
-	if err = b.Init(d, e); err != nil {
+	if err = b.Init(context.Background(), d, e); err != nil {
 		t.Errorf("expected no error, got %v\n", err)
 	}
 }
@@ -101,7 +100,7 @@ func TestStoreBalancesStrategyError(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected error, got %s\n", err)
 	}
-	if err = b.Init(d, e); err != nil {
+	if err = b.Init(context.Background(), d, e); err != nil {
 		t.Errorf("expected no error, got %v\n", err)
 	}
 
@@ -109,6 +108,7 @@ func TestStoreBalancesStrategyError(t *testing.T) {
 	if err != nil {
 		logrus.Errorf("fetch account info failed: %v\n", err)
 	}
+
 	b.Store(a)
 
 	holdings, ok := b.balances.Load(e.GetName())

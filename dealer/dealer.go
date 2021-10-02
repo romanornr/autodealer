@@ -170,26 +170,61 @@ type Dealer struct {
 // Run starts the bot manager, streams every exchange for this bot
 // assuming all data providers are ready
 
-// Run function is the main entry point of the dealer functionality provided by autodealer.
-// By calling Run() we begin Auto Dealing, and we enter a go routine (so 1 Run() call at a time).
-//This routine tick’s over every 1 sec, and starts the main routine which iterates over all loaded exchanges and sends an engine call to process each balance.
-//If a strategy method returns a SymbolBalance instance it gets stored, by calling StoreOrder marginOrder is called on gct engine running under the engine server which
-// using the Symbol data structure information, will simply store the order locally on the affected exchange as a ‘margin’ order (aka short amount).
-func (d *Dealer) Run(ctx context.Context) {
+//Run is the entry point of all exchange data streams.  Strategy.On*() events for a single exchange are invoked from the same thread.
+//Thus, if a strategy deals with multiple exchanges simultaneously, there may be race conditions.
+func (bot *Dealer) Run(ctx context.Context) {
 	var wg sync.WaitGroup
-	exchgs, err := d.ExchangeManager.GetExchanges()
+
+	exchgs, err := bot.ExchangeManager.GetExchanges()
 	if err != nil {
-		logrus.Errorf("exchange manager error: %v\n", err)
+		panic(err)
 	}
+
 	for _, x := range exchgs {
 		wg.Add(1)
+
 		go func(x exchange.IBotExchange) {
 			defer wg.Done()
-			err := Stream(ctx, d, x, &d.Root)
+
+			// fetch the root strategy
+			s := &bot.Root
+
+			// Init root strategy for this exchange.
+			if err := s.Init(ctx, bot, x); err != nil {
+				panic(err)
+			}
+
+			// go into an infinite loop, either handling websocket
+			// events or just plain blocked when there are none
+			err := Loop(ctx, bot, x, s)
+			// nolint: godox
+			// TODO: handle err on terminate when context gets cancelled
+
+			// Deinit root strategy for this exchange.
+			if err := s.Deinit(bot, x); err != nil {
+				panic(err)
+			}
+
+			// This function is never expected to return.  I'm panic()king
+			// just to maintain the invariant.
 			panic(err)
 		}(x)
 	}
+
 	wg.Wait()
+}
+
+// Loop function is the main entry point for the bot. It is responsible for handling the websocket connection and dispatching events to the appropriate
+// strategy. The Loop function is an infinite loop that blocks until the websocket connection is closed. It is expected to be run in a goroutine.
+func Loop(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy) error {
+	// if the exchange doesn't support websockets we still need to keep running
+	if !e.IsWebsocketEnabled() {
+		gctlog := GCTLog{nil}
+		gctlog.Warnf(gctlog.ExchangeSys, "%s: no websocket support", e.GetName())
+		<-ctx.Done()
+		return nil
+	}
+	return Stream(ctx, d, e, s)
 }
 
 // +----------------------+

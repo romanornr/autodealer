@@ -21,7 +21,7 @@ func init() {
 }
 
 func main() {
-	d, err := dealer.NewBuilder().Build()
+	d, err := dealer.NewBuilder().Balances(time.Second * 10).Build()
 	if err != nil {
 		logrus.Errorf("expected no error, got %v\n", err)
 	}
@@ -37,16 +37,24 @@ func main() {
 	if err != nil {
 		logrus.Errorf("balancing strategy failed for on funding: %s\n", err)
 	}
-	d.Root.Add("bs", balancesStrategy)
 
+	balances, err := d.Root.Get("balances")
+	if err != nil {
+		logrus.Errorf("expected no error, got %s\n", err)
+	}
 
-	d.Run(context.Background())
+	go func() {
+		d.Run(context.Background())
+	}()
+
+	logrus.Info(balances)
+
 	//var d2 = 200 * time.Second
 	//var t = time.Now().Add(d2)
 
 	//go func() {
 	//	for {
-	//		logrus.Infof("stream strategy: %v\n", balancesStrategy)
+	//		logrus.Infof("stream strategy: %v\n", balancesStrategy.)
 	//		if time.Now().Before(t) {
 	//			time.Sleep(time.Second * 5)
 	//			continue

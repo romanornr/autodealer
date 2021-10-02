@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -27,7 +28,7 @@ func TestTickerStrategy(t *testing.T) {
 			t.Log("failed")
 		},
 	}
-	err = strategy.Init(d, e)
+	err = strategy.Init(context.Background(), d, e)
 	if err != nil {
 		t.Failed()
 	}
@@ -51,7 +52,7 @@ func TestTickerStrategyOnFunding(t *testing.T) {
 		},
 	}
 
-	err = tickerStrategy.Init(d, e)
+	err = tickerStrategy.Init(context.Background(), d, e)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -91,7 +92,7 @@ func TestDeleteTickerFunc(t *testing.T) {
 		},
 	}
 
-	err = tickerStrategy.Init(d, e)
+	err = tickerStrategy.Init(context.Background(), d, e)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
