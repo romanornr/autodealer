@@ -44,16 +44,11 @@ func Stream(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy)
 		data := data
 		//logrus.Info(data)
 		//go func() {
-			err := handleData(d, e, s, data)
-			if err != nil {
-				logrus.Errorf("error handling data: %s\n", err)
-			}
+		err := handleData(d, e, s, data)
+		if err != nil {
+			logrus.Errorf("error handling data: %s\n", err)
+		}
 		//}()
-	}
-
-	// Deinit strategy for this exchange.
-	if err := s.Deinit(d, e); err != nil {
-		return err
 	}
 
 	panic("unexpected end of channel")
@@ -64,42 +59,6 @@ func Stream(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy)
 // 3. Get the bridge to the exchange
 // 4. Connect
 // 5. FlushChannels
-
-// OpenWebsocket function is responsible for opening a Websocket connection.
-// The `req.Exchange.GetWebsocket` method performs the actual functionality of creating a new Websocket in a struct.
-// Understandably, if a connection can't be opened, the error would be returned.
-// OpenWebsocket checks if the client is sending a query to the interface instance, blocking on a channel, which was a select on a chan
-// while the bolt process has a rule queuing, while the rest of the engine while be blocked on a chan
-// So, non-blocking options were applied to get a non-blocked client and a non-blocked engine.
-func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
-	if !e.IsWebsocketEnabled() {
-		return nil, ErrWebsocketNotEnabled
-	}
-
-	if !e.SupportsWebsocket() {
-		return nil, ErrWebsocketNotEnabled
-	}
-
-	// Instantiate a websocket.
-	ws, err := e.GetWebsocket()
-	if err != nil {
-		return nil, err
-	}
-
-	// connect
-	if !ws.IsConnecting() && !ws.IsConnecting() {
-		err = ws.Connect()
-		if err != nil {
-			return nil, err
-		}
-
-		err = ws.FlushChannels()
-		if err != nil {
-			return nil, err
-		}
-	}
-	return ws, nil
-}
 
 // handleData scans for any form of data like stream Warning Messages, Funding, kline events and orderbook actions
 // For Funding you’ll need to consider how funds are rolled over, which will affect trading strategies work out if it shuts exchange
@@ -144,6 +103,53 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 	return nil
 }
 
+// handleError function checks to see if there are actually an error. This is triggered by the inclusion of the string "err" being != to the string "nil".
+// If it does not equal nil, this means there is an error, so it will print out the method responsible for the error along with the error itself.
+// If this is true, Go will output "error: <errormessage>". Otherwise, nothing is outputted.
+func handleError(method string, err error) {
+	if err != nil {
+		logrus.Warnf("method %v error: %s\n", method, err)
+	}
+}
+
+// OpenWebsocket function is responsible for opening a Websocket connection.
+// The `req.Exchange.GetWebsocket` method performs the actual functionality of creating a new Websocket in a struct.
+// Understandably, if a connection can't be opened, the error would be returned.
+// OpenWebsocket checks if the client is sending a query to the interface instance, blocking on a channel, which was a select on a chan
+// while the bolt process has a rule queuing, while the rest of the engine while be blocked on a chan
+// So, non-blocking options were applied to get a non-blocked client and a non-blocked engine.
+func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
+	// Check whether websocket is enabled.
+	if !e.IsWebsocketEnabled() {
+		return nil, ErrWebsocketNotEnabled
+	}
+
+	// Check whether websocket is supported.
+	if !e.SupportsWebsocket() {
+		return nil, ErrWebsocketNotSupported
+	}
+
+	// Instantiate a websocket.
+	ws, err := e.GetWebsocket()
+	if err != nil {
+		return nil, err
+	}
+
+	// connect
+	if !ws.IsConnecting() && !ws.IsConnecting() {
+		err = ws.Connect()
+		if err != nil {
+			return nil, err
+		}
+
+		err = ws.FlushChannels()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ws, nil
+}
+
 // unhandledType function displays debug information about the error. It simply formats the given error message.
 func unhandledType(data interface{}, warn bool) {
 	e := log.Debug()
@@ -155,13 +161,4 @@ func unhandledType(data interface{}, warn bool) {
 	e = e.Interface("data", data).Str("type", t)
 
 	logrus.Warnf("unhandledType: %v\n", e)
-}
-
-// handleError function checks to see if there are actually an error. This is triggered by the inclusion of the string "err" being != to the string "nil".
-// If it does not equal nil, this means there is an error, so it will print out the method responsible for the error along with the error itself.
-// If this is true, Go will output "error: <errormessage>". Otherwise, nothing is outputted.
-func handleError(method string, err error) {
-	if err != nil {
-		logrus.Warnf("method %v error: %s\n", method, err)
-	}
 }

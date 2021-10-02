@@ -100,9 +100,9 @@ func (m *RootStrategy) each(f func(Strategy) error) error {
 
 // Init function loops through each of the imported Strategy implementations and calls their init functions to initialize them.
 // Ordering of implementations is important and if an implementation depends on something another requires you should order the strategy implementations.
-func (m *RootStrategy) Init(context context.Context, d *Dealer, e exchange.IBotExchange) error {
+func (m *RootStrategy) Init(ctx context.Context, d *Dealer, e exchange.IBotExchange) error {
 	return m.each(func(strategy Strategy) error {
-		return strategy.Init(context, d, e)
+		return strategy.Init(ctx, d, e)
 	})
 }
 

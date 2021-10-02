@@ -23,4 +23,4 @@ func TestServer(t *testing.T) {
 	// Serve the HTTP request.
 	router.ServeHTTP(w, r)
 	assert.Equal(t, "hi", http.StatusOK)
- }
+}

@@ -60,11 +60,10 @@ import "fmt"
 // ```
 //
 
-
 // CircularArray is initialized with the "width" of the array.
 type CircularArray struct {
 	Offset int
-	xs []interface{}
+	xs     []interface{}
 }
 
 // NewCircularArray function creates a new circular buffer of a defined size of capacity.
@@ -77,7 +76,7 @@ func NewCircularArray(n int) CircularArray {
 
 	return CircularArray{
 		Offset: 0,
-		xs: xs,
+		xs:     xs,
 	}
 }
 
@@ -88,7 +87,7 @@ func (a *CircularArray) Index(i int) int {
 
 // The LastIndex function returns int value. If the values are all inside of uint values (whose maximum value is (1 << 31) - 1) the must value of offset, which is returned by lastIndex function, would be (1 << 31) - 1. In normal case, the maximum uint value will be (1 << 32) - 1. Then, lastIndex function returns (1 << 32) - 1.
 func (a *CircularArray) LastIndex() int {
-	return a.Index(len(a.xs)-1)
+	return a.Index(len(a.xs) - 1)
 }
 
 func (a *CircularArray) Push(x interface{}) {
@@ -120,7 +119,7 @@ func (a *CircularArray) At(index int) interface{} {
 
 // Last returns the last element of the underlying slice.
 func (a *CircularArray) Last() interface{} {
-	return a.At(a.Len()-1)
+	return a.At(a.Len() - 1)
 }
 
 // Floats converts each element in the underlying slice to a floating point number.

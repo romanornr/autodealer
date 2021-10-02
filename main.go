@@ -9,11 +9,9 @@ import (
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/romanornr/autodealer/webserver"
 	"github.com/sirupsen/logrus"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
-	"time"
 )
 
 func init() {
@@ -21,33 +19,33 @@ func init() {
 }
 
 func main() {
-	d, err := dealer.NewBuilder().Balances(time.Second * 10).Build()
+	d, err := dealer.NewBuilder().Build()
 	if err != nil {
 		logrus.Errorf("expected no error, got %v\n", err)
 	}
 
-	var funding stream.FundingData
-	e, err := d.ExchangeManager.GetExchangeByName("ftx")
-	if err != nil {
-		logrus.Errorf("expected error, got %s\n", err)
-	}
+	//var funding stream.FundingData
+	//e, err := d.ExchangeManager.GetExchangeByName("ftx")
+	//if err != nil {
+	//	logrus.Errorf("expected error, got %s\n", err)
+	//}
 
-	balancesStrategy := dealer.NewBalancesStrategy(time.Second * 5)
-	err = balancesStrategy.OnFunding(d, e, funding)
-	if err != nil {
-		logrus.Errorf("balancing strategy failed for on funding: %s\n", err)
-	}
+	//balancesStrategy := dealer.NewBalancesStrategy(time.Second * 5)
+	//err = balancesStrategy.OnFunding(d, e, funding)
+	//if err != nil {
+	//	logrus.Errorf("balancing strategy failed for on funding: %s\n", err)
+	//}
 
-	balances, err := d.Root.Get("balances")
-	if err != nil {
-		logrus.Errorf("expected no error, got %s\n", err)
-	}
+	//balances, err := d.Root.Get("balances")
+	//if err != nil {
+	//	logrus.Errorf("expected no error, got %s\n", err)
+	//}
 
 	go func() {
 		d.Run(context.Background())
 	}()
 
-	logrus.Info(balances)
+	///logrus.Info(balances)
 
 	//var d2 = 200 * time.Second
 	//var t = time.Now().Add(d2)

@@ -18,8 +18,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 )
 
-var ErrOrdersAlreadyExists = errors.New("order already exists")
-
 type (
 	AugmentConfigFunc func(config *config.Config) error
 )
@@ -130,6 +128,8 @@ func (b Builder) Build() (*Dealer, error) {
 	return dealer, nil
 }
 
+var ErrOrdersAlreadyExists = errors.New("order already exists")
+
 // Dealer struct holds all the information about an instance of an autodealer (`root`, `settings`, `config`, `httpFactory`, `wg`, `ctx`, `exchangeManager`).
 // It has inner structs which are instances of ExchangeManager, WithdrawManager.  It has functions such as NewExchangeManager() and return an instance of ExchangeManager.
 // This is used for looking up exchange support to enable, and we control it through NewExchangeManager() and WithdrawManager instance.
@@ -224,6 +224,8 @@ func Loop(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy) e
 		<-ctx.Done()
 		return nil
 	}
+	// this exchanges does support websockets, go into an
+	// infinite loop of receiving/handling messages
 	return Stream(ctx, d, e, s)
 }
 
