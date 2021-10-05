@@ -122,6 +122,7 @@ var ErrUnknownEvent = errors.New("unknown event")
 // HistoryStrategy struct is to reduce the amount of data processed by the bot. The idea is to gather the required data points (e.g. OHLCV)
 // and store them in `Historian` units (see `NewHistorian` above) instead of asking exchanges to provide the data directly.
 type HistoryStrategy struct {
+	// mutex ensure write serialization of onPriceUnits/onOrderUnits
 	mu           sync.Mutex
 	onPriceUnits map[string][]*Historian
 	onOrderUnits map[string][]*Historian
@@ -130,6 +131,7 @@ type HistoryStrategy struct {
 // NewHistoryStrategy defines Two maps, one for the History event on the Price field, and one for the Order event.
 func NewHistoryStrategy() HistoryStrategy {
 	return HistoryStrategy{
+		mu:           sync.Mutex{},
 		onPriceUnits: make(map[string][]*Historian),
 		onOrderUnits: make(map[string][]*Historian),
 	}
@@ -144,6 +146,9 @@ func (r *HistoryStrategy) BindOnPrice(unit *Historian) {}
 func (r *HistoryStrategy) AddHistorian(exchangeName, eventName string, interval time.Duration, stateLength int, f func(array Array)) error {
 	key := strings.ToLower(exchangeName)
 	historian := NewHistorian(interval, stateLength, f)
+
+	r.mu.Lock()
+	defer r.mu.Lock()
 
 	switch eventName {
 	case "OnPrice":
@@ -177,7 +182,11 @@ func (r *HistoryStrategy) OnFunding(d *Dealer, e exchange.IBotExchange, x stream
 }
 
 func (r *HistoryStrategy) OnPrice(d *Dealer, e exchange.IBotExchange, x ticker.Price) error {
-	return nil
+	lastUpdated := x.LastUpdated
+	if lastUpdated.IsZero() {
+		lastUpdated = time.Now()
+	}
+	return fire(r.onPriceUnits, e, lastUpdated, x)
 }
 
 func (r *HistoryStrategy) OnKline(d *Dealer, e exchange.IBotExchange, x stream.KlineData) error {
@@ -186,6 +195,10 @@ func (r *HistoryStrategy) OnKline(d *Dealer, e exchange.IBotExchange, x stream.K
 
 func (r *HistoryStrategy) OnOrderBook(d *Dealer, e exchange.IBotExchange, x orderbook.Base) error {
 	return nil
+}
+
+func (r *HistoryStrategy) OnOrder(d *Dealer, e exchange.IBotExchange, x order.Detail) error {
+	return fire(r.onOrderUnits, e, x.Date, x)
 }
 
 func (r *HistoryStrategy) OnModify(d *Dealer, e exchange.IBotExchange, x order.Modify) error {
@@ -201,5 +214,18 @@ func (r *HistoryStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x i
 }
 
 func (r *HistoryStrategy) Deinit(d *Dealer, e exchange.IBotExchange) error {
+	return nil
+}
+
+func fire(units map[string][]*Historian, e exchange.IBotExchange, now time.Time, x interface{}) error {
+	key := strings.ToLower(e.GetName())
+
+	// MT note: if historians do not get added and removed dynamically, this method is
+	// completely safe to be used in a MT environment, because:
+	//   1. reading (without concurrent writing) a map is MT-safe,
+	//   2. all On*() events for a single exchange are invoked from the same thread.
+	for _, unit := range units[key] {
+		unit.Update(now, x)
+	}
 	return nil
 }

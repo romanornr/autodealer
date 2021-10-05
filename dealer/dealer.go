@@ -100,6 +100,10 @@ func (b Builder) Build() (*Dealer, error) {
 		}
 	)
 
+	// Add history strategy: a special type of strategy that may keep multiple channels of historical data available
+	hist := NewHistoryStrategy()
+	dealer.Root.Add("history", &hist)
+
 	// Optionally add the balances strategy that keeps track of available balances per exchange.
 	if b.balanceRefreshRate > 0 {
 		dealer.Root.Add("balances", NewBalancesStrategy(b.balanceRefreshRate))
