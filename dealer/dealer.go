@@ -233,14 +233,24 @@ func Loop(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy) e
 	return Stream(ctx, d, e, s)
 }
 
-// +----------------------+
-// | Keep: Exchange state |
-// +----------------------+
+func (bot *Dealer) AddHistorian(
+	exchangeName,
+	eventName string,
+	interval time.Duration,
+	stateLength int,
+	f func(Array),
+) error {
+	strategy, err := bot.Root.Get("history")
+	if err != nil {
+		return err
+	}
 
-func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.GetOrdersRequest) (
-	[]order.Detail, error,
-) {
-	return bot.getExchange(exchangeOrName).GetActiveOrders(ctx, &request)
+	hist, ok := strategy.(*HistoryStrategy)
+	if !ok {
+		panic("")
+	}
+
+	return hist.AddHistorian(exchangeName, eventName, interval, stateLength, f)
 }
 
 // GetOrderValue function retrieves order details from the given bot's store.
@@ -263,6 +273,32 @@ func (bot *Dealer) getExchange(x interface{}) exchange.IBotExchange {
 		panic("exchangeOrName should be either an instance of exchange.IBotExchange or a string\n")
 	}
 }
+
+// +----------------------+
+// | Keep: Exchange state |
+// +----------------------+
+
+func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.GetOrdersRequest) (
+	[]order.Detail, error,
+) {
+	e := bot.getExchange(exchangeOrName)
+
+	//timer := time.Now()
+
+	resp, err := e.GetActiveOrders(ctx, &request)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
+}
+
+// +------------------------+
+// | Keep: Order submission |
+// +------------------------+
+//func (bot *Dealer) SubmitOrder(ctx context.Context, exchangeOrName interface{}, submit order.Submit) (order.SubmitResponse, error) {
+//	return bot.SubmitOrderUD(ctx, exchangeOrName, submit, nil)
+//}
+
 
 // +-------------------------+
 // | Keep: Event observation |
