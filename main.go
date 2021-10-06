@@ -46,13 +46,13 @@ func main() {
 	}()
 
 	///logrus.Info(balances)
-
+	//
 	//var d2 = 200 * time.Second
 	//var t = time.Now().Add(d2)
-
+	//
 	//go func() {
 	//	for {
-	//		logrus.Infof("stream strategy: %v\n", balancesStrategy.)
+	//		logrus.Infof("stream strategy: %v\n", balances)
 	//		if time.Now().Before(t) {
 	//			time.Sleep(time.Second * 5)
 	//			continue
