@@ -6,10 +6,11 @@ package webserver
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/dealer"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/romanornr/autodealer/dealer"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -68,7 +69,7 @@ func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	depositResponse, ok := ctx.Value("response").(*depositResponse)
 	if !ok {
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		render.Render(w, r, ErrDepositRender(errors.Newf("Failed to render deposit response")))
 		return
 	}
