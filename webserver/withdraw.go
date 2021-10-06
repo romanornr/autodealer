@@ -70,7 +70,7 @@ func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 	exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse) // TODO fix
 	if !ok {
 		logrus.Errorf("Got unexpected response %T instead of *ExchangeWithdrawResponse", exchangeResponse)
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
 		return
 	}

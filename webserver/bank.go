@@ -21,7 +21,7 @@ func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse)
 	if !ok {
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("kraken international bank account request failed CTX")))
 		return
 	}
