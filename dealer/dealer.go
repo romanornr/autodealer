@@ -299,7 +299,6 @@ func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface
 //	return bot.SubmitOrderUD(ctx, exchangeOrName, submit, nil)
 //}
 
-
 // +-------------------------+
 // | Keep: Event observation |
 // +-------------------------+
