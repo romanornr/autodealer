@@ -278,9 +278,7 @@ func (bot *Dealer) getExchange(x interface{}) exchange.IBotExchange {
 // | Keep: Exchange state |
 // +----------------------+
 
-func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.GetOrdersRequest) (
-	[]order.Detail, error,
-) {
+func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.GetOrdersRequest) ([]order.Detail, error) {
 	e := bot.getExchange(exchangeOrName)
 
 	//timer := time.Now()

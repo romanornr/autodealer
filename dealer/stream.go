@@ -136,7 +136,7 @@ func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
 	}
 
 	// connect
-	if !ws.IsConnecting() && !ws.IsConnecting() {
+	if !ws.IsConnecting() && !ws.IsConnected() {
 		err = ws.Connect()
 		if err != nil {
 			return nil, err

@@ -8,7 +8,23 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"time"
 )
+
+// +----------+
+// | Strategy |
+// +----------+
+
+type Trade struct {
+	Timestamp     time.Time
+	BaseCurrency  string
+	QuoteCurrency string
+	OrderID       string
+	AveragePrice  float64
+	Quantity      float64
+	Fee           float64
+	FeeCurrency   string
+}
 
 // Strategy is an interface and defines all function needed for a user defined strategy. The RootStrategy provides a way to create and
 // use strategies and action according to given strategies.

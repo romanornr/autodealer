@@ -35,7 +35,6 @@ type OrderValue struct {
 type OrderRegistry struct {
 	length int32
 	values sync.Map
-	Mutex  sync.RWMutex
 }
 
 // NewOrderRegistry constructs a new OrderRegistry. The function initializes the field atomic.Int32 called length with 0
@@ -44,7 +43,6 @@ func NewOrderRegistry() *OrderRegistry {
 	return &OrderRegistry{
 		length: 0,
 		values: sync.Map{},
-		Mutex:  sync.RWMutex{},
 	}
 }
 
@@ -60,12 +58,14 @@ func (r *OrderRegistry) Store(exchangeName string, response order.SubmitResponse
 		SubmitResponse: response,
 		UserData:       userData,
 	}
+	_, loaded := r.values.LoadOrStore(key, value)
 
-	if _, loaded := r.values.LoadOrStore(key, value); !loaded {
+	if !loaded {
+		// If not loaded, then it's stored, so length++.
 		atomic.AddInt32(&r.length, 1)
-		return loaded
 	}
-	return false
+
+	return !loaded
 }
 
 // GetOrderValue initially verifies that the exchange name and order ID exist in the OrderRegistry.
@@ -79,18 +79,22 @@ func (r *OrderRegistry) GetOrderValue(exchangeName, orderID string) (OrderValue,
 	}
 
 	var (
+		loaded bool
 		ok   bool
-		val  interface{}
-		want OrderValue
+		pointer  interface{}
+		value OrderValue
 	)
 
-	val, ok = r.values.Load(key)
-
-	if ok {
-		want, ok = val.(OrderValue)
+	if pointer, loaded = r.values.Load(key); loaded {
+		value, ok = pointer.(OrderValue)
 		if !ok {
-			logrus.Fatalf("have %T, want OrderValue", val)
+			logrus.Fatalf("have %T, want OrderValue", pointer)
 		}
 	}
-	return want, ok
+
+	return value, ok
+}
+
+func (r *OrderRegistry) Length() int {
+	return int(atomic.LoadInt32(&r.length))
 }
