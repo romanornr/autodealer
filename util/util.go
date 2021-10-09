@@ -2,6 +2,7 @@ package util
 
 import (
 	"github.com/sirupsen/logrus"
+	"go.uber.org/multierr"
 	"os"
 	"runtime"
 	"strings"
@@ -161,4 +162,38 @@ func CheckerAssert() {
 			logrus.Warnf("counter %v unit %v leaked resources", v, k)
 		}
 	}
+}
+
+
+// +----------------+
+// | ErrorWaitGroup |
+// +----------------+
+
+// ErrorWaitGroup Wait function is dependent on a boolean condition in a goroutine.
+// If you add a mutex to it, your application will lock your threads in motion, making it slower to execute but less prone to resource leaks or data races.
+// As a result, bind the mutex to the ErrorWaitGroup structs mutex.
+type ErrorWaitGroup struct {
+	err error
+	group sync.WaitGroup
+	mutex sync.Mutex
+}
+
+// Add method of a WaitGroup takes a delta as a parameter and adds that delta to the WaitGroup counter.
+// The struct field itself as well as the mutex fields need to know about this as well.
+func (m *ErrorWaitGroup) Add(delta int) {
+	m.group.Add(delta)
+}
+
+// Done method of WaitGroup takes an error as a parameter, which is put into the ErrorWaitGroup structs error field.
+// Again, this needs to be known by all fields of the ErrorWaitGroup struct.
+func (m *ErrorWaitGroup) Done(right error) {
+	m.mutex.Lock()
+	m.err = multierr.Append(m.err, right)
+	m.mutex.Unlock()
+}
+
+// Wait method of the WaitGroup needs to be accessed by multiple threads due to having persistent wait condition.
+func (m *ErrorWaitGroup) Wait() error {
+	m.group.Wait()
+	return m.err
 }
