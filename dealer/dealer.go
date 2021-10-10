@@ -149,8 +149,8 @@ type Dealer struct {
 	Settings        engine.Settings
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager
-	registry  OrderRegistry
-	reporters []Reporter
+	registry        OrderRegistry
+	reporters       []Reporter
 }
 
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
@@ -355,24 +355,24 @@ func (bot *Dealer) SubmitOrders(ctx context.Context, e exchange.IBotExchange, xs
 		}(x)
 	}
 	return wg.Wait()
- }
+}
 
- // ModifyOrder method calls the SubmitOrder method then Contains method to check for an exchange name in xs slice.
- // If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
- // CreateOrder method will not be executed if Contains method returns an error.
- func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}) (mod order.Modify, err error) {
-	 e := bot.getExchange(exchangeOrName)
-	 bot.ReportEvent(ModifyOrderMetric, e.GetName())
+// ModifyOrder method calls the SubmitOrder method then Contains method to check for an exchange name in xs slice.
+// If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
+// CreateOrder method will not be executed if Contains method returns an error.
+func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}) (mod order.Modify, err error) {
+	e := bot.getExchange(exchangeOrName)
+	bot.ReportEvent(ModifyOrderMetric, e.GetName())
 
-	 defer bot.ReportLatency(ModifyOrderLatencyMetric, time.Now(), e.GetName())
+	defer bot.ReportLatency(ModifyOrderLatencyMetric, time.Now(), e.GetName())
 
-	 resp, err := e.ModifyOrder(ctx, &mod)
-	 if err != nil {
-		 bot.ReportEvent(ModifyOrderErrorMetric, e.GetName())
-		 return resp, err
-	 }
-	 return resp, nil
- }
+	resp, err := e.ModifyOrder(ctx, &mod)
+	if err != nil {
+		bot.ReportEvent(ModifyOrderErrorMetric, e.GetName())
+		return resp, err
+	}
+	return resp, nil
+}
 
 // CancelOrder calls to make an Order.Cancel which includes the giving submitted order, the name to the requested submitted order
 // and the current name of Exchange, calls to it to make Order.Cancel, otherwise return error. It returns the waiting for canceled order if successful, otherwise error.
@@ -414,7 +414,6 @@ func (bot *Dealer) OnOrder(e exchange.IBotExchange, x order.Detail) {
 		}
 	}
 }
-
 
 // +----------------------+
 // | Metric reports       |
