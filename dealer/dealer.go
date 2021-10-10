@@ -32,6 +32,7 @@ type Builder struct {
 	balanceRefreshRate time.Duration
 	factory            ExchangeFactory
 	settings           engine.Settings
+	reporters          []Reporter
 }
 
 // NewBuilder returns a new or configured keep builder
@@ -43,6 +44,7 @@ func NewBuilder() *Builder {
 		balanceRefreshRate: 0,
 		factory:            ExchangeFactory{},
 		settings:           settings,
+		reporters:          []Reporter{},
 	}
 }
 
@@ -75,6 +77,11 @@ func (b *Builder) Settings(s engine.Settings) *Builder {
 	return b
 }
 
+func (b *Builder) Reporter(r Reporter) *Builder {
+	b.reporters = append(b.reporters, r)
+	return b
+}
+
 // Build constructs a new dealer from a provides settings template argument. In case the provided template is nil, a default template will be used as a starting point.
 // In both cases the template config file the read from filepath. If the filepath can not be read, it may be imported from the directory.
 // Only if no filepath is provided, filepath.DefaultConfig will be used as an initial config for this dealer
@@ -96,7 +103,7 @@ func (b Builder) Build() (*Dealer, error) {
 			ExchangeManager: *engine.SetupExchangeManager(),
 			Root:            NewRootStrategy(),
 			registry:        *NewOrderRegistry(),
-			// WithdrawManager: engine.WithdrawManager{},
+			reporters:       b.reporters,
 		}
 	)
 
@@ -142,8 +149,8 @@ type Dealer struct {
 	Settings        engine.Settings
 	Config          config.Config
 	ExchangeManager engine.ExchangeManager
-	//WithdrawManager engine.WithdrawManager
-	registry OrderRegistry
+	registry  OrderRegistry
+	reporters []Reporter
 }
 
 // “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
@@ -278,13 +285,17 @@ func (bot *Dealer) getExchange(x interface{}) exchange.IBotExchange {
 // | Keep: Exchange state |
 // +----------------------+
 
+// GetActiveOrders function is a wrapper around the GetActiveOrders function in the exchange package.
 func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.GetOrdersRequest) ([]order.Detail, error) {
 	e := bot.getExchange(exchangeOrName)
 
-	//timer := time.Now()
+	timer := time.Now()
+
+	defer bot.ReportLatency(GetActiveOrdersLatencyMetric, timer, e.GetName())
 
 	resp, err := e.GetActiveOrders(ctx, &request)
 	if err != nil {
+		bot.ReportEvent(GetActiveOrdersErrorMetric, e.GetName())
 		return resp, err
 	}
 	return resp, nil
@@ -293,10 +304,94 @@ func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface
 // +------------------------+
 // | Keep: Order submission |
 // +------------------------+
-//func (bot *Dealer) SubmitOrder(ctx context.Context, exchangeOrName interface{}, submit order.Submit) (order.SubmitResponse, error) {
-//	return bot.SubmitOrderUD(ctx, exchangeOrName, submit, nil)
-//}
 
+// SubmitOrder function, simply makes an Order.Submit which contains the giving parameters and the current name of requested Exchange
+// Submit it to the giving requested Exchange, called at the user orders code. It returns the order map response if successful, otherwise error.
+func (bot *Dealer) SubmitOrder(ctx context.Context, exchangeOrName interface{}, submit order.Submit) (order.SubmitResponse, error) {
+	return bot.SubmitOrderUD(ctx, exchangeOrName, submit, nil)
+}
+
+// SubmitOrderUD is similar to the SubmitOrder, except that this function also adds the order map into the Orders map
+// and its corresponding ID and name and then return it and its error and additional notes and errors which cause the metric to move asynchronous processing.
+func (bot *Dealer) SubmitOrderUD(ctx context.Context, exchangeOrName interface{}, submit order.Submit, userData interface{}) (order.SubmitResponse, error) {
+	e := bot.getExchange(exchangeOrName)
+
+	// Make sure order.Submit.Exchange is properly populated
+	if submit.Exchange == "" {
+		submit.Exchange = e.GetName()
+	}
+
+	bot.ReportEvent(SubmitOrderMetric, e.GetName())
+
+	defer bot.ReportLatency(SubmitOrderLatencyMetric, time.Now(), e.GetName())
+	resp, err := e.SubmitOrder(ctx, &submit)
+	if err != nil {
+		// post an error metric event
+		bot.ReportEvent(SubmitOrderErrorMetric, e.GetName())
+		return resp, err
+	}
+
+	// store the order in the registry
+	if !bot.registry.Store(e.GetName(), resp, userData) {
+		return resp, ErrOrdersAlreadyExists
+	}
+	return resp, err
+}
+
+// SubmitOrders method calls the SubmitOrder method then Contains method to check for an exchage name in xs slice.
+// If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
+// ListOrder method will not be executed if Contains method returns an error.
+func (bot *Dealer) SubmitOrders(ctx context.Context, e exchange.IBotExchange, xs ...order.Submit) error {
+	var wg util.ErrorWaitGroup
+	bot.ReportEvent(SubmitBulkOrderLatencyMetric, e.GetName())
+	defer bot.ReportLatency(SubmitBulkOrderLatencyMetric, time.Now(), e.GetName())
+
+	for _, x := range xs {
+		wg.Add(1)
+
+		go func(x order.Submit) {
+			_, err := bot.SubmitOrder(ctx, e, x)
+			wg.Done(err)
+		}(x)
+	}
+	return wg.Wait()
+ }
+
+ // ModifyOrder method calls the SubmitOrder method then Contains method to check for an exchange name in xs slice.
+ // If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
+ // CreateOrder method will not be executed if Contains method returns an error.
+ func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}) (mod order.Modify, err error) {
+	 e := bot.getExchange(exchangeOrName)
+	 bot.ReportEvent(ModifyOrderMetric, e.GetName())
+
+	 defer bot.ReportLatency(ModifyOrderLatencyMetric, time.Now(), e.GetName())
+
+	 resp, err := e.ModifyOrder(ctx, &mod)
+	 if err != nil {
+		 bot.ReportEvent(ModifyOrderErrorMetric, e.GetName())
+		 return resp, err
+	 }
+	 return resp, nil
+ }
+
+// CancelOrder calls to make an Order.Cancel which includes the giving submitted order, the name to the requested submitted order
+// and the current name of Exchange, calls to it to make Order.Cancel, otherwise return error. It returns the waiting for canceled order if successful, otherwise error.
+// Filters the Orders map if the given Order ID exists and deletes its map from it.
+func (bot *Dealer) CancelOrder(ctx context.Context, exchangeOrName interface{}, x order.Cancel) error {
+	e := bot.getExchange(exchangeOrName)
+	if x.Exchange == "" {
+		x.Exchange = e.GetName()
+	}
+
+	bot.ReportEvent(CancelOrderMetric, e.GetName())
+	defer bot.ReportLatency(CancelOrderLatencyMetric, time.Now(), e.GetName())
+
+	if err := e.CancelOrder(ctx, &x); err != nil {
+		bot.ReportEvent(CancelOrderErrorMetric, e.GetName())
+		return err
+	}
+	return nil
+}
 
 // +-------------------------+
 // | Keep: Event observation |
@@ -317,6 +412,32 @@ func (bot *Dealer) OnOrder(e exchange.IBotExchange, x order.Detail) {
 		if obs, ok := value.UserData.(OnFilledObserver); ok {
 			obs.OnFilled(bot, e, x)
 		}
+	}
+}
+
+
+// +----------------------+
+// | Metric reports       |
+// +----------------------+
+
+// ReportLatency will report the latency of the bot to the metrics server.
+func (bot *Dealer) ReportLatency(m Metric, t time.Time, labels ...string) {
+	for _, r := range bot.reporters {
+		r.Latency(m, time.Since(t), labels...)
+	}
+}
+
+// ReportEvent will report an event to the metrics server.
+func (bot *Dealer) ReportEvent(m Metric, labels ...string) {
+	for _, r := range bot.reporters {
+		r.Event(m, labels...)
+	}
+}
+
+// ReportValue will report a value to the metrics server
+func (bot *Dealer) ReportValue(m Metric, v float64, labels ...string) {
+	for _, r := range bot.reporters {
+		r.Value(m, v, labels...)
 	}
 }
 

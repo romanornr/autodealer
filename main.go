@@ -28,29 +28,10 @@ func main() {
 		logrus.Errorf("expected no error, got %v\n", err)
 	}
 
-	//var funding stream.FundingData
-	//e, err := d.ExchangeManager.GetExchangeByName("ftx")
-	//if err != nil {
-	//	logrus.Errorf("expected error, got %s\n", err)
-	//}
-
-	//balancesStrategy := dealer.NewBalancesStrategy(time.Second * 5)
-	//err = balancesStrategy.OnFunding(d, e, funding)
-	//if err != nil {
-	//	logrus.Errorf("balancing strategy failed for on funding: %s\n", err)
-	//}
-
-	//balances, err := d.Root.Get("balances")
-	//if err != nil {
-	//	logrus.Errorf("expected no error, got %s\n", err)
-	//}
-
 	go func() {
 		d.Run(context.Background())
 	}()
 
-	///logrus.Info(balances)
-	//
 	var d2 = 10 * time.Second
 	var t = time.Now().Add(d2)
 
@@ -73,7 +54,7 @@ func main() {
 			if err != nil {
 				logrus.Errorf("error active orders: %s\n", err)
 			}
-			logrus.Infof("stream strategy: %v\n", o)
+			logrus.Infof("stream strategy: %v\n", o[0])
 			if time.Now().Before(t) {
 				time.Sleep(time.Second * 5)
 				continue
