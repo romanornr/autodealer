@@ -55,6 +55,10 @@ func NewBalancesStrategy(refreshRate time.Duration) Strategy {
 	return b
 }
 
+func (b *BalancesStrategy) ExchangeHoldings(exchangeName string) (*ExchangeHoldings, error) {
+
+}
+
 // tick creates a basic form of load balancing. If the ticker type strategy has already been created for this exchange
 // then no action will be taken because the orders are still submit through the existing ticker type strategy.
 // All the TickFunc check ensures that all balances happen more or less at the same time.
