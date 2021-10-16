@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/sirupsen/logrus"
+	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -22,29 +23,33 @@ var (
 	ErrHoldingsNotFound    = errors.New("holdings not found")
 )
 
-// purpose is converting between the internal ticker type `TickerStrategy` with it's associated `Dealer` and exchange.IBotExchange
-// and the generic `Strategy` interface with it's associated `Dealer` and pretty much any interface.
+//The code is very simple; it's mostly straightforward concurrency control (use sync.Mutex for resource access),
+//error handling, and logging. A strategy is composed of two components: TickerStrategy and the BalancesStrategy itself.
 
-// The code implements a simple load balancing technique and binds all transactions to a single exchange for an associated ticker ( Interval , ticker type etc ).
-// Underneath, a ticker tickerStrategy struct keeps a reference to the supplied dealer, keeps a reference of the exchange for dealing requests associated
-// Additionally, it maintains a map of tickerable intervals to their associated tickers for this range of desired frequencies.
-// We use context.Background() to close out this request by registering a timeout. When things are done under the tickerStrategy functionality.
+//First, the TickerStrategy is initialised to wait for `refreshRate` minutes before triggering an event on its own.
+//Define the tick function defined on the TickerStrategy to do the refreshing of the account balances after `refreshRate`
+//minutes, and hook this to its own ticker's `Tick()` method. All ExchangeExchange could do is initiate an event for an exchange.
+//All other logic around fetching balance info prior to ticker had to be handled by BalancesUpdateTicker.
 
-// BalancesStrategy primarily intended to facilitate the process of calculating the value of our coin equivalents in an atomic and efficient manner.
-// The Load and Store operations let us get and set ( or, if desired, concurrently retrieve and set ) our Holdings.
-// The primary activity that we are concerned with is cross-checking all of our current accounts to ensure that they are in accordance with our intended holdings.
-// BalancesStrategy struct initialises to nil, keeps reference of the associated `TickerStrategy` struct and ensures the `TickerStrategy` receives an initial value.
-// The ticker struct contains information related to its own `Interval`, `TickFunc`, associated `dealer` and `exchanges`.
+//The ticker triggered event will now be handled by the BalancesStrategy. First, create an empty ExchangeHoldings instance
+//and load the individual account balances for each asset type the particular exchange supports. Populating the
+//ExchangeHoldings instance can be done concurrently by fetching info for each asset type concurrently. Reject any empty
+//results.
+
+// BalancesStrategy struct maps exchange names as keys to their respective exchange holdings as values.
+// Using this strategy, we subscribe to a user defined number of tickers and use those to update our holdings.
+// We then atomically update the exchange holding map in our balance strategy struct, and we can read an `ExchangeHoldings` object at any point.
+// Note that  this strategy does not order, so stops and take profits can't be engaged. To use it, initialize an exchange and a builder and then simply
 type BalancesStrategy struct {
-	balances sync.Map
+	holdings sync.Map
 	ticker   TickerStrategy
 }
 
-// NewBalancesStrategy creates a new instance of the `BalancesStrategy` struct.
-// It takes in a `refreshRate` parameter which is the time interval in which the balances are refreshed.
+// NewBalancesStrategy function creates an instance of the BalancesStrategy struct. In turn, the BalancesStrategy struct creates a TickFunc method as a `ticker.Ticker.TickFunc`
+// Then assigns that TickFunc function to the TickerStrategy object that is to be used later.
 func NewBalancesStrategy(refreshRate time.Duration) Strategy {
 	b := &BalancesStrategy{
-		balances: sync.Map{},
+		holdings: sync.Map{},
 		ticker: TickerStrategy{
 			Interval: refreshRate,
 			TickFunc: nil,
@@ -55,78 +60,70 @@ func NewBalancesStrategy(refreshRate time.Duration) Strategy {
 	return b
 }
 
+// ExchangeHoldings method returns all the balance from an exchange including all the global account information and information for each asset and account.
 func (b *BalancesStrategy) ExchangeHoldings(exchangeName string) (*ExchangeHoldings, error) {
-
-}
-
-// tick creates a basic form of load balancing. If the ticker type strategy has already been created for this exchange
-// then no action will be taken because the orders are still submit through the existing ticker type strategy.
-// All the TickFunc check ensures that all balances happen more or less at the same time.
-// A periodic check of the accounts' info avoids the chances of a new ticker taking a huge load off of a single one of the secrets.
-func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
-	holdings, err := e.UpdateAccountInfo(context.Background(), asset.Spot)
-	if err != nil {
-		logrus.Errorf("exchange. %s\n", e.GetName())
-	} else {
-		b.Store(holdings)
-	}
-}
-
-// Store stores holdings information into the balances strategy
-func (b *BalancesStrategy) Store(holdings account.Holdings) {
-	key := strings.ToLower(holdings.Exchange)
-	b.balances.Store(key, holdings)
-}
-
-// Load returns an amortized holding from self.holdings of exchange exchangeName of the accountID of the key code of the asset you want
-// in exchange to go by. In loading balance of account accountID of base asset name of code you risk a panic if there is a lack
-// of a BaseBalance on exchange by accountID for base asset name of code.
-func (b *BalancesStrategy) Load(exchangeName string) (holdings account.Holdings, loaded bool) {
 	key := strings.ToLower(exchangeName)
-	var ok bool
-	pointer, loaded := b.balances.Load(key)
-	if loaded {
-		holdings, ok = pointer.(account.Holdings)
-		if !ok {
-			logrus.Panicf("have %T, want account.Holdings", pointer)
+
+	if ptr, ok := b.holdings.Load(key); ok {
+		if h, ok := ptr.(*ExchangeHoldings); ok {
+			return h, nil
 		}
 	}
-	return holdings, ok
+	return nil, ErrHoldingsNotFound
 }
 
-// Currency returns a balance from a currency from a specific account at a specific exchange.
-func (b *BalancesStrategy) Currency(exchangeName string, code string, accountID string) (account.Balance, error) {
-	holdings, loaded := b.Load(exchangeName)
-	if !loaded {
-		var empty account.Balance
-		return empty, ErrHoldingsNotFound
-	}
+// tick method (executed via the tickFunc member in dealer.TickerStrategy) for a given exchange's ticker takes the interval set in the strategy options
+// which by default should be a constant time of x seconds, and retrieves all holding information for all tickers, currency and asset types on the exchange.
+func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
+	// create a new holdings' struct that we'll fill out and then atomically update
+	holdings := NewExchangeHoldings()
 
-	for _, sub := range holdings.Accounts {
-		if sub.ID == accountID {
-			for _, balance := range sub.Currencies {
-				if balance.CurrencyName.String() == code {
-					return balance, nil
+	// go through all the asset types, fetch account info for each of them and aggregate them into dealer.Holdings
+	for _, assetType := range e.GetAssetTypes(true) {
+		h, err := e.UpdateAccountInfo(context.Background(), assetType)
+		if err != nil {
+			logrus.Errorf("exchange %s: %s\n", e.GetName(), err)
+			continue
+		}
+
+		for _, subAccount := range h.Accounts {
+			if _, ok := holdings.Accounts[subAccount.ID]; !ok {
+				holdings.Accounts[subAccount.ID] = SubAccount{
+					ID:       subAccount.ID,
+					Balances: make(map[asset.Item]map[currency.Code]CurrencyBalance),
+				}
+			}
+			if _, ok := holdings.Accounts[subAccount.ID].Balances[assetType]; ok {
+				holdings.Accounts[subAccount.ID].Balances[assetType] = make(map[currency.Code]CurrencyBalance)
+			}
+			for _, currencyBalance := range subAccount.Currencies {
+				holdings.Accounts[subAccount.ID].Balances[assetType][currencyBalance.CurrencyName] = CurrencyBalance{
+					Currency:   currencyBalance.CurrencyName,
+					TotalValue: currencyBalance.TotalValue,
+					Hold:       currencyBalance.Hold,
 				}
 			}
 		}
+		key := strings.ToLower(e.GetName())
+		b.holdings.Store(key, holdings)
 	}
-	return account.Balance{}, ErrCurrencyNotFound
 }
 
 // +--------------------+
 // | Strategy interface |
 // +--------------------+
+// the Strategy interface keeps track of the portfolios of exchange the bot is connected to
 
-// Init is called when the strategy is first initialized. It takes in a `Dealer` and an `exchange.IBotExchange` as parameters.\
-// We get the refresh rate from `b`
+// Init method loads an initial holdings item and then calls the internal tickers Init.
+// This merges well with the LazyHandler holding the last refresh timestamp since the refresh should already be running when this is called.
 func (b *BalancesStrategy) Init(ctx context.Context, d *Dealer, e exchange.IBotExchange) error {
+	key := strings.ToLower(e.GetName())
+	b.holdings.Store(key, NewExchangeHoldings())
+
 	return b.ticker.Init(ctx, d, e)
 }
 
-// OnFunding is called when a funding event occurs. The `FundingData` struct contains the funding data.
-// Updates the holdings of the account. It basically looks at the side of the OCO(1), then the price of the oco the amount is either reduced by the FundingRate
-// which means it has increased our balance, either by getting removed altogether, which means is has decreased our balance.
+// OnFunding method is not being used because the backtest loads directly from a saved ledger
 func (b *BalancesStrategy) OnFunding(d *Dealer, e exchange.IBotExchange, x stream.FundingData) error {
 	return nil
 }
