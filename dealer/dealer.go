@@ -360,7 +360,7 @@ func (bot *Dealer) SubmitOrders(ctx context.Context, e exchange.IBotExchange, xs
  // ModifyOrder method calls the SubmitOrder method then Contains method to check for an exchange name in xs slice.
  // If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
  // CreateOrder method will not be executed if Contains method returns an error.
- func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}) (mod order.Modify, err error) {
+ func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}, mod order.Modify) (order.Modify, error) {
 	 e := bot.getExchange(exchangeOrName)
 	 bot.ReportEvent(ModifyOrderMetric, e.GetName())
 
