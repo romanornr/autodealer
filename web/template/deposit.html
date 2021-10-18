@@ -10,20 +10,66 @@
             {{template "dashboard"}}
             <div id="app">
                 <form class="deposit-form" @submit.prevent="onSubmit">
-
                     <div class="input-group mb-3">
-                        <span class="input-group-text" id="basic-addon1">Exchange</span>
-                        <select class="form-select" v-model="exchangeName" id="exchangeName" aria-label="Default select exchange">
-                            <option v-for="option in options" :value="option.value">
-                                ${ option.text }
-                            </option>
-                        </select>
+                        <span class="input-group-text" id="basic-addon">Exchange</span>
+                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="ftx" id="btn-check-outlined" autocomplete="off" checked required>
+                        <label class="btn btn-outline-primary" for="btn-check-outlined">FTX</label><br>
+
+                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="binance" id="btn-check-2-outlined" autocomplete="off">
+                        <label class="btn btn-outline-warning" for="btn-check-2-outlined">Binance</label><br>
+
+                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="deribit" id="success-outlined" autocomplete="off">
+                        <label class="btn btn-outline-success" for="success-outlined">Deribit</label>
+
+                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitmex" id="danger-outlined" autocomplete="off">
+                        <label class="btn btn-outline-danger" for="danger-outlined">Bitmex</label>
+
+                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="btse" id="info-outlined" autocomplete="off">
+                        <label class="btn btn-outline-info" for="info-outlined">BTSE</label>
+
+                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="kraken" id="dark-outlined" autocomplete="off">
+                        <label class="btn btn-outline-dark" for="dark-outlined">Kraken</label>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="assetName" class="form-label">Asset</label>
-                        <input type="input" class="form-control" id="assetName" v-model="assetName" aria-describedby="assetInput" min="0" autocomplete="off">
-                        <div id="assetInput" class="form-text">ETH</div>
+<!--                    <div class="input-group mb-3">-->
+<!--                        <span class="input-group-text" id="basic-addon1">Exchange</span>-->
+<!--                        <select class="form-select" v-model="exchangeName" id="exchangeName" aria-label="Default select exchange">-->
+<!--                            <option v-for="option in options" :value="option.value">-->
+<!--                                ${ option.text }-->
+<!--                            </option>-->
+<!--                        </select>-->
+<!--                    </div>-->
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">asset</span>
+                        <input type="text" class="form-control" id="assetName" v-model="asset" aria-label="asset" required>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio1" value="default" checked>
+                        <label class="form-check-label" for="inlineRadio1">Default</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio2" value="erc20">
+                        <label class="form-check-label" for="inlineRadio2">ERC20</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio3" value="trx">
+                        <label class="form-check-label" for="inlineRadio2">TRX</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio4" value="sol">
+                        <label class="form-check-label" for="inlineRadio3">SOL</label>
+                    </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-2 col-form-label">Selected exchange</label>
+                        <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext" id="exchangeName" :value="exchangeName">
+                        </div>
                     </div>
 
                     <button class="btn btn-primary" type="submit" :disabled="loading">
@@ -60,6 +106,7 @@
             return {
                 loading: false,
                 errored: false,
+                error: "",
                 options: [
                     {text: 'FTX', value: 'ftx'},
                     {text: 'Binance', value: 'binance'},
@@ -68,26 +115,28 @@
                     {text: 'BTSE', value: 'btse'}
                 ],
                 exchangeInput: "",
-                exchangeName: "",
+                exchangeName: "ftx",
                 address: "",
                 balance: "",
+                chain: "default",
             }
         },
         methods: {
             onSubmit() {
                 // reset previous result
                 this.errored = false
+                this.error = ""
                 this.address = ""
                 this.balance = ""
                 this.loading = true
                 axios
-                    .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeName + '/' + this.assetName)
+                    .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeName + '/' + this.asset + '/' + this.chain)
                     .then(response => {
                         this.handleData(response)
                     })
                     .catch(error => {
                             console.log(error)
-                            //this.address = "Not available"
+                            this.error = error
                             this.errored = true
                         }
                     )

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+{{template "head"}}
+<body>
+{{template "navbar"}}
+<div class="container-fluid">
+  <div class="row">
+    {{template "sidebarMenu"}}
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      {{template "dashboard"}}
+      <div id="app">
+        <form class="deposit-form" @submit.prevent="onSubmit">
+
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Exchange</span>
+            <select class="form-select" v-model="exchangeName" id="exchangeName" aria-label="Default select exchange">
+              <option v-for="option in options" :value="option.value">
+                ${ option.text }
+              </option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="assetName" class="form-label">Asset</label>
+            <input type="input" class="form-control" id="assetName" v-model="assetName" aria-describedby="assetInput" min="0" autocomplete="off">
+            <div id="assetInput" class="form-text">ETH</div>
+          </div>
+
+          <button class="btn btn-primary" type="submit" :disabled="loading">
+            <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span v-if="loading">Loading...</span><span v-else>Deposit</span>
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+
+</body>
+<script>
+  const app = Vue.createApp({
+    delimiters: ['${', '}'],
+
+    data() {
+      return {
+        loading: false,
+        errored: false,
+        options: [
+          {text: 'FTX', value: 'ftx'},
+          {text: 'Binance', value: 'binance'},
+          {text: 'Deribit', value: 'deribit'},
+          {text: 'Kraken', value: 'kraken'},
+          {text: 'BTSE', value: 'btse'}
+        ],
+        exchangeInput: "",
+        exchangeName: "",
+        address: "",
+        balance: "",
+      }
+    },
+    methods: {
+      onSubmit() {
+        // reset previous result
+        this.errored = false
+        this.address = ""
+        this.balance = ""
+        this.loading = true
+        axios
+                .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeName + '/' + this.assetName)
+                .then(response => {
+                  this.handleData(response)
+                })
+                .catch(error => {
+                          console.log(error)
+                          //this.address = "Not available"
+                          this.errored = true
+                        }
+                )
+                .finally(() => this.loading = false)
+      },
+      handleData(result) {
+        const data = result.data
+        console.log(data)
+        this.address = data.address
+        this.symbol = data.code
+        this.balance = data.balance
+        this.exchangeName = data.exchange
+      }
+    },
+    computed: {
+      filterExchangeList() {
+        return this.exchangeList.filter(exchangeName => {
+          return this.exchangeInput = exchangeName
+        })
+      }
+    }
+  })
+  app.mount('#app').created()
+</script>
+
+</html>
