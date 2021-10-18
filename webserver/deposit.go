@@ -18,6 +18,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/deposit"
 	"gopkg.in/errgo.v2/fmt/errors"
 )
 
@@ -25,13 +26,14 @@ import (
 // If it's populated by a deposit response from the exchange, the depositResponse struct fills the fields.
 // If it's populated by an error, then the Err member will contain an error object.
 type depositResponse struct {
-	Asset   *currency.Item `json:"asset"`
-	Code    currency.Code  `json:"code"`
-	Address string         `json:"address"`
-	Time    time.Time      `json:"time"`
-	Balance float64        `json:"balance"`
-	Err     error          `json:"error"`
-	Account string         `json:"account"`
+	Asset   *currency.Item  `json:"asset"`
+	Code    currency.Code   `json:"code"`
+	Chains []string `json:"chains"`
+	Address *deposit.Address `json:"address"`
+	Time    time.Time       `json:"time"`
+	Balance float64         `json:"balance"`
+	Err     error           `json:"error"`
+	Account string          `json:"account"`
 }
 
 // Render depositResponse assigns the Time value to a new special variable called time.Now().
@@ -87,6 +89,7 @@ func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 func DepositAddressCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
+		chain := chi.URLParam(request, "chain")
 
 		d, err := dealer.NewBuilder().Build()
 		if err != nil {
@@ -118,9 +121,16 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		var deposit depositResponse
 		deposit.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
+		deposit.Chains, err = engineExchange.GetAvailableTransferChains(context.Background(), deposit.Code)
+		logrus.Info(deposit.Chains)
 		deposit.Asset = deposit.Code.Item
 		deposit.Account = accountReq.ID
-		deposit.Address, err = engineExchange.GetDepositAddress(request.Context(), deposit.Code, deposit.Account)
+
+		if chain == "default" {
+			chain = ""
+		}
+
+		deposit.Address, err = engineExchange.GetDepositAddress(request.Context(), deposit.Code, deposit.Account, strings.ToLower(chain))
 		if err != nil {
 			logrus.Errorf("failed to get address: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))

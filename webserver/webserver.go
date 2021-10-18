@@ -66,6 +66,7 @@ func service() http.Handler {
 	//http.FileServer(filesDir+"/static")
 
 	r.Get("/", HomeHandler)
+	r.Get("/trade", TradeHandler)
 	r.Get("/deposit", DepositHandler)   // http://127.0.0.1:3333/deposit
 	r.Get("/withdraw", WithdrawHandler) // http://127.0.0.1:3333/withdraw
 	r.Get("/bank/transfer", bankTransferHandler)
