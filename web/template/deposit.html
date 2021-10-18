@@ -125,14 +125,19 @@
             onSubmit() {
                 // reset previous result
                 this.errored = false
-                this.error = ""
+                this.error =""
+
+                // reset address and balance for new result
                 this.address = ""
                 this.balance = ""
+
+                // disable the form
                 this.loading = true
+
                 axios
                     .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeName + '/' + this.asset + '/' + this.chain)
                     .then(response => {
-                        this.handleData(response)
+                        this.processData(response)
                     })
                     .catch(error => {
                             console.log(error)
@@ -142,7 +147,7 @@
                     )
                     .finally(() => this.loading = false)
             },
-            handleData(result) {
+            processData(result) {
                 const data = result.data
                 console.log(data)
                 this.address = data.address
@@ -151,13 +156,6 @@
                 this.exchangeName = data.exchange
             }
         },
-        computed: {
-            filterExchangeList() {
-                return this.exchangeList.filter(exchangeName => {
-                    return this.exchangeInput = exchangeName
-                })
-            }
-        }
     })
     app.mount('#app').created()
 </script>
