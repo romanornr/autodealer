@@ -26,14 +26,14 @@ import (
 // If it's populated by a deposit response from the exchange, the depositResponse struct fills the fields.
 // If it's populated by an error, then the Err member will contain an error object.
 type depositResponse struct {
-	Asset   *currency.Item  `json:"asset"`
-	Code    currency.Code   `json:"code"`
-	Chains []string `json:"chains"`
+	Asset   *currency.Item   `json:"asset"`
+	Code    currency.Code    `json:"code"`
+	Chains  []string         `json:"chains"`
 	Address *deposit.Address `json:"address"`
-	Time    time.Time       `json:"time"`
-	Balance float64         `json:"balance"`
-	Err     error           `json:"error"`
-	Account string          `json:"account"`
+	Time    time.Time        `json:"time"`
+	Balance float64          `json:"balance"`
+	Err     error            `json:"error"`
+	Account string           `json:"account"`
 }
 
 // Render depositResponse assigns the Time value to a new special variable called time.Now().
