@@ -8,14 +8,14 @@ import (
 // CurrencyBalance struct is an easy way to house the pairs of currency held.
 // struct with our most used currencies. Just with some nice printing methods for the most part.
 type CurrencyBalance struct {
-	Currency currency.Code
+	Currency   currency.Code
 	TotalValue float64
-	Hold float64
+	Hold       float64
 }
 
 // SubAccount struct is an easy way to group our connected accounts. To hold all connected exchanges.
 type SubAccount struct {
-	ID string
+	ID       string
 	Balances map[asset.Item]map[currency.Code]CurrencyBalance
 }
 
@@ -34,7 +34,7 @@ func NewExchangeHoldings() *ExchangeHoldings {
 
 // CurrencyBalance method is just a simple way to conform and enforce that we pass
 // a exchange and an item, and we use them to match what we store and retrieve.
-func (h *ExchangeHoldings) CurrencyBalance(accountID string, code currency.Code, asset asset.Item)  (CurrencyBalance, error) {
+func (h *ExchangeHoldings) CurrencyBalance(accountID string, code currency.Code, asset asset.Item) (CurrencyBalance, error) {
 	account, ok := h.Accounts[accountID]
 	if !ok {
 		var empty CurrencyBalance
