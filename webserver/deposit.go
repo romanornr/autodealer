@@ -111,7 +111,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		depositRequest.Chains, err = engineExchange.GetAvailableTransferChains(context.Background(), depositRequest.Code)
 		logrus.Info(depositRequest.Chains)
 		depositRequest.Asset = depositRequest.Code.Item
-		depositRequest.Account = <-accountId //WithAccount(engineExchange)
+		depositRequest.Account = <-accountId
 
 		if chain == "default" {
 			chain = ""
@@ -133,9 +133,7 @@ func WithAccount(e exchange.IBotExchange, accountId chan string) { //string {
 	accounts, err := e.FetchAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
 		logrus.Errorf("failed to get exchange account: %s\n", err)
-		//render.Render(w, request, ErrInvalidRequest(err))  //return
 	}
-	//var accountReq account.SubAccount
 	for _, a := range accounts.Accounts {
 		accountId <- a.ID
 		if a.ID == "main" {
@@ -143,7 +141,6 @@ func WithAccount(e exchange.IBotExchange, accountId chan string) { //string {
 			break
 		}
 	}
-	//return accountReq.ID
 }
 
 // func getBalance(w http.ResponseWriter, r *http.Request) {
