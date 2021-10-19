@@ -6,6 +6,7 @@ package webserver
 
 import (
 	"context"
+	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"net/http"
 	"strings"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/deposit"
 	"gopkg.in/errgo.v2/fmt/errors"
@@ -90,6 +90,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		chain := chi.URLParam(request, "chain")
+		accountId := make(chan string)
 
 		d, err := dealer.NewBuilder().Build()
 		if err != nil {
@@ -103,45 +104,46 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		accounts, err := engineExchange.FetchAccountInfo(request.Context(), asset.Spot)
-		if err != nil {
-			logrus.Errorf("failed to get exchange account: %s\n", err)
-			render.Render(w, request, ErrInvalidRequest(err))
-			return
-		}
+		go WithAccount(engineExchange, accountId)
 
-		var accountReq account.SubAccount
-		for _, a := range accounts.Accounts {
-			if a.ID == "main" {
-				accountReq.ID = "main"
-			}
-		}
-
-		request = request.WithContext(context.WithValue(request.Context(), "exchange", engineExchange))
-
-		var deposit depositResponse
-		deposit.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
-		deposit.Chains, err = engineExchange.GetAvailableTransferChains(context.Background(), deposit.Code)
-		logrus.Info(deposit.Chains)
-		deposit.Asset = deposit.Code.Item
-		deposit.Account = accountReq.ID
+		var depositRequest depositResponse
+		depositRequest.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
+		depositRequest.Chains, err = engineExchange.GetAvailableTransferChains(context.Background(), depositRequest.Code)
+		logrus.Info(depositRequest.Chains)
+		depositRequest.Asset = depositRequest.Code.Item
+		depositRequest.Account = <-accountId //WithAccount(engineExchange)
 
 		if chain == "default" {
 			chain = ""
 		}
 
-		deposit.Address, err = engineExchange.GetDepositAddress(request.Context(), deposit.Code, deposit.Account, strings.ToLower(chain))
+		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, strings.ToLower(chain))
 		if err != nil {
 			logrus.Errorf("failed to get address: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))
 			return
 		}
 
-		logrus.Info(deposit)
-
-		ctx := context.WithValue(request.Context(), "response", &deposit)
+		ctx := context.WithValue(request.Context(), "response", &depositRequest)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})
+}
+
+func WithAccount(e exchange.IBotExchange, accountId chan string) { //string {
+	accounts, err := e.FetchAccountInfo(context.Background(), asset.Spot)
+	if err != nil {
+		logrus.Errorf("failed to get exchange account: %s\n", err)
+		//render.Render(w, request, ErrInvalidRequest(err))  //return
+	}
+	//var accountReq account.SubAccount
+	for _, a := range accounts.Accounts {
+		accountId <- a.ID
+		if a.ID == "main" {
+			accountId <- "main"
+			break
+		}
+	}
+	//return accountReq.ID
 }
 
 // func getBalance(w http.ResponseWriter, r *http.Request) {
