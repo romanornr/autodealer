@@ -173,7 +173,7 @@ func apiSubrouter() http.Handler {
 
 // HomeHandler handleHome is the handler for the '/' page request. It redirects the
 // requester to the markets page.
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
+func HomeHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Errorf("error template: %s\n", err)

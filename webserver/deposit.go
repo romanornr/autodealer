@@ -56,7 +56,7 @@ func ErrDepositRender(err error) render.Renderer {
 // DepositHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
 // The second argument will be the file named deposit.html inside the folder templates.
 // The function can now be used as part of the router by adding the path to the function.
-func DepositHandler(w http.ResponseWriter, r *http.Request) {
+func DepositHandler(w http.ResponseWriter, _ *http.Request) {
 	err := tpl.ExecuteTemplate(w, "deposit.html", nil)
 	if err != nil {
 		logrus.Errorf("error template: %s\n", err)

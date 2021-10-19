@@ -40,7 +40,7 @@ type ExchangeWithdrawResponse struct {
 // WithdrawHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
 // The second argument will be the file named deposit.html inside the folder templates.
 // The function can now be used as part of the router by adding the path to the function.
-func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
+func WithdrawHandler(w http.ResponseWriter, _ *http.Request) {
 	err := tpl.ExecuteTemplate(w, "withdraw.html", nil)
 	if err != nil {
 		logrus.Errorf("error template: %s\n", err)
