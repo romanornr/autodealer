@@ -164,7 +164,6 @@ func CheckerAssert() {
 	}
 }
 
-
 // +----------------+
 // | ErrorWaitGroup |
 // +----------------+
@@ -173,7 +172,7 @@ func CheckerAssert() {
 // If you add a mutex to it, your application will lock your threads in motion, making it slower to execute but less prone to resource leaks or data races.
 // As a result, bind the mutex to the ErrorWaitGroup structs mutex.
 type ErrorWaitGroup struct {
-	err error
+	err   error
 	group sync.WaitGroup
 	mutex sync.Mutex
 }

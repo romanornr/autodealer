@@ -79,10 +79,10 @@ func (r *OrderRegistry) GetOrderValue(exchangeName, orderID string) (OrderValue,
 	}
 
 	var (
-		loaded bool
-		ok   bool
-		pointer  interface{}
-		value OrderValue
+		loaded  bool
+		ok      bool
+		pointer interface{}
+		value   OrderValue
 	)
 
 	if pointer, loaded = r.values.Load(key); loaded {
