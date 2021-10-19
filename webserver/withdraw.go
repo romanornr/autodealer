@@ -37,21 +37,6 @@ type ExchangeWithdrawResponse struct {
 	Err                error                `json:"err"`
 }
 
-// // Render exchangeWithdrawResponse implements the error interface to show the user an error occured if exchangeWithdrawRequest returns an error.
-// func (e transfer.ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request) error {
-//	e.Time = time.Now()
-//	return e.Err
-// }
-
-// ErrWithdawRender as JSON if err is not nil.
-// If err is nil, then Render http.StatusOK. If err then Render an Error response if it implements AbsError we log the error message.
-// If it does not implement AbsError we log to err type.
-// func ErrWithdawRender(err error) render.Renderer {
-//	return &ExchangeWithdrawResponse{
-//		Err: err,
-//	}
-// }
-
 // WithdrawHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
 // The second argument will be the file named deposit.html inside the folder templates.
 // The function can now be used as part of the router by adding the path to the function.
@@ -96,6 +81,10 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		destinationAddress := chi.URLParam(request, "destinationAddress")
 		sizeReq := chi.URLParam(request, "size")
+		assetInfo.AssocChain = chi.URLParam(request, "chain")
+		if assetInfo.AssocChain == "default" {
+			assetInfo.AssocChain = ""
+		}
 
 		size, err := strconv.ParseFloat(sizeReq, 64)
 		if err != nil {
@@ -120,6 +109,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 				Address:    destinationAddress,
 				AddressTag: "",
 				FeeAmount:  0,
+				Chain:      assetInfo.AssocChain,
 			},
 		}
 

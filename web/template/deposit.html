@@ -45,25 +45,7 @@
                         <input type="text" class="form-control" id="assetName" v-model="asset" aria-label="asset" required>
                     </div>
 
-                    <div class="input-group mb-3">
-                        <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio1" value="default" checked>
-                        <label class="form-check-label" for="inlineRadio1">Default</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio2" value="erc20">
-                        <label class="form-check-label" for="inlineRadio2">ERC20</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio3" value="trx">
-                        <label class="form-check-label" for="inlineRadio2">TRX</label>
-                    </div>
-
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="chain" id="inlineRadio4" value="sol">
-                        <label class="form-check-label" for="inlineRadio3">SOL</label>
-                    </div>
-                    </div>
+                    {{template "chain"}}
 
                     <div class="mb-3 row">
                         <label class="col-sm-2 col-form-label">Selected exchange</label>
@@ -150,7 +132,7 @@
             processData(result) {
                 const data = result.data
                 console.log(data)
-                this.address = data.address
+                this.address = data.address["Address"]
                 this.symbol = data.code
                 this.balance = data.balance
                 this.exchangeName = data.exchange

@@ -3,7 +3,7 @@ package webserver
 // Routes are API path constants.
 const (
 	routeGetDepositAddr     = "/deposit/{exchange}/{asset}/{chain}"
-	routeWithdraw           = "/withdraw/{exchange}/{asset}/{size}/{destinationAddress}"
+	routeWithdraw           = "/withdraw/{exchange}/{asset}/{size}/{destinationAddress}/{chain}"
 	routeGetWithdrawHistory = "/withdraw/history/{exchange}/{asset}"
 	routeGetTicker          = "/ticker/{exchange}/{base}/{quote}"
 	routePriceToUSD         = "/{exchange}/{base}/priceusd"
