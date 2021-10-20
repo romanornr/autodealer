@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/romanornr/autodealer/dealer"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
@@ -92,10 +90,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		chain := chi.URLParam(request, "chain")
 		accountId := make(chan string)
 
-		d, err := dealer.NewBuilder().Build()
-		if err != nil {
-			logrus.Errorf("failed to create a dealer %s\n", err)
-		}
+		d := GetDealerInstance()
 
 		engineExchange, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
