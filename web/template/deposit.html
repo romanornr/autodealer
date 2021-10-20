@@ -11,26 +11,8 @@
             <div id="app">
                 <form class="deposit-form" @submit.prevent="onSubmit">
                     <div class="input-group mb-3">
-                        <span class="input-group-text" id="basic-addon">Exchange</span>
-                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="ftx" id="btn-check-outlined" autocomplete="off" checked required>
-                        <label class="btn btn-outline-primary" for="btn-check-outlined">FTX</label><br>
-
-                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="binance" id="btn-check-2-outlined" autocomplete="off">
-                        <label class="btn btn-outline-warning" for="btn-check-2-outlined">Binance</label><br>
-
-                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="deribit" id="success-outlined" autocomplete="off">
-                        <label class="btn btn-outline-success" for="success-outlined">Deribit</label>
-
-                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitmex" id="danger-outlined" autocomplete="off">
-                        <label class="btn btn-outline-danger" for="danger-outlined">Bitmex</label>
-
-                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="btse" id="info-outlined" autocomplete="off">
-                        <label class="btn btn-outline-info" for="info-outlined">BTSE</label>
-
-                        <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="kraken" id="dark-outlined" autocomplete="off">
-                        <label class="btn btn-outline-dark" for="dark-outlined">Kraken</label>
+                    {{template "exchangesRadioButtons"}}
                     </div>
-
 <!--                    <div class="input-group mb-3">-->
 <!--                        <span class="input-group-text" id="basic-addon1">Exchange</span>-->
 <!--                        <select class="form-select" v-model="exchangeName" id="exchangeName" aria-label="Default select exchange">-->
