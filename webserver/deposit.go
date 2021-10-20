@@ -113,7 +113,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		}
 
 		if engineExchange.GetName() == "Binance" && chain == "erc20" {
-				chain = "ETH"
+			chain = "ETH"
 		}
 
 		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, strings.ToLower(chain))
