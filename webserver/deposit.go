@@ -117,6 +117,10 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			chain = ""
 		}
 
+		if engineExchange.GetName() == "Binance" && chain == "erc20" {
+				chain = "ETH"
+		}
+
 		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, strings.ToLower(chain))
 		if err != nil {
 			logrus.Errorf("failed to get address: %s\n", err)
@@ -129,7 +133,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 	})
 }
 
-func WithAccount(e exchange.IBotExchange, accountId chan string) { //string {
+func WithAccount(e exchange.IBotExchange, accountId chan string) {
 	accounts, err := e.FetchAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
 		logrus.Errorf("failed to get exchange account: %s\n", err)
