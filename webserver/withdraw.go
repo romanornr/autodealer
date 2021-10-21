@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/dealer"
 	"github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -73,7 +72,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		var err error
 		assetInfo := new(Asset)
 
-		d, err := dealer.NewBuilder().Build()
+		d := GetDealerInstance()//d, err := dealer.NewBuilder().Build()
 		if err != nil {
 			logrus.Errorf("failed to create a dealer %s\n", err)
 		}
