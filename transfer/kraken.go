@@ -2,7 +2,6 @@ package transfer
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -13,11 +12,9 @@ import (
 
 func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 
-	dealerEngine, err := dealer.NewBuilder().Build()
-	if err != nil {
-		return order.SubmitResponse{}, err
-	}
-	exchange, err := dealerEngine.ExchangeManager.GetExchangeByName("Kraken")
+	d := GetDealerInstance()
+
+	exchange, err := d.ExchangeManager.GetExchangeByName("Kraken")
 	if err != nil {
 		return order.SubmitResponse{}, err
 	}
@@ -62,11 +59,8 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 
 func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error) {
 
-	dealerEngine, err := dealer.NewBuilder().Build()
-	if err != nil {
-		return ExchangeWithdrawResponse{}, err
-	}
-	exchange, err := dealerEngine.ExchangeManager.GetExchangeByName("Kraken")
+	d := GetDealerInstance()
+	exchange, err := d.ExchangeManager.GetExchangeByName("Kraken")
 	if err != nil {
 		return ExchangeWithdrawResponse{}, err
 	}
@@ -87,10 +81,11 @@ func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error
 
 	logrus.Infof("account balance euro before withdraw: %f\n", value)
 	if value < 10 {
-		return ExchangeWithdrawResponse{}, errors.Newf("The minimal size to withdraw is 10 euro and the current account balance is: %f\n", value)
+		err = errors.Newf("The minimal size to withdraw is 10 euro and the current account balance is: %f\n", value)
+		return ExchangeWithdrawResponse{Err: err}, err
 	}
 
-	baccount, err := dealerEngine.Config.GetExchangeBankAccounts(exchange.GetName(), "romanornr_abn_amro", currency.EUR.String())
+	baccount, err := d.Config.GetExchangeBankAccounts(exchange.GetName(), "romanornr_abn_amro", currency.EUR.String())
 	if err != nil {
 		logrus.Errorf("failed to get bank account: %v", err)
 	}
@@ -131,6 +126,6 @@ func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error
 		return ExchangeWithdrawResponse{}, errors.Newf("validation error withdraw request: %s\n", err)
 	}
 
-	result := CreateExchangeWithdrawResponse(withdrawRequest, &dealerEngine.ExchangeManager)
+	result := CreateExchangeWithdrawResponse(withdrawRequest, exchange)
 	return result, nil
 }

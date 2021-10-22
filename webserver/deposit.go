@@ -112,15 +112,13 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			if chain == "erc20" {
 				chain = "ETH"
 			}
-			if depositRequest.Code == currency.LUNA && chain == "default" {
-				chain = "LUNA"
-			}
-		}
-		if chain == "default" {
-			chain = ""
 		}
 
-		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, strings.ToLower(chain))
+		if chain == "default" {
+			chain = depositRequest.Chains[0]
+		}
+
+		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
 		if err != nil {
 			logrus.Errorf("failed to get address: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))
