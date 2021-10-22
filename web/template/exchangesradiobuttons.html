@@ -12,6 +12,9 @@
     <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitmex" id="danger-outlined" autocomplete="off">
     <label class="btn btn-outline-danger" for="danger-outlined">Bitmex</label>
 
+    <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitfinex" id="success-outlined-finex" autocomplete="off">
+    <label class="btn btn-outline-success" for="success-outlined-finex">Bitfinex</label>
+
     <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="btse" id="info-outlined" autocomplete="off">
     <label class="btn btn-outline-info" for="info-outlined">BTSE</label>
 
@@ -21,18 +24,20 @@
 
 {{define "exchangesRadioButtons2"}}
 <span class="input-group-text" id="basic-addon3">Exchange Destination</span>
-<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="ftx" id="1btn-check-outlined" autocomplete="off" />
-<label class="btn btn-outline-primary" for="1btn-check-outlined">FTX</label>
-<br />
-<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="binance" id="1btn-check-2-outlined" autocomplete="off" />
-<label class="btn btn-outline-warning" for="1btn-check-2-outlined">Binance</label>
-<br />
-<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="deribit" id="1success-outlined" autocomplete="off" />
-<label class="btn btn-outline-success" for="1success-outlined">Deribit</label>
-<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="bitmex" id="1danger-outlined" autocomplete="off" />
-<label class="btn btn-outline-danger" for="1danger-outlined">Bitmex</label>
-<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="btse" id="1info-outlined" autocomplete="off" />
-<label class="btn btn-outline-info" for="1info-outlined">BTSE</label>
-<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="kraken" id="1dark-outlined" autocomplete="off" />
-<label class="btn btn-outline-dark" for="1dark-outlined">Kraken</label>
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="ftx" id="dest-btn-check-outlined" autocomplete="off" />
+<label class="btn btn-outline-primary" for="dest-btn-check-outlined">FTX</label>
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="binance" id="dest-btn-check-2-outlined" autocomplete="off" />
+<label class="btn btn-outline-warning" for="dest-btn-check-2-outlined">Binance</label>
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="deribit" id="dest-success-outlined" autocomplete="off" />
+<label class="btn btn-outline-success" for="dest-success-outlined">Deribit</label>
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="bitmex" id="dest-danger-outlined" autocomplete="off" />
+<label class="btn btn-outline-danger" for="dest-danger-outlined">Bitmex</label>
+
+<input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitfinex" id="dest-finex-success-outlined" autocomplete="off">
+<label class="btn btn-outline-success" for="dest-finex-success-outlined">Bitfinex</label>
+
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="btse" id="dest-info-outlined" autocomplete="off" />
+<label class="btn btn-outline-info" for="dest-info-outlined">BTSE</label>
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="kraken" id="dest-dark-outlined" autocomplete="off" />
+<label class="btn btn-outline-dark" for="dest-dark-outlined">Kraken</label>
 {{end}}
