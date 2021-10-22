@@ -12,17 +12,12 @@
         <form class="deposit-form" @submit.prevent="onSubmit">
 
           <div class="input-group mb-3">
-            <span class="input-group-text" id="basic-addon1">Exchange</span>
-            <select class="form-select" v-model="exchangeName" id="exchangeName" aria-label="Default select exchange">
-              <option v-for="option in options" :value="option.value">
-                ${ option.text }
-              </option>
-            </select>
+            {{template "exchangesRadioButtons"}}
           </div>
 
           <div class="mb-3">
-            <label for="assetName" class="form-label">Asset</label>
-            <input type="input" class="form-control" id="assetName" v-model="assetName" aria-describedby="assetInput" min="0" autocomplete="off">
+            <label for="asset" class="form-label">Asset</label>
+            <input type="input" class="form-control" id="asset" v-model="asset" aria-describedby="assetInput" min="0" autocomplete="off">
             <div id="assetInput" class="form-text">ETH</div>
           </div>
 
@@ -46,55 +41,52 @@
       return {
         loading: false,
         errored: false,
-        options: [
-          {text: 'FTX', value: 'ftx'},
-          {text: 'Binance', value: 'binance'},
-          {text: 'Deribit', value: 'deribit'},
-          {text: 'Kraken', value: 'kraken'},
-          {text: 'BTSE', value: 'btse'}
-        ],
+        error: "",
         exchangeInput: "",
-        exchangeName: "",
+        exchangeName: "ftx",
+        asset: "",
         address: "",
         balance: "",
+        chain: "default",
+        base: "",
+        quote: "",
+        assetItem: "",
       }
     },
     methods: {
       onSubmit() {
         // reset previous result
         this.errored = false
-        this.address = ""
+        this.error =""
+
+        // reset address and balance for new result
         this.balance = ""
+
+        // disable the form
         this.loading = true
+
         axios
-                .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeName + '/' + this.assetName)
+                .get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.base + '/' + this.quote + '/' + this.assetItem)
                 .then(response => {
-                  this.handleData(response)
+                  this.processData(response)
                 })
                 .catch(error => {
                           console.log(error)
-                          //this.address = "Not available"
+                          this.error = error
                           this.errored = true
                         }
                 )
                 .finally(() => this.loading = false)
       },
-      handleData(result) {
-        const data = result.data
-        console.log(data)
-        this.address = data.address
-        this.symbol = data.code
-        this.balance = data.balance
-        this.exchangeName = data.exchange
+      processData(result) {
+        // const data = result.data
+        // console.log(data)
+        // this.address = data.address["Address"]
+        // this.symbol = data.code
+        // this.balance = data.balance
+        // this.exchangeName = data.exchange
       }
     },
-    computed: {
-      filterExchangeList() {
-        return this.exchangeList.filter(exchangeName => {
-          return this.exchangeInput = exchangeName
-        })
-      }
-    }
   })
   app.mount('#app').created()
 </script>
