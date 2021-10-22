@@ -72,7 +72,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		var err error
 		assetInfo := new(Asset)
 
-		d := GetDealerInstance()//d, err := dealer.NewBuilder().Build()
+		d := GetDealerInstance() //d, err := dealer.NewBuilder().Build()
 		if err != nil {
 			logrus.Errorf("failed to create a dealer %s\n", err)
 		}
