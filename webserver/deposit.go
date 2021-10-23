@@ -114,9 +114,9 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			}
 		}
 
-		if chain == "default" {
-			chain = depositRequest.Chains[0]
-		}
+		//if chain == "default" {
+		//	chain = depositRequest.Chains[0]
+		//}
 
 		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
 		if err != nil {
