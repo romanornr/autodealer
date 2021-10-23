@@ -10,26 +10,11 @@
             {{template "dashboard"}}
             <div id="app">
                 <form class="deposit-form" @submit.prevent="onSubmit">
-<!--                    <label class="form-label">Exchange name</label>-->
-<!--                    <select class="form-select" v-model="exchangeName" id="exchangeName">-->
-<!--                        <option v-for="option in options" :value="option.value">-->
-<!--                            ${ option.text }-->
-<!--                        </option>-->
-<!--                    </select>-->
                     <div class="mb-3">
                         <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="kraken" id="kraken-dark-outlined" autocomplete="off">
                         <label class="btn btn-outline-dark" for="kraken-dark-outlined">Kraken</label>
                     </div>
                     {{template "fiatButtons"}}
-
-<!--                    <div class="mb-3">-->
-<!--                        <label for="currencyName" class="form-label">Currency name</label>-->
-<!--                        <select class="form-select" v-model="currencyName" id="currencyName">-->
-<!--                            <option v-for="currencyOption in currencyOptions" :value="currencyOption.value">-->
-<!--                                ${ currencyOption.text }-->
-<!--                            </option>-->
-<!--                        </select>-->
-<!--                    </div>-->
                     <div class="mb-3">
                         <small id="emailHelp" class="form-text text-muted">This convert all USDT to ${ currency } and transfers the funds to an international bank account.</small><br>
                         <button class="btn btn-outline-success" type="submit" :disabled="loading">
@@ -68,7 +53,7 @@
                 errored: false,
                 currency: "EUR",
                 exchangeName: "kraken",
-                address: "",
+                error: "",
                 balance: "",
                 result: "",
             }
@@ -81,7 +66,7 @@
                 this.balance = ""
                 this.loading = true
                 axios
-                    .get('http://127.0.0.1:3333/api/bank/transfer')
+                    .get('http://127.0.0.1:3333/api/bank/transfer/currency')
                     .then(response => {
                         console.log(response)
                         this.handleData(response)

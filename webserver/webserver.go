@@ -148,6 +148,11 @@ func corsConfig() *cors.Cors {
 func apiSubrouter() http.Handler {
 	r := chi.NewRouter()
 
+	r.Route(routeTrade, func(r chi.Router) {
+		r.Use(TradeCtx)
+		r.Get("/", getTradeResponse)
+	})
+
 	r.Route(routeGetDepositAddr, func(r chi.Router) {
 		r.Use(DepositAddressCtx)
 		r.Get("/", getDepositAddress)

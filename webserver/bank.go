@@ -2,6 +2,8 @@ package webserver
 
 import (
 	"context"
+	"github.com/go-chi/chi/v5"
+	"github.com/thrasher-corp/gocryptotrader/currency"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -33,15 +35,20 @@ func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 
 func BankTransferCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		submitResponse, err := transfer.KrakenConvertUSDTtoEuro()
+		currencyCode := currency.NewCode(chi.URLParam(request, "exchange"))
+
+		submitResponse, err := transfer.KrakenConvertUSDT(currencyCode)
 		if err != nil {
 			logrus.Errorf("Failed to sell USDT to Euro: %s\n", err)
+			render.Render(w, request, transfer.ErrWithdawRender(err))
+			return
 		}
 		logrus.Infof("submit response %v\n", submitResponse)
 
-		response, err := transfer.KrakenInternationalBankAccountWithdrawal()
+		response, err := transfer.KrakenInternationalBankAccountWithdrawal(currencyCode)
 		if err != nil {
 			logrus.Errorf("Failed to get bank account transfer: %s\n", err)
+			response.Err = err
 			render.Render(w, request, transfer.ErrWithdawRender(err))
 			return
 		}

@@ -10,7 +10,7 @@ import (
 	"gopkg.in/errgo.v2/fmt/errors"
 )
 
-func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
+func KrakenConvertUSDT(code currency.Code) (order.SubmitResponse, error) {
 
 	d := GetDealerInstance()
 
@@ -41,7 +41,7 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 		Type:      order.Market,
 		Side:      order.Sell,
 		AssetType: asset.Spot,
-		Pair:      currency.NewPair(currency.USDT, currency.EUR),
+		Pair:      currency.NewPair(currency.USDT, code),
 	}
 
 	if value < 10 {
@@ -57,7 +57,7 @@ func KrakenConvertUSDTtoEuro() (order.SubmitResponse, error) {
 	return response, nil
 }
 
-func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error) {
+func KrakenInternationalBankAccountWithdrawal(code currency.Code) (ExchangeWithdrawResponse, error) {
 
 	d := GetDealerInstance()
 	exchange, err := d.ExchangeManager.GetExchangeByName("Kraken")
@@ -85,13 +85,13 @@ func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error
 		return ExchangeWithdrawResponse{Err: err}, err
 	}
 
-	baccount, err := d.Config.GetExchangeBankAccounts(exchange.GetName(), "romanornr_abn_amro", currency.EUR.String())
+	baccount, err := d.Config.GetExchangeBankAccounts(exchange.GetName(), "romanornr_abn_amro", code.String())
 	if err != nil {
 		logrus.Errorf("failed to get bank account: %v", err)
 	}
 
 	var errValid []string
-	errValid = baccount.ValidateForWithdrawal(exchange.GetName(), currency.EUR)
+	errValid = baccount.ValidateForWithdrawal(exchange.GetName(), code)
 	if errValid != nil {
 		logrus.Errorf("failed to validate bank account: %v\n", errValid)
 	}
@@ -100,7 +100,7 @@ func KrakenInternationalBankAccountWithdrawal() (ExchangeWithdrawResponse, error
 
 	withdrawRequest := &withdraw.Request{
 		Exchange:    exchange.GetName(),
-		Currency:    currency.EUR,
+		Currency:    code,
 		Description: "",
 		Amount:      value,
 		Type:        withdraw.Fiat,
