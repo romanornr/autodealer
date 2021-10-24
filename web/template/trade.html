@@ -16,17 +16,130 @@
           </div>
 
           <div class="mb-3">
-            <label for="asset" class="form-label">Asset</label>
-            <input type="input" class="form-control" id="asset" v-model="asset" aria-describedby="assetInput" min="0" autocomplete="off">
-            <div id="assetInput" class="form-text">ETH</div>
+            <div class="row">
+              <div class="col">
+                <input type="text" class="form-control" v-model="base" placeholder="BTC" aria-label="BTC">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control" v-model="quote" placeholder="USD" aria-label="USD">
+              </div>
+
+
+              <div class="col">
+                <div class="col-md-4 mb-3">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="validationTooltipUsernamePrepend">asset type</span>
+                    </div>
+                    <input type="text" class="form-control" id="validationTooltipUsername" placeholder="Spot" aria-describedby="validationTooltipUsernamePrepend" required>
+                    <div class="invalid-tooltip">
+                      Please choose a unique and valid username.
+                    </div>
+                  </div>
+                </div>
+<!--                <input type="text" class="form-control" v-model="assetType" placeholder="spot" aria-label="assetType">-->
+              </div>
+            </div>
           </div>
 
-          <button class="btn btn-primary" type="submit" :disabled="loading">
-            <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <span v-if="loading">Loading...</span><span v-else>Deposit</span>
-          </button>
+          <div class="mb-3">
+            <div class="row">
+              <div class="col">
+                <input type="number" class="form-control" v-model="sizeUSD" placeholder="USD" aria-label="USD">
+              </div>
+              <div class="col">
+                <input type="number" class="form-control" v-model="sizeQTY" placeholder="qty" aria-label="QTY">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="row">
+              <div class="col">
+                {{template "orderTypeMarket"}}
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="row">
+              <div class="col">
+                {{template "orderTypeLimit"}}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="row">
+                <div class="col">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="reduceFlexSwitchCheckDefault">
+                    <label class="form-check-label" for="reduceFlexSwitchCheckDefault">Reduce</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          <div class="mb-3">
+            <div class="row">
+              <div class="col">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                  <label class="form-check-label" for="flexSwitchCheckDefault">TWAP</label>
+                </div>
+              </div>
+              <div class="col">
+                <input type="number" class="form-control" placeholder="hours" aria-label="hours" aria-describedby="basic-addon1">
+              </div>
+              <div class="col">
+                <input type="number" class="form-control" placeholder="minutes" aria-label="minutes" aria-describedby="basic-addon2">
+              </div>
+            </div>
+          </div>
+          </div>
+
+
+          <!--          <button class="btn btn-primary" type="submit" :disabled="loading">-->
+<!--            <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>-->
+<!--            <span v-if="loading">Loading...</span><span v-else>Deposit</span>-->
+<!--          </button>-->
         </form>
       </div>
+
+      <!-- TradingView Widget BEGIN -->
+      <div class="tradingview-widget-container">
+        <div id="tradingview_7829e"></div>
+        <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/BTCUSD/?exchange=FTX" rel="noopener" target="_blank"><span class="blue-text">BTCUSD Chart</span></a> by TradingView</div>
+        <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+        <script type="text/javascript">
+          new TradingView.widget(
+                  {
+                    "width": 1280,
+                    "height": 720,
+                    "symbol": "FTX:BTCUSD",
+                    "interval": "D",
+                    "timezone": "Europe/Amsterdam",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "en",
+                    "toolbar_bg": "#f1f3f6",
+                    "enable_publishing": false,
+                    "withdateranges": true,
+                    "hide_side_toolbar": false,
+                    "allow_symbol_change": true,
+                    "details": true,
+                    "studies": [
+                      "VSTOP@tv-basicstudies",
+                      "Volume@tv-basicstudies",
+                      "VWAP@tv-basicstudies"
+                    ],
+                    "show_popup_button": true,
+                    "popup_width": "1000",
+                    "popup_height": "650",
+                    "container_id": "tradingview_7829e"
+                  }
+          );
+        </script>
+
     </main>
   </div>
 </div>

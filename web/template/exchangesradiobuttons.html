@@ -12,6 +12,9 @@
     <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitmex" id="danger-outlined" autocomplete="off">
     <label class="btn btn-outline-danger" for="danger-outlined">Bitmex</label>
 
+    <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="huobi" id="info-outlined-huobi" autocomplete="off">
+    <label class="btn btn-outline-info" for="info-outlined">Huobi</label>
+
     <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitfinex" id="success-outlined-finex" autocomplete="off">
     <label class="btn btn-outline-success" for="success-outlined-finex">Bitfinex</label>
 
@@ -33,11 +36,15 @@
 <input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="bitmex" id="dest-danger-outlined" autocomplete="off" />
 <label class="btn btn-outline-danger" for="dest-danger-outlined">Bitmex</label>
 
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="huobi" id="dest-huobi-info-outlined" autocomplete="off" />
+<label class="btn btn-outline-info" for="dest-huobi-info-outlined">Huobi</label>
+
 <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="bitfinex" id="dest-finex-success-outlined" autocomplete="off">
 <label class="btn btn-outline-success" for="dest-finex-success-outlined">Bitfinex</label>
 
 <input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="btse" id="dest-info-outlined" autocomplete="off" />
 <label class="btn btn-outline-info" for="dest-info-outlined">BTSE</label>
+
 <input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="kraken" id="dest-dark-outlined" autocomplete="off" />
 <label class="btn btn-outline-dark" for="dest-dark-outlined">Kraken</label>
 {{end}}

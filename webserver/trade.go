@@ -44,6 +44,8 @@ func TradeCtx(next http.Handler) http.Handler {
 		}
 
 		e.SupportsAsset(asset.Spot)
+
+		//e.SetPairs()
 		//currency.NewPair()
 		//
 		//

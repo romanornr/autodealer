@@ -108,11 +108,11 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		depositRequest.Asset = depositRequest.Code.Item
 		depositRequest.Account = <-accountId
 
-		if engineExchange.GetName() == "Binance" {
-			if chain == "erc20" {
-				chain = "ETH"
-			}
-		}
+		//if engineExchange.GetName() == "Binance" {
+		//	if chain == "ETH" {
+		//		chain = "erc20"
+		//	}
+		//}
 
 		//if chain == "default" {
 		//	chain = depositRequest.Chains[0]

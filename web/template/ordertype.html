@@ -1,0 +1,30 @@
+{{define "orderTypeMarket"}}
+<div class="mb-3">
+    <div class="row">
+        <div class="col">
+            <input type="radio" class="btn-check" name="options-outlined" v-model="orderType" value="btse" id="orderTypeMarket-info-outlined" autocomplete="off">
+            <label class="btn btn-outline-info" for="orderTypeMarket-info-outlined">Market buy</label>
+        </div>
+        <div class="col">
+            <input type="radio" class="btn-check" name="options-outlined" v-model="orderType" value="bitmex" id="orderType-danger-outlined" autocomplete="off">
+            <label class="btn btn-outline-danger" for="orderTypeLimit-danger-outlined">Market sell</label>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "orderTypeLimit"}}
+<div class="mb-3">
+    <div class="row">
+        <div class="col">
+            <input type="radio" class="btn-check" name="options-outlined" v-model="orderType" value="btse" id="orderTypeLimit-info-outlined" autocomplete="off">
+            <label class="btn btn-outline-info" for="orderTypeMarket-info-outlined">Limit buy</label>
+        </div>
+        <div class="col">
+            <input type="radio" class="btn-check" name="options-outlined" v-model="orderType" value="bitmex" id="orderTypeLimit-danger-outlined" autocomplete="off">
+            <label class="btn btn-outline-danger" for="orderTypeLimit-danger-outlined">Limit sell</label>
+        </div>
+    </div>
+</div>
+{{end}}
+
