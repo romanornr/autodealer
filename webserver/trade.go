@@ -39,10 +39,10 @@ func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 func TradeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		base:= currency.NewCode(chi.URLParam(request, "base"))
+		base := currency.NewCode(chi.URLParam(request, "base"))
 		quote := currency.NewCode(chi.URLParam(request, "quote"))
 		qtyUSD, err := strconv.ParseFloat(chi.URLParam(request, "qty"), 32)
-		if err != nil{
+		if err != nil {
 			logrus.Errorf("failed to parse qty %s\n", err)
 		}
 
@@ -78,7 +78,7 @@ func TradeCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		// try to find out how to enable all pairs?? 
+		// try to find out how to enable all pairs??
 		d.Settings.EnableAllPairs = true
 		d.Settings.EnableCurrencyStateManager = true
 
@@ -88,7 +88,7 @@ func TradeCtx(next http.Handler) http.Handler {
 		}
 
 		logrus.Printf("all parts enabled: %v\n", x)
-		
+
 		if err = e.UpdateCurrencyStates(context.Background(), asset.Spot); err != nil {
 			logrus.Errorf("currency state update failed: %s\n", err)
 		}
@@ -100,10 +100,9 @@ func TradeCtx(next http.Handler) http.Handler {
 
 		logrus.Info(f)
 
-		if err = e.CanTrade(base, assetItem); err != nil{
+		if err = e.CanTrade(base, assetItem); err != nil {
 			logrus.Errorf("Can not trade: %s\n", err)
 		} // currency state fails
-
 
 		if err = e.CanTradePair(p, assetItem); err != nil {
 			logrus.Errorf("can not trade pair %s\n", err)
