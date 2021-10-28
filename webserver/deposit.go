@@ -108,7 +108,6 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		depositRequest.Asset = depositRequest.Code.Item
 		depositRequest.Account = <-accountId
 
-
 		// need to figure out chain selection
 		// USDT FTX: [erc20 trx sol]
 		// USDT Binance: [BNB BSC ETH SOL TRX]
