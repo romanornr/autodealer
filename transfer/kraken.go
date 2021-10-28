@@ -35,13 +35,15 @@ func KrakenConvertUSDT(code currency.Code) (order.SubmitResponse, error) {
 		}
 	}
 
+	//currency.NewPair(currency.USDT, code)
+
 	o := &order.Submit{
 		Amount:    value,
 		Exchange:  exchange.GetName(),
 		Type:      order.Market,
 		Side:      order.Sell,
 		AssetType: asset.Spot,
-		Pair:      currency.NewPair(currency.USDT, code),
+		Pair:      currency.NewPair(currency.USDT, currency.EUR),
 	}
 
 	if value < 10 {

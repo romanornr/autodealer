@@ -59,29 +59,36 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 	var err error
 	logrus.Info("creating withdraw response for exchange")
 
-	var response = ExchangeWithdrawResponse{
-		ExchangeResponse: exchangeResponse,
-		Exchange:         exchangeManager.GetName(),
-		Type:             withdrawRequest.Type,
-		Err:              err,
-	}
-
 	if withdrawRequest.Type == withdraw.Crypto {
-		response.ExchangeResponse, err = exchangeManager.WithdrawCryptocurrencyFunds(context.Background(), withdrawRequest)
+		exchangeResponse, err = exchangeManager.WithdrawCryptocurrencyFunds(context.Background(), withdrawRequest)
 		if err != nil {
 			err = fmt.Errorf("failed to withdraw crypto asset %s\n", err)
 		}
-		logrus.Infof("exchange response: %v\n", response.ExchangeResponse)
-		response.DestinationAddress = withdrawRequest.Crypto.Address
+		logrus.Infof("exchange response: %v\n", exchangeResponse)
+		//response.DestinationAddress = withdrawRequest.Crypto.Address
 	}
 
 	if withdrawRequest.Type == withdraw.Fiat && exchangeManager.GetName() == "Kraken" {
 		logrus.Info("withdraw kraken")
 		k := kraken.Kraken{Base: *exchangeManager.GetBase()}
-		response.ExchangeResponse.ID, err = k.Withdraw(context.Background(), currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
+		exchangeResponse.ID, err = k.Withdraw(context.Background(), currency.EUR.String(), withdrawRequest.Fiat.Bank.ID, withdrawRequest.Amount)
 		if err != nil {
 			err = fmt.Errorf("failed international bank withdraw request: %s\n", err)
 		}
 	}
+
+	var response = ExchangeWithdrawResponse{
+		ExchangeResponse: exchangeResponse,
+		Exchange:         exchangeManager.GetName(),
+		Type:             withdrawRequest.Type,
+		//DestinationAddress: withdrawRequest.Crypto.Address,
+		Time: time.Now(),
+		Err:  err,
+	}
+
+	if withdrawRequest.Type == withdraw.Crypto {
+		response.DestinationAddress = withdrawRequest.Crypto.Address
+	}
+
 	return response
 }

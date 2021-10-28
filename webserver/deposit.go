@@ -108,15 +108,26 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		depositRequest.Asset = depositRequest.Code.Item
 		depositRequest.Account = <-accountId
 
-		//if engineExchange.GetName() == "Binance" {
-		//	if chain == "ETH" {
-		//		chain = "erc20"
-		//	}
-		//}
 
-		//if chain == "default" {
-		//	chain = depositRequest.Chains[0]
-		//}
+		// need to figure out chain selection
+		// USDT FTX: [erc20 trx sol]
+		// USDT Binance: [BNB BSC ETH SOL TRX]
+		// USDT BTSE: []
+		// USDT Bitfinex: [TETHERUSDTALG TETHERUSX TETHERUSDTBCH TETHERUSDTDVF TETHERUSO TETHERUSDTSOL TETHERUSDTHEZ TETHERUSE TETHERUSL TETHERUSS TETHERUSDTOMG]
+		// USDT Kraken: [Tether USD (ERC20) Tether USD (TRC20)]
+		if engineExchange.GetName() == "Binance" {
+			if chain == "erc20" {
+				chain = "eth"
+			}
+		}
+
+		if engineExchange.GetName() == "BTSE" {
+			chain = ""
+		}
+
+		if chain == "default" {
+			chain = depositRequest.Chains[0]
+		}
 
 		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
 		if err != nil {

@@ -629,7 +629,7 @@ func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
 			continue
 		}
 		wg.Add(1)
-		go func(c config.ExchangeConfig) {
+		go func(c config.Exchange) {
 			defer wg.Done()
 			err := bot.LoadExchange(c.Name, &wg)
 			if err != nil {
