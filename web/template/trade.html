@@ -32,10 +32,10 @@
                     <div class="input-group-prepend">
                       <span class="input-group-text" id="validationTooltipUsernamePrepend">asset type</span>
                     </div>
-                    <input type="text" class="form-control" id="validationTooltipUsername" placeholder="Spot" v-model="assetType" aria-describedby="validationTooltipUsernamePrepend" required>
-                    <div class="invalid-tooltip">
-                      Please choose a unique and valid username.
-                    </div>
+                    <input type="text" class="form-control" id="validationTooltipUsername" placeholder="Spot" v-model="assetType" aria-describedby="validationTooltipUsernamePrepend">
+<!--                    <div class="invalid-tooltip">-->
+<!--                      Please choose a unique and valid username.-->
+<!--                    </div>-->
                   </div>
                 </div>
               </div>
@@ -96,7 +96,6 @@
             </div>
           </div>
           </div>
-
 
           <button class="btn btn-primary" type="submit" :disabled="loading">
             <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -160,16 +159,31 @@
         base: "BTC",
         quote: "USD",
         qtyUSD: "",
-        orderType: "spot",
+        orderType: "",
         asset: "",
         address: "",
         balance: "",
         chain: "default",
-        assetType: "",
+        assetType: "spot",
+        notification: 0,
       }
     },
     methods: {
+      // show() {
+      //   const text = `This is notification text!`
+      //   this.notification = 1
+      //
+      // //   this.$notify({
+      // //     title: `Test notification`,
+      // //   })
+      // // },
+      // // clean(group) {
+      // //   this.$notify({group, clean: true})
+      // },
+
       onSubmit() {
+
+        //this.show()
         // reset previous result
         this.errored = false
         this.error =""
