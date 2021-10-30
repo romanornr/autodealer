@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Vue Select Template</title>
+<!--  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:600'>-->
+<!--  <link rel='stylesheet' href='https://unpkg.com/vue-select/dist/vue-select.css'><link rel="stylesheet" href="./style.css">-->
+
+  {{template "head"}}
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<div id="app">
+  <h1>Vue Select</h1>
+  <v-select
+          :options="books"
+          label="title"
+  ></v-select>
+</div>
+<!-- partial -->
+<script src='https://unpkg.com/vue@latest'></script>
+<script src='https://unpkg.com/vue-select@latest'></script>
+
+<script>
+  Vue.component("v-select", VueSelect.VueSelect);
+
+  new Vue({
+    el: "#app",
+    data() {
+      return {
+        books: [
+          { title: "Old Man's War" },
+          { title: "The Lock Artist" },
+          { title: "HTML5" },
+          { title: "Right Ho Jeeves" },
+          { title: "The Code of the Wooster" },
+          { title: "Thank You Jeeves" }
+        ]
+      };
+    }
+  });
+</script>
+
+</body>
+</html>

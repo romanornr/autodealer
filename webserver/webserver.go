@@ -70,6 +70,7 @@ func service() http.Handler {
 	r.Get("/deposit", DepositHandler)   // http://127.0.0.1:3333/deposit
 	r.Get("/withdraw", WithdrawHandler) // http://127.0.0.1:3333/withdraw
 	r.Get("/bank/transfer", bankTransferHandler)
+	r.Get("/s", SearchHandler)
 
 	// func subrouter generates a new router for each sub route.
 	r.Mount("/api", apiSubrouter())
@@ -180,6 +181,14 @@ func apiSubrouter() http.Handler {
 // requester to the markets page.
 func HomeHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Errorf("error template: %s\n", err)
+		return
+	}
+}
+
+func SearchHandler(w http.ResponseWriter, _ *http.Request) {
+	if err := tpl.ExecuteTemplate(w, "search.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Errorf("error template: %s\n", err)
 		return

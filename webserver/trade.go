@@ -82,6 +82,9 @@ func TradeCtx(next http.Handler) http.Handler {
 			return
 		}
 
+		tr, _ := e.FetchTradablePairs(context.Background(), asset.Futures)
+		logrus.Println(tr)
+
 		// try to find out how to enable all pairs??
 		d.Settings.EnableAllPairs = true
 		d.Settings.EnableCurrencyStateManager = true

@@ -23,8 +23,7 @@
               <div class="col">
                 <input type="text" class="form-control" v-model="quote" placeholder="USD" aria-label="USD">
               </div>
-
-              <p>${ base }</p>
+<!--              <p>${ base }</p>-->
 
               <div class="col">
                 <div class="col-md-4 mb-3">
@@ -45,7 +44,7 @@
           <div class="mb-3">
             <div class="row">
               <div class="col">
-                <input type="number" class="form-control" v-model="qtyUSD" placeholder="USD" aria-label="USD">
+                <input type="number" class="form-control" v-model="qtyUSD" placeholder="USD QTY" aria-label="USD">
               </div>
               <div class="col">
                 <input type="number" class="form-control" v-model="sizeQTY" placeholder="qty" aria-label="QTY">
@@ -76,22 +75,43 @@
                     <label class="form-check-label" for="reduceFlexSwitchCheckDefault">Reduce</label>
                   </div>
                 </div>
+
+                <div class="col">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                    <label class="form-check-label" for="reduceFlexSwitchCheckDefault">TWAP</label>
+                  </div>
+                </div>
               </div>
             </div>
 
-          <div class="mb-3">
-            <div class="row">
+
+<!--            <div class="mb-3">-->
+<!--              <div class="row">-->
+<!--                <div class="col">-->
+<!--                  <div class="form-check form-switch">-->
+<!--                    <input class="form-check-input" type="checkbox" role="switch" id="reduceFlexSwitchCheckDefault">-->
+<!--                    <label class="form-check-label" for="reduceFlexSwitchCheckDefault">Reduce</label>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+
+<!--          <div class="mb-3">-->
+<!--            <div class="row">-->
+<!--              <div class="col">-->
+<!--                <div class="form-check form-switch">-->
+<!--                  <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">-->
+<!--                  <label class="form-check-label" for="flexSwitchCheckDefault">TWAP</label>-->
+<!--                </div>-->
+<!--              </div>-->
+            <div class="mb-3">
+              <div class="row">
               <div class="col">
-                <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                  <label class="form-check-label" for="flexSwitchCheckDefault">TWAP</label>
-                </div>
+                <input type="number" class="form-control" placeholder="hours" v-model="hours" aria-label="hours" aria-describedby="basic-addon1">
               </div>
               <div class="col">
-                <input type="number" class="form-control" placeholder="hours" aria-label="hours" aria-describedby="basic-addon1">
-              </div>
-              <div class="col">
-                <input type="number" class="form-control" placeholder="minutes" aria-label="minutes" aria-describedby="basic-addon2">
+                <input type="number" class="form-control" placeholder="minutes" v-model="minutes" aria-label="minutes" aria-describedby="basic-addon2">
               </div>
             </div>
           </div>
@@ -103,17 +123,26 @@
           </button>
         </form>
 
+        <div id="wapp">
+          <h1>Vue Select</h1>
+          <v-select
+                  :options="books"
+                  label="title"
+          ></v-select>
+        </div>
+
+
         <!-- TradingView Widget BEGIN -->
-        ${ base }
+<!--        ${ base }-->
         <div class="tradingview-widget-container">
           <div id="tradingview_7829e"></div>
-          <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/BTCUSD/?exchange=FTX" rel="noopener" target="_blank"><span class="blue-text">BTCUSD Chart</span></a> by TradingView</div>
+<!--          <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/BTCUSD/?exchange=FTX" rel="noopener" target="_blank"><span class="blue-text">BTCUSD Chart</span></a> by TradingView</div>-->
           <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
           <script type="text/javascript">
             new TradingView.widget(
                     {
-                      "width": 1280,
-                      "height": 720,
+                      "width": 1200,
+                      "height": 675,
                       "symbol": "FTX:BTCUSD",
                       "interval": "D",
                       "timezone": "Europe/Amsterdam",
@@ -132,20 +161,41 @@
                         "VWAP@tv-basicstudies"
                       ],
                       "show_popup_button": true,
-                      "popup_width": "1000",
-                      "popup_height": "650",
+                      "popup_width": "800",
+                      "popup_height": "450",
                       "container_id": "tradingview_7829e"
                     }
             );
           </script>
-      </div>
+        </div>
       </div>
     </main>
   </div>
 </div>
 </body>
 
-</body>
+
+<!--<script type="text/javascript">-->
+<!--  Vue.component("v-select", VueSelect.VueSelect);-->
+
+<!--  new Vue({-->
+<!--    el: "#app2",-->
+<!--    data() {-->
+<!--      return {-->
+<!--        books: [-->
+<!--          { title: "Old Man's War" },-->
+<!--          { title: "The Lock Artist" },-->
+<!--          { title: "HTML5" },-->
+<!--          { title: "Right Ho Jeeves" },-->
+<!--          { title: "The Code of the Wooster" },-->
+<!--          { title: "Thank You Jeeves" }-->
+<!--        ]-->
+<!--      };-->
+<!--    }-->
+<!--  });-->
+<!--</script>-->
+
+
 <script>
   const app = Vue.createApp({
     delimiters: ['${', '}'],
@@ -161,10 +211,11 @@
         qtyUSD: "",
         orderType: "",
         asset: "",
-        address: "",
         balance: "",
-        chain: "default",
         assetType: "spot",
+        twap: false,
+        hours: "",
+        minutes: "",
         notification: 0,
       }
     },
