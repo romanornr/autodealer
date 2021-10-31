@@ -12,7 +12,7 @@
 <!-- partial:index.partial.html -->
 <div id="app">
   <h1>Vue Select</h1>
-  <v-select
+  <v-select v-model="book"
           :options="books"
           label="title"
   ></v-select>
@@ -28,6 +28,7 @@
     el: "#app",
     data() {
       return {
+        book: "",
         books: [
           { title: "Old Man's War" },
           { title: "The Lock Artist" },
