@@ -9,6 +9,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	"strings"
 	"sync"
 	"time"
@@ -206,6 +207,10 @@ func (r *HistoryStrategy) OnModify(d *Dealer, e exchange.IBotExchange, x order.M
 }
 
 func (r *HistoryStrategy) OnBalanceChange(d *Dealer, e exchange.IBotExchange, x account.Change) error {
+	return nil
+}
+
+func (r *HistoryStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Data) error {
 	return nil
 }
 
