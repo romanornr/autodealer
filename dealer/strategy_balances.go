@@ -162,7 +162,7 @@ func (b *BalancesStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade
 }
 
 func (b *BalancesStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []fill.Data) error {
-    return nil
+	return nil
 }
 
 func (b *BalancesStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error {
