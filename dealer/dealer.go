@@ -623,7 +623,6 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gc
 	return nil
 }
 
-
 // setupExchanges function first determines if enabled is true or false, and then determines whether any exchanges have been loaded.
 // If the exchanges have not been loaded, the exchanges will be loaded using the GetExchanges function. Because this function implements a waitgroup, the code execution will continue.
 // The code attempts to load a single transaction and then moves on to the next stagename in the actions list, which is the setup Operations Stage.
