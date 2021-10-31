@@ -12,6 +12,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 )
 
 var (
@@ -97,6 +98,8 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 		unhandledType(data, true)
 	case account.Change:
 		handleError("OnBalanceChange", s.OnBalanceChange(d, e, x))
+	case []trade.Data:
+		handleError("OnTrade", s.OnTrade(d, e, x))
 	default:
 		handleError("OnUnrecognized", s.OnUnrecognized(d, e, x))
 	}

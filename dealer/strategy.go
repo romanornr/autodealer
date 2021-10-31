@@ -8,6 +8,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	"time"
 )
 
@@ -40,6 +41,7 @@ type Strategy interface {
 	OnOrder(d *Dealer, e exchange.IBotExchange, x order.Detail) error
 	OnModify(d *Dealer, e exchange.IBotExchange, x order.Modify) error
 	OnBalanceChange(d *Dealer, e exchange.IBotExchange, x account.Change) error
+	OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Data)
 	OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error
 	Deinit(d *Dealer, e exchange.IBotExchange) error
 }

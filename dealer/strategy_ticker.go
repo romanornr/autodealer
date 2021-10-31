@@ -2,6 +2,7 @@ package dealer
 
 import (
 	"context"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	"sync"
 	"time"
 
@@ -108,6 +109,10 @@ func (s *TickerStrategy) OnModify(d *Dealer, e exchange.IBotExchange, x order.Mo
 // OnBalanceChange implements the TickerStrategy interface function.
 // Used to trigger an action for an already running ticker
 func (s *TickerStrategy) OnBalanceChange(d *Dealer, e exchange.IBotExchange, x account.Change) error {
+	return nil
+}
+
+func (s *TickerStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Data) error {
 	return nil
 }
 

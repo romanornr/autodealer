@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -41,6 +42,7 @@ var (
 // We then atomically update the exchange holding map in our balance strategy struct, and we can read an `ExchangeHoldings` object at any point.
 // Note that  this strategy does not order, so stops and take profits can't be engaged. To use it, initialize an exchange and a builder and then simply
 type BalancesStrategy struct {
+	// holdings maps an exchange name to its holdings
 	holdings sync.Map
 	ticker   TickerStrategy
 }
@@ -151,6 +153,10 @@ func (b *BalancesStrategy) OnModify(d *Dealer, e exchange.IBotExchange, x order.
 }
 
 func (b *BalancesStrategy) OnBalanceChange(d *Dealer, e exchange.IBotExchange, x account.Change) error {
+	return nil
+}
+
+func (b *BalancesStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Data) error {
 	return nil
 }
 
