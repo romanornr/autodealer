@@ -3,6 +3,7 @@ package dealer
 import (
 	"context"
 	"errors"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	"sync"
 
@@ -166,6 +167,9 @@ func (m *RootStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Dat
 	return m.each(func(s Strategy) error { return s.OnTrade(d, e, x) })
 }
 
+func (m *RootStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []fill.Data) error {
+	return m.each(func(s Strategy) error { return s.OnFill(d, e, x) })
+}
 
 // OnUnrecognized is called on unrecognized data
 func (m *RootStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error {

@@ -2,12 +2,12 @@ package dealer
 
 import (
 	"context"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	"sync"
 	"time"
 
 	"github.com/romanornr/autodealer/util"
-	"github.com/sirupsen/logrus"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -116,7 +116,7 @@ func (s *TickerStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.D
 	return nil
 }
 
-func (s *TickerStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []order.Fill) error {
+func (s *TickerStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []fill.Data) error {
     return nil
 }
 
@@ -135,7 +135,7 @@ func (s *TickerStrategy) Deinit(d *Dealer, e exchange.IBotExchange) error {
 
 	tickers, ok := pointer.(time.Ticker)
 	if !ok {
-		logrus.Panicf("want time.Ticker, got %T", pointer)
+		panic("want time.Ticker")
 	}
 	tickers.Stop()
 	return nil
