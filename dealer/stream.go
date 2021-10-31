@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
@@ -94,12 +95,14 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 			panic("unexpected error")
 		}
 		return x.Err
+	case []trade.Data:
+		handleError("OnTrade", s.OnTrade(d, e, x))
+	case []fill.Data:
+		handleError("OnFill", s.OnFill(d, e, x))
 	case stream.UnhandledMessageWarning:
 		unhandledType(data, true)
 	case account.Change:
 		handleError("OnBalanceChange", s.OnBalanceChange(d, e, x))
-	case []trade.Data:
-		handleError("OnTrade", s.OnTrade(d, e, x))
 	default:
 		handleError("OnUnrecognized", s.OnUnrecognized(d, e, x))
 	}

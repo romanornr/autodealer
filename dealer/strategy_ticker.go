@@ -116,6 +116,10 @@ func (s *TickerStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.D
 	return nil
 }
 
+func (s *TickerStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []order.Fill) error {
+    return nil
+}
+
 // OnUnrecognized is a function that is called when an unsupported data type is given
 // and most likely indicates a parsing error has occurred with Exchanges
 func (s *TickerStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error {

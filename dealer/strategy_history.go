@@ -5,6 +5,7 @@ import (
 	"errors"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
@@ -212,6 +213,10 @@ func (r *HistoryStrategy) OnBalanceChange(d *Dealer, e exchange.IBotExchange, x 
 
 func (r *HistoryStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Data) error {
 	return nil
+}
+
+func (r *HistoryStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []fill.Data) error {
+    return nil
 }
 
 func (r *HistoryStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error {

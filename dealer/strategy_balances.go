@@ -5,14 +5,15 @@ import (
 	"errors"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	"strings"
 	"sync"
 	"time"
@@ -158,6 +159,10 @@ func (b *BalancesStrategy) OnBalanceChange(d *Dealer, e exchange.IBotExchange, x
 
 func (b *BalancesStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Data) error {
 	return nil
+}
+
+func (b *BalancesStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []fill.Data) error {
+    return nil
 }
 
 func (b *BalancesStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error {

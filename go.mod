@@ -6,13 +6,12 @@ require (
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/render v1.0.1
-	github.com/gofrs/uuid v4.1.0+incompatible // indirect
 	github.com/rs/cors v1.8.0
 	github.com/rs/zerolog v1.25.0
 	github.com/shopspring/decimal v1.3.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/thrasher-corp/gocryptotrader v0.0.0-20211026002230-8617b50ff6e4
+	github.com/thrasher-corp/gocryptotrader v0.0.0-20211027232515-4531fdcb4a6a
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
