@@ -216,7 +216,7 @@ func (r *HistoryStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.
 }
 
 func (r *HistoryStrategy) OnFill(d *Dealer, e exchange.IBotExchange, x []fill.Data) error {
-    return nil
+	return nil
 }
 
 func (r *HistoryStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error {
