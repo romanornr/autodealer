@@ -467,8 +467,37 @@ func (g GCTLog) Debugf(_ interface{}, data string, v ...interface{}) {
 	logrus.Debugf(data, v...)
 }
 
+// LoadExchange loads the exchange from the given path.
 func (bot *Dealer) LoadExchange(cfg *config.Exchange, wg *sync.WaitGroup) error {
 	return bot.loadExchange(cfg, wg, GCTLog{nil})
+}
+
+// ActivateAsset will activate the asset for the given exchange.
+func (bot *Dealer) ActivateAsset(e exchange.IBotExchange, a asset.Item) error {
+	base := e.GetBase()
+
+	if err := base.CurrencyPairs.SetAssetEnabled(a, true); err != nil && !errors.Is(err, currency.ErrAssetAlreadyEnabled) {
+		return err
+	}
+	return nil
+}
+
+// ActivatePair will activate the pair for the given exchange.
+func (bot *Dealer) ActivatePair(e exchange.IBotExchange, a asset.Item, p currency.Pair) error {
+	base := e.GetBase()
+
+	if err := base.CurrencyPairs.IsAssetEnabled(a); err != nil {
+		return err
+	}
+
+	availablePairs, err := base.CurrencyPairs.GetPairs(a, false)
+	if err != nil {
+		return err
+	}
+
+	availablePairs = append(availablePairs, p)
+	base.CurrencyPairs.StorePairs(a, availablePairs, false)
+	return nil
 }
 
 var (
@@ -487,6 +516,7 @@ func (bot *Dealer) getExchanges(gctlog GCTLog) []exchange.IBotExchange {
 	return exch
 }
 
+// GetExchanges returns a list of all loaded exchanges.
 func (bot *Dealer) GetExchanges() []exchange.IBotExchange {
 	return bot.getExchanges(GCTLog{nil})
 }
@@ -622,7 +652,6 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gc
 
 	return nil
 }
-
 
 // setupExchanges function first determines if enabled is true or false, and then determines whether any exchanges have been loaded.
 // If the exchanges have not been loaded, the exchanges will be loaded using the GetExchanges function. Because this function implements a waitgroup, the code execution will continue.
