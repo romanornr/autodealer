@@ -166,7 +166,6 @@ func (m *RootStrategy) OnTrade(d *Dealer, e exchange.IBotExchange, x []trade.Dat
 	return m.each(func(s Strategy) error { return s.OnTrade(d, e, x) })
 }
 
-
 // OnUnrecognized is called on unrecognized data
 func (m *RootStrategy) OnUnrecognized(d *Dealer, e exchange.IBotExchange, x interface{}) error {
 	return m.each(func(strategy Strategy) error {
