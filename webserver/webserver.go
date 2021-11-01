@@ -85,6 +85,8 @@ func New() {
 	logrus.Infof("API route mounted on port %d", port)
 	logrus.Infof("creating http Server")
 
+	go GetDealerInstance()
+
 	httpServer := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
 		Handler:      service(),

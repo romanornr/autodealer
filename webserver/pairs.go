@@ -4,14 +4,28 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/errgo.v2/fmt/errors"
 	"net/http"
 )
 
+// example response
+//{
+//   "pair":[
+//      [
+//         "futures",
+//         "1INCH-PERP"
+//      ],
+//      [
+//         "spot",
+//         "1INCH-USD"
+//      ]
+//   ]
+//}
+
 // pairResponse is the response for the pair endpoint
 type pairResponse struct {
-	Pairs []string `json:"pairs"`
+	Pairs [][]string `json:"pair"`
 }
 
 // Render Pairs renders the pairs
@@ -19,7 +33,34 @@ func (p pairResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// getPairsResponse renders the pairs response
+// FetchPairsCtx fetches the pairs from the exchange
+func FetchPairsCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+		d := GetDealerInstance()
+		e, err := d.ExchangeManager.GetExchangeByName(chi.URLParam(request, "exchange"))
+		if err != nil {
+			logrus.Errorf("Failed to get exchange: %s\n", err)
+		}
+		types := e.GetAssetTypes(true)
+
+		response := new(pairResponse)
+
+		for _, x := range types {
+			pairs, err := e.FetchTradablePairs(context.Background(), x)
+			if err != nil {
+				continue
+			}
+			for _, p := range pairs {
+				response.Pairs = append(response.Pairs, []string{x.String(), p})
+			}
+		}
+
+		request = request.WithContext(context.WithValue(request.Context(), "response", response))
+		next.ServeHTTP(w, request)
+	})
+}
+
+// getPairsResponse is the response for the get pairs endpoint
 func getPairsResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	response, ok := ctx.Value("response").(*pairResponse)
@@ -30,22 +71,4 @@ func getPairsResponse(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Render(w, r, response)
 	return
-}
-
-// FetchPairsCtx is a middleware that fetches pairs from the exchange
-func FetchPairsCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		d := GetDealerInstance()
-		assetItem, err := asset.New(chi.URLParam(request, "assetItem"))
-
-		e, err := d.ExchangeManager.GetExchangeByName(chi.URLParam(request, "exchange"))
-		pairs, err := e.FetchTradablePairs(context.Background(), assetItem)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
-
-		request = request.WithContext(context.WithValue(request.Context(), "response", &pairResponse{Pairs: pairs}))
-		next.ServeHTTP(w, request)
-    })
 }
