@@ -82,38 +82,39 @@ func TradeCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		tr, _ := e.FetchTradablePairs(context.Background(), asset.Futures)
-		logrus.Println(tr)
-
 		// try to find out how to enable all pairs??
 		d.Settings.EnableAllPairs = true
 		d.Settings.EnableCurrencyStateManager = true
 
-		x, err := e.GetEnabledPairs(assetItem)
-		if err != nil {
-			logrus.Errorf("Get enabled pairs failed %s\n", err)
-		}
 
-		logrus.Printf("all parts enabled: %v\n", x)
+		tr, _ := e.FetchTradablePairs(context.Background(), asset.Futures)
+		logrus.Println(tr)
 
-		if err = e.UpdateCurrencyStates(context.Background(), asset.Spot); err != nil {
-			logrus.Errorf("currency state update failed: %s\n", err)
-		}
-
-		f, err := e.GetCurrencyStateSnapshot()
-		if err != nil {
-			logrus.Errorf("currency snapshot update failed: %s\n", err)
-		}
-
-		logrus.Info(f)
-
-		if err = e.CanTrade(base, assetItem); err != nil {
-			logrus.Errorf("Can not trade: %s\n", err)
-		} // currency state fails
-
-		if err = e.CanTradePair(p, assetItem); err != nil {
-			logrus.Errorf("can not trade pair %s\n", err)
-		}
+		//x, err := e.GetEnabledPairs(assetItem)
+		//if err != nil {
+		//	logrus.Errorf("Get enabled pairs failed %s\n", err)
+		//}
+		//
+		//logrus.Printf("all parts enabled: %v\n", x)
+		//
+		//if err = e.UpdateCurrencyStates(context.Background(), asset.Spot); err != nil {
+		//	logrus.Errorf("currency state update failed: %s\n", err)
+		//}
+		//
+		//f, err := e.GetCurrencyStateSnapshot()
+		//if err != nil {
+		//	logrus.Errorf("currency snapshot update failed: %s\n", err)
+		//}
+		//
+		//logrus.Info(f)
+		//
+		//if err = e.CanTrade(base, assetItem); err != nil {
+		//	logrus.Errorf("Can not trade: %s\n", err)
+		//} // currency state fails
+		//
+		//if err = e.CanTradePair(p, assetItem); err != nil {
+		//	logrus.Errorf("can not trade pair %s\n", err)
+		//}
 
 		price, err := e.UpdateTicker(context.Background(), p, assetItem)
 		if err != nil {
@@ -162,11 +163,11 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to validate order: %s\n", err)
 		}
 
-		orderResponse, err := e.SubmitOrder(context.Background(), &o)
-		if err != nil {
-			logrus.Errorf("submit order failed: %s\n", err)
-		}
-		logrus.Printf("order response ID %s placed %t", orderResponse.OrderID, orderResponse.IsOrderPlaced)
+		//orderResponse, err := e.SubmitOrder(context.Background(), &o)
+		//if err != nil {
+		//	logrus.Errorf("submit order failed: %s\n", err)
+		//}
+		//logrus.Printf("order response ID %s placed %t", orderResponse.OrderID, orderResponse.IsOrderPlaced)
 
 		ctx := context.WithValue(request.Context(), "response", order.Submit{})
 		next.ServeHTTP(w, request.WithContext(ctx))

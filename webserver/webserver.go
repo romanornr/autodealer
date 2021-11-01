@@ -149,6 +149,11 @@ func corsConfig() *cors.Cors {
 func apiSubrouter() http.Handler {
 	r := chi.NewRouter()
 
+	r.Route(routePairs, func(r chi.Router) {
+		r.Use(FetchPairsCtx)
+		r.Get("/", getPairsResponse)
+	})
+
 	r.Route(routeTrade, func(r chi.Router) {
 		r.Use(TradeCtx)
 		r.Get("/", getTradeResponse)
