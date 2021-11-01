@@ -40,12 +40,12 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 
 		e, err := d.ExchangeManager.GetExchangeByName(chi.URLParam(request, "exchange"))
 		pairs, err := e.FetchTradablePairs(context.Background(), assetItem)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		request = request.WithContext(context.WithValue(request.Context(), "response", &pairResponse{Pairs: pairs}))
 		next.ServeHTTP(w, request)
-    })
+	})
 }
