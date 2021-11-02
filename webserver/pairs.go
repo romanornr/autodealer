@@ -5,27 +5,18 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"gopkg.in/errgo.v2/fmt/errors"
 	"net/http"
 )
 
-// example response
-//{
-//   "pair":[
-//      [
-//         "futures",
-//         "1INCH-PERP"
-//      ],
-//      [
-//         "spot",
-//         "1INCH-USD"
-//      ]
-//   ]
-//}
+type pair struct {
+	Name      string     `json:"name"`
+	AssetType asset.Item `json:"assetType"`
+}
 
-// pairResponse is the response for the pair endpoint
 type pairResponse struct {
-	Pairs [][]string `json:"pair"`
+	Pair []pair `json:"pair"`
 }
 
 // Render Pairs renders the pairs
@@ -33,7 +24,7 @@ func (p pairResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// FetchPairsCtx fetches the pairs from the exchange
+// FetchPairsCtx fetches pairs from the exchange
 func FetchPairsCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		d := GetDealerInstance()
@@ -41,17 +32,16 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 		if err != nil {
 			logrus.Errorf("Failed to get exchange: %s\n", err)
 		}
-		types := e.GetAssetTypes(true)
-
+		assetTypes := e.GetAssetTypes(true)
 		response := new(pairResponse)
 
-		for _, x := range types {
-			pairs, err := e.FetchTradablePairs(context.Background(), x)
+		for _, a := range assetTypes {
+			pairs, err := e.FetchTradablePairs(context.Background(), a)
 			if err != nil {
 				continue
 			}
 			for _, p := range pairs {
-				response.Pairs = append(response.Pairs, []string{x.String(), p})
+				response.Pair = append(response.Pair, pair{Name: p, AssetType: a})
 			}
 		}
 
