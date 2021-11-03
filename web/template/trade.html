@@ -18,7 +18,7 @@
 
           <v-select v-model="pair"
                     :options="pairs"
-                    label="title"
+                    label="name"
                     placeholder="BTC/USD"
           ></v-select>
 
@@ -160,11 +160,7 @@
     data() {
       return {
         pair: "",
-        pairs: [
-          { title: "BTC/USD" },
-          { title: "ETH/USD" },
-          { title: "FTT/USD" },
-        ],
+        pairs: [],
         loading: false,
         errored: false,
         error: "",
@@ -182,22 +178,18 @@
         notification: 0,
       }
     },
+    mounted() {
+      this.onPairsLoaded();
+    },
     methods: {
-      // show() {
-      //   const text = `This is notification text!`
-      //   this.notification = 1
-      //
-      // //   this.$notify({
-      // //     title: `Test notification`,
-      // //   })
-      // // },
-      // // clean(group) {
-      // //   this.$notify({group, clean: true})
-      // },
-
+      onPairsLoaded: function() {
+        axios.get('http://127.0.0.1:3333/api/pairs/' + this.exchangeName).then(response => {
+          this.pairs = response.data["pair"];
+        }).catch(error => {
+          console.log(error);
+        });
+      },
       onSubmit() {
-
-        //this.show()
         // reset previous result
         this.errored = false
         this.error =""
@@ -208,8 +200,7 @@
         // disable the form
         this.loading = true
 
-        axios
-                .get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.base + '/' + this.quote + '/'+ this.qtyUSD +'/' + this.assetType + '/' + this.orderType)
+        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.base + '/' + this.quote + '/'+ this.qtyUSD +'/' + this.assetType + '/' + this.orderType)
                 .then(response => {
                   this.processData(response)
                 })
@@ -231,6 +222,6 @@
       }
     },
   })
-  app.mount('#app').created()
+  app.mount('#app').created().mounted();
   </script>
 </html>
