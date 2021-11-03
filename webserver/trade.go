@@ -9,7 +9,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -40,24 +39,20 @@ func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 func TradeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		base := currency.NewCode(chi.URLParam(request, "base"))
-		quote := currency.NewCode(chi.URLParam(request, "quote"))
+		p, err := currency.NewPairFromString(chi.URLParam(request, "pair"))
+		if err != nil {
+			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
+		}
+
 		qtyUSD, err := strconv.ParseFloat(chi.URLParam(request, "qty"), 32)
 		if err != nil {
 			logrus.Errorf("failed to parse qty %s\n", err)
 		}
 
-		p := currency.NewPair(base, quote)
-		var assetItem asset.Item
-
-		switch strings.ToLower(chi.URLParam(request, "assetType")); assetItem {
-		case "spot":
-			assetItem = asset.Spot
-		case "futures":
-			assetItem = asset.Futures
-		default:
-			assetItem = asset.Spot
-		}
+		assetItem, err := asset.New(chi.URLParam(request, "assetType"))
+		if err != nil {
+            logrus.Errorf("failed to parse assetType %s\n", err)
+        }
 
 		var orderType order.Type
 		var side order.Side
@@ -86,42 +81,13 @@ func TradeCtx(next http.Handler) http.Handler {
 		d.Settings.EnableAllPairs = true
 		d.Settings.EnableCurrencyStateManager = true
 
-		tr, _ := e.FetchTradablePairs(context.Background(), asset.Futures)
-		logrus.Println(tr)
-
-		//x, err := e.GetEnabledPairs(assetItem)
-		//if err != nil {
-		//	logrus.Errorf("Get enabled pairs failed %s\n", err)
-		//}
-		//
-		//logrus.Printf("all parts enabled: %v\n", x)
-		//
-		//if err = e.UpdateCurrencyStates(context.Background(), asset.Spot); err != nil {
-		//	logrus.Errorf("currency state update failed: %s\n", err)
-		//}
-		//
-		//f, err := e.GetCurrencyStateSnapshot()
-		//if err != nil {
-		//	logrus.Errorf("currency snapshot update failed: %s\n", err)
-		//}
-		//
-		//logrus.Info(f)
-		//
-		//if err = e.CanTrade(base, assetItem); err != nil {
-		//	logrus.Errorf("Can not trade: %s\n", err)
-		//} // currency state fails
-		//
-		//if err = e.CanTradePair(p, assetItem); err != nil {
-		//	logrus.Errorf("can not trade pair %s\n", err)
-		//}
-
 		price, err := e.UpdateTicker(context.Background(), p, assetItem)
 		if err != nil {
 			logrus.Errorf("failed to update ticker %s\n", err)
 		}
 
 		qty := qtyUSD / price.Ask
-		logrus.Printf("quantity %f\n", qty)
+		logrus.Printf("%s quantity %f\n", p.String(), qty)
 
 		o := order.Submit{
 			ImmediateOrCancel: false,
@@ -162,11 +128,11 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to validate order: %s\n", err)
 		}
 
-		//orderResponse, err := e.SubmitOrder(context.Background(), &o)
-		//if err != nil {
-		//	logrus.Errorf("submit order failed: %s\n", err)
-		//}
-		//logrus.Printf("order response ID %s placed %t", orderResponse.OrderID, orderResponse.IsOrderPlaced)
+		orderResponse, err := e.SubmitOrder(context.Background(), &o)
+		if err != nil {
+			logrus.Errorf("submit order failed: %s\n", err)
+		}
+		logrus.Printf("order response ID %s placed %t", orderResponse.OrderID, orderResponse.IsOrderPlaced)
 
 		ctx := context.WithValue(request.Context(), "response", order.Submit{})
 		next.ServeHTTP(w, request.WithContext(ctx))

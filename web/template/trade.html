@@ -165,11 +165,8 @@
         errored: false,
         error: "",
         exchangeName: "ftx",
-        base: "BTC",
-        quote: "USD",
         qtyUSD: "",
         orderType: "",
-        asset: "",
         balance: "",
         assetType: "spot",
         twap: false,
@@ -200,7 +197,7 @@
         // disable the form
         this.loading = true
 
-        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.base + '/' + this.quote + '/'+ this.qtyUSD +'/' + this.assetType + '/' + this.orderType)
+        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType)
                 .then(response => {
                   this.processData(response)
                 })
