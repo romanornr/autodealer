@@ -42,22 +42,20 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 		//	}
 		//	for _, p := range pairs {
 
-
 		for _, a := range assetTypes {
 
-				c, err := e.GetAvailablePairs(a)
-				if err != nil {
-					logrus.Errorf("Failed to get enabled pairs: %s\n", err)
-				}
-
-				formattedPair := c.Format("-", "", true)
-				for _, p := range formattedPair {
-					response.Pair = append(response.Pair, pair{Name: p.String(), AssetType: a})
-				}
-				//response.Pair = append(response.Pair, pair{Name: formattedPair, AssetType: a})
-				//response.Pair = append(response.Pair, pair{Name: p, AssetType: a})
+			c, err := e.GetAvailablePairs(a)
+			if err != nil {
+				logrus.Errorf("Failed to get enabled pairs: %s\n", err)
 			}
 
+			formattedPair := c.Format("-", "", true)
+			for _, p := range formattedPair {
+				response.Pair = append(response.Pair, pair{Name: p.String(), AssetType: a})
+			}
+			//response.Pair = append(response.Pair, pair{Name: formattedPair, AssetType: a})
+			//response.Pair = append(response.Pair, pair{Name: p, AssetType: a})
+		}
 
 		request = request.WithContext(context.WithValue(request.Context(), "response", response))
 		next.ServeHTTP(w, request)

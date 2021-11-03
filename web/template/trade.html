@@ -16,39 +16,21 @@
             {{template "exchangesRadioButtons"}}
           </div>
 
-          <v-select v-model="pair"
-                    :options="pairs"
-                    label="name"
-                    placeholder="BTC/USD"
-          ></v-select>
+          <div class="row">
+            <div class="col">
+              <v-select v-model="pair"
+                        :options="pairs"
+                        label="name"
+                        placeholder="BTC/USD"
+              ></v-select>
+            </div>
+            <div class="col">
+              <label class="form-check-label">${ pair.assetType}</label>
+            </div>
+          </div>
 
           <script src='https://unpkg.com/vue@latest'></script>
           <script src='https://unpkg.com/vue-select@latest'></script>
-
-
-          <div class="mb-3">
-            <div class="row">
-              <div class="col">
-                <input type="text" class="form-control" v-model="base" placeholder="BTC" aria-label="BTC">
-              </div>
-              <div class="col">
-                <input type="text" class="form-control" v-model="quote" placeholder="USD" aria-label="USD">
-              </div>
-              <div class="col">
-                <div class="col-md-4 mb-3">
-                  <div class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text" id="validationTooltipUsernamePrepend">asset type</span>
-                    </div>
-                    <input type="text" class="form-control" id="validationTooltipUsername" placeholder="Spot" v-model="assetType" aria-describedby="validationTooltipUsernamePrepend">
-<!--                    <div class="invalid-tooltip">-->
-<!--                      Please choose a unique and valid username.-->
-<!--                    </div>-->
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <div class="mb-3">
             <div class="row">
@@ -157,6 +139,7 @@
   Vue.component("v-select", VueSelect.VueSelect);
   new Vue({
     el: "#app",
+    delimiters: ['${', '}'],
     data() {
       return {
         pair: "",
