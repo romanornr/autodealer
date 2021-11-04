@@ -632,13 +632,9 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gc
 		err = exch.ValidateCredentials(context.TODO(), useAsset)
 		if err != nil {
 			gctlog.Warnf(gctlog.ExchangeSys,
-				"%s: Cannot validate credentials, authenticated support has been disabled, Error: %s\n",
+				"%s: Cannot validate credentials: %s\n",
 				base.Name,
 				err)
-			base.API.AuthenticatedSupport = false
-			base.API.AuthenticatedWebsocketSupport = false
-			exchCfg.API.AuthenticatedSupport = false
-			exchCfg.API.AuthenticatedWebsocketSupport = false
 		}
 	}
 
