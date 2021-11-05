@@ -145,7 +145,8 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to validate order: %s\n", err)
 		}
 
-		submitResponse, err := e.SubmitOrder(context.Background(), &o)
+
+		submitResponse, err := d.SubmitOrder(context.Background(), e.GetName(), o)//e.SubmitOrder(context.Background(), &o)
 		if err != nil {
 			logrus.Errorf("submit order failed: %s\n", err)
 		}
