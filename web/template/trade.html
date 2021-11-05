@@ -94,6 +94,7 @@
           </button>
         </form>
 
+        <div>${ result }</div>
         <!-- TradingView Widget BEGIN -->
         <div class="tradingview-widget-container">
           <div id="tradingview_7829e"></div>
@@ -156,6 +157,7 @@
         hours: "",
         minutes: "",
         notification: 0,
+        result: "",
       }
     },
     mounted() {
@@ -193,7 +195,8 @@
                 .finally(() => this.loading = false)
       },
       processData(result) {
-        // const data = result.data
+        const data = result.data
+        this.result = data
         // console.log(data)
         // this.address = data.address["Address"]
         // this.symbol = data.code

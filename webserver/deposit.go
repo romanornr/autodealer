@@ -92,18 +92,24 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		d := GetDealerInstance()
 
-		engineExchange, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
+		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
 			render.Render(w, request, ErrInvalidRequest(err))
 			return
 		}
 
-		go WithAccount(engineExchange, accountId)
+		pairs, _ := e.GetAvailablePairs(asset.Spot)
+		for _, p := range pairs {
+			logrus.Printf("pairs: %s\n", p.Quote.String())
+			logrus.Printf("%s\n", p.Base.String())
+		}
+
+		go WithAccount(e, accountId)
 
 		var depositRequest depositResponse
 		depositRequest.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
-		depositRequest.Chains, err = engineExchange.GetAvailableTransferChains(context.Background(), depositRequest.Code)
+		depositRequest.Chains, err = e.GetAvailableTransferChains(context.Background(), depositRequest.Code)
 		logrus.Info(depositRequest.Chains)
 		depositRequest.Asset = depositRequest.Code.Item
 		depositRequest.Account = <-accountId
@@ -114,13 +120,13 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		// USDT BTSE: []
 		// USDT Bitfinex: [TETHERUSDTALG TETHERUSX TETHERUSDTBCH TETHERUSDTDVF TETHERUSO TETHERUSDTSOL TETHERUSDTHEZ TETHERUSE TETHERUSL TETHERUSS TETHERUSDTOMG]
 		// USDT Kraken: [Tether USD (ERC20) Tether USD (TRC20)]
-		if engineExchange.GetName() == "Binance" {
+		if e.GetName() == "Binance" {
 			if chain == "erc20" {
 				chain = "eth"
 			}
 		}
 
-		if engineExchange.GetName() == "BTSE" {
+		if e.GetName() == "BTSE" {
 			chain = ""
 		}
 
@@ -128,7 +134,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			chain = depositRequest.Chains[0]
 		}
 
-		depositRequest.Address, err = engineExchange.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
+		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
 		if err != nil {
 			logrus.Errorf("failed to get address: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))

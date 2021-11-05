@@ -3,10 +3,13 @@ package webserver
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
+	"github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gopkg.in/errgo.v2/fmt/errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,21 +24,37 @@ func TradeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getTradeResponse(w http.ResponseWriter, r *http.Request) {
-	//ctx := r.Context()
-	//exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse) // TODO fix
-	//if !ok {
-	//	logrus.Errorf("Got unexpected response %T instead of *ExchangeWithdrawResponse", exchangeResponse)
-	//	//http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-	//	//render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
-	//	return
-	//}
-	//
-	//render.Render(w, r, exchangeResponse)
+// OrderResponse is the response for the '/order' request.
+type OrderResponse struct {
+	Response  order.SubmitResponse `json:"response"`
+	Order     order.Submit         `json:"order"`
+	Pair      string               `json:"pair"`
+	QtyUSD    float64              `json:"qtyUSD"`
+	Qty       float64              `json:"qty"`
+	Price     float64              `json:"price"`
+	Timestamp time.Time            `json:"timestamp"`
+}
 
+// Render Pairs renders the pairs
+func (o OrderResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+// getTradeResponse returns the trade response
+func getTradeResponse(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	response, ok := ctx.Value("response").(*OrderResponse) // TODO fix
+	if !ok {
+		logrus.Errorf("Got unexpected response %T\n", response)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
+		return
+	}
+	render.Render(w, r, response)
 	return
 }
 
+// TradeCtx Handler handleHome is the handler for the '/trade' page request.
 func TradeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
@@ -67,8 +86,6 @@ func TradeCtx(next http.Handler) http.Handler {
 			side = order.Ask
 			postOnly = true
 		}
-
-		logrus.Printf("order side %s\n", side)
 
 		d := GetDealerInstance()
 		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
@@ -128,13 +145,23 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to validate order: %s\n", err)
 		}
 
-		orderResponse, err := e.SubmitOrder(context.Background(), &o)
+		submitResponse, err := e.SubmitOrder(context.Background(), &o)
 		if err != nil {
 			logrus.Errorf("submit order failed: %s\n", err)
 		}
-		logrus.Printf("order response ID %s placed %t", orderResponse.OrderID, orderResponse.IsOrderPlaced)
+		logrus.Printf("order response ID %s placed %t", submitResponse.OrderID, submitResponse.IsOrderPlaced)
 
-		ctx := context.WithValue(request.Context(), "response", order.Submit{})
+		response := OrderResponse{
+			Response:  submitResponse,
+			Order:     o,
+			Pair:      p.String(),
+			QtyUSD:    qtyUSD,
+			Qty:       qty,
+			Price:     price.Ask,
+			Timestamp: time.Now(),
+		}
+
+		ctx := context.WithValue(request.Context(), "response", &response)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})
 }
