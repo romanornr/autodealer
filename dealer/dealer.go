@@ -710,5 +710,3 @@ func (bot *Dealer) GetEnabledPairAssetType(e exchange.IBotExchange, c currency.P
 	}
 	return asset.Spot, ErrNoAssetType
 }
-
-
