@@ -136,8 +136,13 @@
                 }, 5000);
             },
             handleData(result) {
-                if (this.result.error.success === false) this.errored = true
-                this.transactionData = result.transactionData
+                // console.log("handle withdrawal success " + result.success)
+                // if (result.success !== true) {
+                //     this.errored = true
+                // }
+                //
+                // if (this.result.error.success === false) this.errored = true
+                this.transactionData = result
             },
             handleDepositAddressData(result) {
                 const data = result.data

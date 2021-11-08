@@ -112,7 +112,10 @@ func WithdrawCtx(next http.Handler) http.Handler {
 			},
 		}
 
-		response := transfer.CreateExchangeWithdrawResponse(wi, exchangeEngine)
+		response, err := transfer.CreateExchangeWithdrawResponse(wi, exchangeEngine)
+		if err != nil {
+			render.Render(w, request, ErrRender(err))
+		}
 
 		logrus.Infof("exchange withdraw response %v", response)
 		ctx := context.WithValue(request.Context(), "response", &response)

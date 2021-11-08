@@ -24,13 +24,14 @@ type ExchangeWithdrawResponse struct {
 	Type               withdraw.RequestType `json:"type"`
 	DestinationAddress string               `json:"destination"`
 	Time               time.Time            `json:"time"`
-	Err                error                `json:"err"`
+	Error              error                `json:"error"`
+	Success            bool                 `json:"success"`
 }
 
 // Render implement rest.Render to render the Response of the ExchangeWithdraw call
 func (e ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	e.Time = time.Now()
-	return e.Err
+	return e.Error
 }
 
 // ErrWithdawRender as JSON if err is not nil.
@@ -38,7 +39,7 @@ func (e ExchangeWithdrawResponse) Render(w http.ResponseWriter, r *http.Request)
 // If it does not implement AbsError we log to err type.
 func ErrWithdawRender(err error) render.Renderer {
 	return &ExchangeWithdrawResponse{
-		Err: err,
+		Error: err,
 	}
 }
 
@@ -49,12 +50,7 @@ func ErrWithdawRender(err error) render.Renderer {
 // so here's the thing  this function returns an Exchange response which holds the deposit id  on that exchange.
 // Finally, we update the results which we return in JSON format.
 // After we make sure that the withdrawal functionality is working we can inject the functionality in the withdrawal method of the engine struct.
-func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeManager exchange.IBotExchange) ExchangeWithdrawResponse { // withdrawManager *engine.WithdrawManager) exchangeWithdrawResponse {
-	//manager, err := exchangeManager.GetExchangeByName(withdrawRequest.Exchange)
-	//if err != nil {
-	//	err = fmt.Errorf("failed to create exchangeManager by name %s\n", err)
-	//}
-
+func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeManager exchange.IBotExchange) (ExchangeWithdrawResponse, error) { // withdrawManager *engine.WithdrawManager) exchangeWithdrawResponse {
 	var exchangeResponse *withdraw.ExchangeResponse
 	var err error
 	logrus.Info("creating withdraw response for exchange")
@@ -65,7 +61,6 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 			err = fmt.Errorf("failed to withdraw crypto asset %s\n", err)
 		}
 		logrus.Infof("exchange response: %v\n", exchangeResponse)
-		//response.DestinationAddress = withdrawRequest.Crypto.Address
 	}
 
 	if withdrawRequest.Type == withdraw.Fiat && exchangeManager.GetName() == "Kraken" {
@@ -82,13 +77,18 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 		Exchange:         exchangeManager.GetName(),
 		Type:             withdrawRequest.Type,
 		//DestinationAddress: withdrawRequest.Crypto.Address,
-		Time: time.Now(),
-		Err:  err,
+		Time:  time.Now(),
+		Error: err,
+		Success: false,
 	}
 
 	if withdrawRequest.Type == withdraw.Crypto {
 		response.DestinationAddress = withdrawRequest.Crypto.Address
 	}
 
-	return response
+	if err == nil {
+		response.Success = true
+	}
+
+	return response, err
 }

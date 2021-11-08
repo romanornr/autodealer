@@ -84,7 +84,7 @@ func KrakenInternationalBankAccountWithdrawal(code currency.Code) (ExchangeWithd
 	logrus.Infof("account balance euro before withdraw: %f\n", value)
 	if value < 10 {
 		err = errors.Newf("The minimal size to withdraw is 10 euro and the current account balance is: %f\n", value)
-		return ExchangeWithdrawResponse{Err: err}, err
+		return ExchangeWithdrawResponse{Error: err}, err
 	}
 
 	baccount, err := d.Config.GetExchangeBankAccounts(exchange.GetName(), "romanornr_abn_amro", code.String())
@@ -128,6 +128,9 @@ func KrakenInternationalBankAccountWithdrawal(code currency.Code) (ExchangeWithd
 		return ExchangeWithdrawResponse{}, errors.Newf("validation error withdraw request: %s\n", err)
 	}
 
-	result := CreateExchangeWithdrawResponse(withdrawRequest, exchange)
-	return result, nil
+	result, err := CreateExchangeWithdrawResponse(withdrawRequest, exchange)
+	if err != nil {
+		logrus.Errorf("failed to create withdraw response: %v\n", err)
+	}
+	return result, err
 }
