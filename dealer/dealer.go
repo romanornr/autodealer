@@ -18,6 +18,8 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 )
 
+var ErrNoAssetType = errors.New("asset type not associated with currency pair")
+
 const (
 	defaultWebsocketTrafficTimeout = time.Second * 30
 )
@@ -685,3 +687,28 @@ func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
 	}
 	return nil
 }
+
+// GetExchangeByName function returns an exchange interface by name.
+func (bot *Dealer) GetExchangeByName(name string) (exchange.IBotExchange, error) {
+	return bot.ExchangeManager.GetExchangeByName(name)
+}
+
+// GetEnabledPairAssetType function returns a list of enabled asset types for a given exchange.
+func (bot *Dealer) GetEnabledPairAssetType(e exchange.IBotExchange, c currency.Pair) (asset.Item, error) {
+	b := e.GetBase()
+
+	assetTypes := b.GetAssetTypes(true)
+	for i := range assetTypes {
+		enabled, err := b.GetEnabledPairs(assetTypes[i])
+		if err != nil {
+			return asset.Spot, err
+		}
+
+		if enabled.Contains(c, true) {
+			return assetTypes[i], nil
+		}
+	}
+	return asset.Spot, ErrNoAssetType
+}
+
+
