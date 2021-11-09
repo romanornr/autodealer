@@ -86,13 +86,15 @@ func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 // The next handler is provided with the updated context and proceeds in the usual way.
 func DepositAddressCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+		var depositRequest depositResponse
+		depositRequest.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		chain := chi.URLParam(request, "chain")
 		accountId := make(chan string)
 
 		d := GetDealerInstance()
 
-		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
+		e, err := d.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
 			render.Render(w, request, ErrInvalidRequest(err))
@@ -107,8 +109,6 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		go WithAccount(e, accountId)
 
-		var depositRequest depositResponse
-		depositRequest.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		depositRequest.Chains, err = e.GetAvailableTransferChains(context.Background(), depositRequest.Code)
 		logrus.Info(depositRequest.Chains)
 		depositRequest.Asset = depositRequest.Code.Item
