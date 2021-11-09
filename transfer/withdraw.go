@@ -77,8 +77,8 @@ func CreateExchangeWithdrawResponse(withdrawRequest *withdraw.Request, exchangeM
 		Exchange:         exchangeManager.GetName(),
 		Type:             withdrawRequest.Type,
 		//DestinationAddress: withdrawRequest.Crypto.Address,
-		Time:  time.Now(),
-		Error: err,
+		Time:    time.Now(),
+		Error:   err,
 		Success: false,
 	}
 
