@@ -120,9 +120,22 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		// USDT BTSE: []
 		// USDT Bitfinex: [TETHERUSDTALG TETHERUSX TETHERUSDTBCH TETHERUSDTDVF TETHERUSO TETHERUSDTSOL TETHERUSDTHEZ TETHERUSE TETHERUSL TETHERUSS TETHERUSDTOMG]
 		// USDT Kraken: [Tether USD (ERC20) Tether USD (TRC20)]
+		// USDT Huobi:  [algousdt hrc20usdt solusdt trc20usdt usdt usdterc20]
 		if e.GetName() == "Binance" {
 			if chain == "erc20" {
 				chain = "eth"
+			}
+		}
+
+		if e.GetName() == "Huobi" {
+			if chain == "trx" {
+				chain = "trc20usdt"
+			}
+		}
+
+		if e.GetName() == "Kraken" {
+			if chain == "trx" {
+				chain = "Tether USD (TRC20)"
 			}
 		}
 
