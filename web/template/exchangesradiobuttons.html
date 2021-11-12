@@ -23,6 +23,9 @@
 
     <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="kraken" id="kraken-dark-outlined" autocomplete="off">
     <label class="btn btn-outline-dark" for="kraken-dark-outlined">Kraken</label>
+
+    <input type="radio" class="btn-check" name="options-outlined" v-model="exchangeName" value="kraken" id="bittrex-info-outlined" autocomplete="off">
+    <label class="btn btn-outline-info" for="bittrex-info-outlined">Bittrex</label>
 {{end}}
 
 {{define "exchangesRadioButtons2"}}
@@ -45,6 +48,9 @@
 <input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="btse" id="dest-btse-info-outlined" autocomplete="off" />
 <label class="btn btn-outline-info" for="dest-btse-info-outlined">BTSE</label>
 
-<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="kraken" id="dest-dark-outlined" autocomplete="off" />
-<label class="btn btn-outline-dark" for="dest-dark-outlined">Kraken</label>
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeDestination" value="kraken" id="dest-kraken-dark-outlined" autocomplete="off" />
+<label class="btn btn-outline-dark" for="dest-kraken-dark-outlined">Kraken</label>
+
+<input type="radio" class="btn-check" name="options-outlined-dest" v-model="exchangeName" value="bittrex" id="dest-bittrex-info-outlined" autocomplete="off">
+<label class="btn btn-outline-info" for="dest-bittrex-info-outlined">Bittrex</label>
 {{end}}

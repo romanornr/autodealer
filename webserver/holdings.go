@@ -1,6 +1,7 @@
 package webserver
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
@@ -15,5 +16,7 @@ func HoldingsCtx(next http.Handler) http.Handler {
 			logrus.Errorf("Error getting holdings: %s\n", err)
 		}
 
-	}
+		ctx := context.WithValue(request.Context(), "response", &holdings)
+		next.ServeHTTP(w, request.WithContext(ctx))
+	})
 }
