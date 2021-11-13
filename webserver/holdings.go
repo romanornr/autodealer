@@ -8,16 +8,15 @@ import (
 	"net/http"
 )
 
-
 // getHoldings Handler returns all holdings for a given exchange
 func getHoldingsExchangeResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	response, ok := ctx.Value("response").(*dealer.ExchangeHoldings)
 	if !ok {
-        logrus.Error("could not get response from context")
-        w.WriteHeader(http.StatusInternalServerError)
-        return
-    }
+		logrus.Error("could not get response from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	if err := render.Render(w, r, response); err != nil {
 		render.Render(w, r, ErrRender(err))
