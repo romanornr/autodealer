@@ -11,7 +11,7 @@ package maker
 //	"strings"
 //	"time"
 //
-//	"github.com/romanornr/autodealer/algo"
+//	"github.com/romanornr/autodealer/internal/algo"
 //	"github.com/sirupsen/logrus"
 //	"github.com/thrasher-corp/gocryptotrader/currency"
 //	"github.com/thrasher-corp/gocryptotrader/engine"

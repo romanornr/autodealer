@@ -3,7 +3,7 @@ package webserver
 import (
 	"context"
 	"fmt"
-	"github.com/romanornr/autodealer/util"
+	util2 "github.com/romanornr/autodealer/internal/util"
 	"html/template"
 	"net/http"
 	"os"
@@ -31,8 +31,8 @@ const (
 func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{})
-	logrus.Infof(util.Location())
-	tpl = template.Must(template.ParseGlob("web/template/*.html"))
+	logrus.Infof(util2.Location())
+	tpl = template.Must(template.ParseGlob("./internal/web/template/*.html"))
 }
 
 func service() http.Handler {

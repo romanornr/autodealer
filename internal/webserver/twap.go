@@ -9,7 +9,7 @@ package webserver
 //
 //	"github.com/go-chi/chi/v5"
 //	"github.com/go-chi/render"
-//	"github.com/romanornr/autodealer/algo"
+//	"github.com/romanornr/autodealer/internal/algo"
 //	"github.com/sirupsen/logrus"
 //	"github.com/thrasher-corp/gocryptotrader/currency"
 //	"github.com/thrasher-corp/gocryptotrader/engine"

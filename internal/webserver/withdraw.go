@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"context"
+	transfer2 "github.com/romanornr/autodealer/internal/transfer"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
@@ -51,11 +51,11 @@ func WithdrawHandler(w http.ResponseWriter, _ *http.Request) {
 // expected for what the function defines.
 func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse) // TODO fix
+	exchangeResponse, ok := ctx.Value("response").(*transfer2.ExchangeWithdrawResponse) // TODO fix
 	if !ok {
 		logrus.Errorf("Got unexpected response %T instead of *ExchangeWithdrawResponse", exchangeResponse)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
+		render.Render(w, r, transfer2.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
 		return
 	}
 
@@ -88,7 +88,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		size, err := strconv.ParseFloat(sizeReq, 64)
 		if err != nil {
 			logrus.Errorf("failed to parse size %s\n", err) // 3.14159265
-			render.Render(w, request, transfer.ErrWithdawRender(err))
+			render.Render(w, request, transfer2.ErrWithdawRender(err))
 		}
 
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
@@ -112,7 +112,7 @@ func WithdrawCtx(next http.Handler) http.Handler {
 			},
 		}
 
-		response, err := transfer.CreateExchangeWithdrawResponse(wi, exchangeEngine)
+		response, err := transfer2.CreateExchangeWithdrawResponse(wi, exchangeEngine)
 		if err != nil {
 			render.Render(w, request, ErrRender(err))
 		}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/transfer"
+	transfer2 "github.com/romanornr/autodealer/internal/transfer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -47,7 +47,7 @@ func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		logrus.Errorf("Got unexpected response %T\n", response)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
+		render.Render(w, r, transfer2.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
 		return
 	}
 	render.Render(w, r, response)

@@ -2,12 +2,12 @@ package dealer
 
 import (
 	"context"
+	util2 "github.com/romanornr/autodealer/internal/util"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 	"sync"
 	"time"
 
-	"github.com/romanornr/autodealer/util"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -53,9 +53,9 @@ func (s *TickerStrategy) Init(ctx context.Context, d *Dealer, e exchange.IBotExc
 
 	if s.TickFunc != nil {
 		go func() {
-			util.CheckerPush()
+			util2.CheckerPush()
 
-			defer util.CheckerPop()
+			defer util2.CheckerPop()
 
 			// Call now initially.
 			s.TickFunc(d, e)

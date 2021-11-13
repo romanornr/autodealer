@@ -1,7 +1,7 @@
-package transfer
+package webserver
 
 import (
-	"github.com/romanornr/autodealer/dealer"
+	"github.com/romanornr/autodealer/internal/dealer"
 	"github.com/sirupsen/logrus"
 	"sync"
 	"sync/atomic"

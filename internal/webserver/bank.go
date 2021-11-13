@@ -2,11 +2,11 @@ package webserver
 
 import (
 	"context"
+	transfer2 "github.com/romanornr/autodealer/internal/transfer"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/errgo.v2/fmt/errors"
 )
@@ -20,10 +20,10 @@ func bankTransferHandler(w http.ResponseWriter, r *http.Request) {
 
 func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse)
+	exchangeResponse, ok := ctx.Value("response").(*transfer2.ExchangeWithdrawResponse)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("kraken international bank account request failed CTX")))
+		render.Render(w, r, transfer2.ErrWithdawRender(errors.Newf("kraken international bank account request failed CTX")))
 		return
 	}
 
@@ -37,19 +37,19 @@ func BankTransferCtx(next http.Handler) http.Handler {
 		//currencyCode := currency.NewCode(chi.URLParam(request, "exchange"))     // TODO fix currency.EUR
 		currencyCode := currency.EUR
 
-		submitResponse, err := transfer.KrakenConvertUSDT(currencyCode)
+		submitResponse, err := transfer2.KrakenConvertUSDT(currencyCode)
 		if err != nil {
 			logrus.Errorf("Failed to sell USDT to Euro: %s\n", err)
-			render.Render(w, request, transfer.ErrWithdawRender(err))
+			render.Render(w, request, transfer2.ErrWithdawRender(err))
 			return
 		}
 		logrus.Infof("submit response %v\n", submitResponse)
 
-		response, err := transfer.KrakenInternationalBankAccountWithdrawal(currencyCode)
+		response, err := transfer2.KrakenInternationalBankAccountWithdrawal(currencyCode)
 		if err != nil {
 			logrus.Errorf("Failed to get bank account transfer: %s\n", err)
 			response.Error = err
-			render.Render(w, request, transfer.ErrWithdawRender(err))
+			render.Render(w, request, transfer2.ErrWithdawRender(err))
 			return
 		}
 

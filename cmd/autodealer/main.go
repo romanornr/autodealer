@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/romanornr/autodealer/webserver"
+	webserver2 "github.com/romanornr/autodealer/internal/webserver"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
@@ -55,7 +55,7 @@ func main() {
 	//	}
 	//}()
 
-	go webserver.New()
+	go webserver2.New()
 
 	interrupt := signaler.WaitForInterrupt()
 	gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)

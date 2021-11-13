@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	util2 "github.com/romanornr/autodealer/internal/util"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"sync"
 	"time"
 
-	"github.com/romanornr/autodealer/util"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/config"
@@ -95,7 +95,7 @@ func (b *Builder) Reporter(r Reporter) *Builder {
 // In case the template config can't be successfully constructed, an error will be returned. Along with a resulting *Dealer instance
 // This function will also return an error.
 func (b Builder) Build() (*Dealer, error) {
-	b.settings.ConfigFile = util.ConfigFile(b.settings.ConfigFile)
+	b.settings.ConfigFile = util2.ConfigFile(b.settings.ConfigFile)
 	filePath, err := config.GetAndMigrateDefaultPath(b.settings.ConfigFile)
 	if err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func (bot *Dealer) SubmitOrderUD(ctx context.Context, exchangeOrName interface{}
 // If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
 // ListOrder method will not be executed if Contains method returns an error.
 func (bot *Dealer) SubmitOrders(ctx context.Context, e exchange.IBotExchange, xs ...order.Submit) error {
-	var wg util.ErrorWaitGroup
+	var wg util2.ErrorWaitGroup
 	bot.ReportEvent(SubmitBulkOrderLatencyMetric, e.GetName())
 	defer bot.ReportLatency(SubmitBulkOrderLatencyMetric, time.Now(), e.GetName())
 
