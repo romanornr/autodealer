@@ -1,6 +1,7 @@
 package webserver
 
 import (
+	"context"
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -34,6 +35,9 @@ func GetDealerInstance() *dealer.Dealer {
 			logrus.Errorf("failed to create instance: %v", err)
 		}
 		atomic.StoreUint32(&initialized, 1)
+
+		instance.Run(context.Background())
+
 		logrus.Infof("Created dealer instance\n")
 	}
 	return instance

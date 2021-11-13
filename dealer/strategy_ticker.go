@@ -49,7 +49,7 @@ type TickerStrategy struct {
 // We can easily build a reoccurring ticker using the information in the ExchangeConnections struct by establishing a goroutine runtime.
 // The runtime clock enables us to manage time without the need for a goroutine.
 func (s *TickerStrategy) Init(ctx context.Context, d *Dealer, e exchange.IBotExchange) error {
-	ticker := *time.NewTicker(s.Interval)
+	t := *time.NewTicker(s.Interval)
 
 	if s.TickFunc != nil {
 		go func() {
@@ -60,13 +60,13 @@ func (s *TickerStrategy) Init(ctx context.Context, d *Dealer, e exchange.IBotExc
 			// Call now initially.
 			s.TickFunc(d, e)
 
-			for range ticker.C {
+			for range t.C {
 				s.TickFunc(d, e)
 			}
 		}()
 	}
 
-	_, loaded := s.tickers.LoadOrStore(e.GetName(), ticker)
+	_, loaded := s.tickers.LoadOrStore(e.GetName(), t)
 	if loaded {
 		panic("one exchange can have just one ticker")
 	}

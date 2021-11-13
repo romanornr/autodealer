@@ -36,21 +36,12 @@ func Stream(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy)
 		return err
 	}
 
-	// Init strategy for exchange
-	if err := s.Init(ctx, d, e); err != nil {
-		return err
-	}
-
 	// This goroutine is supposed to never finish
 	for data := range ws.ToRoutine {
-		data := data
-		//logrus.Info(data)
-		//go func() {
 		err := handleData(d, e, s, data)
 		if err != nil {
 			logrus.Errorf("error handling data: %s\n", err)
 		}
-		//}()
 	}
 
 	panic("unexpected end of channel")
@@ -89,23 +80,27 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 		handleError("OnOrder", s.OnOrder(d, e, *x))
 	case *order.Modify:
 		handleError("OnModify", s.OnModify(d, e, *x))
+
 	case order.ClassificationError:
 		unhandledType(data, true)
+
 		if x.Err == nil {
 			panic("unexpected error")
 		}
+
 		return x.Err
-	case []trade.Data:
-		handleError("OnTrade", s.OnTrade(d, e, x))
-	case []fill.Data:
-		handleError("OnFill", s.OnFill(d, e, x))
 	case stream.UnhandledMessageWarning:
 		unhandledType(data, true)
 	case account.Change:
 		handleError("OnBalanceChange", s.OnBalanceChange(d, e, x))
+	case []trade.Data:
+		handleError("OnTrade", s.OnTrade(d, e, x))
+	case []fill.Data:
+		handleError("OnFill", s.OnFill(d, e, x))
 	default:
-		handleError("OnUnrecognized", s.OnUnrecognized(d, e, x))
+		handleError("OnUnrecognized", s.OnUnrecognized(d, e, data))
 	}
+
 	return nil
 }
 

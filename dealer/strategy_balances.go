@@ -20,9 +20,11 @@ import (
 )
 
 var (
-	ErrAccountIndexOfRange = errors.New("no account with this index exist")
-	ErrCurrencyNotFound    = errors.New("currency not found in holdings")
-	ErrHoldingsNotFound    = errors.New("holdings not found")
+	ErrAccountIndexOutOfRange = errors.New("no account with this index exists")
+	ErrHoldingsNotFound       = errors.New("holdings not found for exchange")
+	ErrAccountNotFound        = errors.New("account not found in holdings")
+	ErrAssetNotFound          = errors.New("asset not found in account")
+	ErrCurrencyNotFound       = errors.New("currency not found in asset")
 )
 
 //The code is very simple; it's mostly straightforward concurrency control (use sync.Mutex for resource access),
@@ -96,9 +98,11 @@ func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
 					Balances: make(map[asset.Item]map[currency.Code]CurrencyBalance),
 				}
 			}
-			if _, ok := holdings.Accounts[subAccount.ID].Balances[assetType]; ok {
+
+			if _, ok := holdings.Accounts[subAccount.ID].Balances[assetType]; !ok {
 				holdings.Accounts[subAccount.ID].Balances[assetType] = make(map[currency.Code]CurrencyBalance)
 			}
+
 			for _, currencyBalance := range subAccount.Currencies {
 				holdings.Accounts[subAccount.ID].Balances[assetType][currencyBalance.CurrencyName] = CurrencyBalance{
 					Currency:   currencyBalance.CurrencyName,
@@ -107,9 +111,9 @@ func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
 				}
 			}
 		}
-		key := strings.ToLower(e.GetName())
-		b.holdings.Store(key, holdings)
 	}
+	key := strings.ToLower(e.GetName())
+	b.holdings.Store(key, holdings)
 }
 
 // +--------------------+

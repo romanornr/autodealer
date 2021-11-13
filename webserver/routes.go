@@ -11,5 +11,5 @@ const (
 	routePriceToUSD         = "/{exchange}/{base}/priceusd"
 	routeTWAP               = "/twap/{exchange}/{base}/{quote}/{quantity}"
 	routeBankTransfer       = "/bank/transfer/{currency}"
-	HoldingsExchange        = "/holdings/{exchange}"
+	routeHoldingsExchange   = "/holdings/{exchange}"
 )

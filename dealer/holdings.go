@@ -3,6 +3,7 @@ package dealer
 import (
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"net/http"
 )
 
 // CurrencyBalance struct is an easy way to house the pairs of currency held.
@@ -23,6 +24,12 @@ type SubAccount struct {
 // For accounts, we basically house all our accounts now as a string as they are all now connected to gct now as a linked service. To make them easier to reference.
 type ExchangeHoldings struct {
 	Accounts map[string]SubAccount
+}
+
+// Render Holdings renders the holdings for the user.
+func (h *ExchangeHoldings) Render(w http.ResponseWriter, r *http.Request) error {
+	//h.Accounts = make(map[string]SubAccount)
+	return nil
 }
 
 // NewExchangeHoldings function is an easy way to create an empty ExchangeHoldings struct, so we can create an empty struct on startup to avoid us facing gct/goat by ensuring state on startup
