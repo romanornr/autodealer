@@ -6,6 +6,7 @@ package webserver
 
 import (
 	"context"
+	"errors"
 	"github.com/romanornr/autodealer/dealer"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"net/http"
@@ -28,6 +29,8 @@ type depositResponse struct {
 	Address *deposit.Address `json:"address"`
 	Time    time.Time        `json:"time"`
 	Balance float64          `json:"balance"`
+	Price   float64          `json:"price"`
+	Value   float64          `json:"value"`
 	Err     error            `json:"error"`
 	Account string           `json:"account"`
 }
@@ -112,16 +115,24 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			chain = ""
 		}
 
+		if e.GetName() == "Bittrex" {
+			chain = ""
+		}
+
 		if chain == "default" {
-			chain = depositRequest.Chains[0]
+			if len(depositRequest.Chains) > 0 {
+                chain = depositRequest.Chains[0]
+            } else {
+				chain = ""
+			}
 		}
 
 		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
 		if err != nil {
-			logrus.Errorf("failed to get address: %s\n", err)
-			render.Render(w, request, ErrInvalidRequest(err))
-			return
-		}
+            logrus.Errorf("failed to get deposit address: %s\n", err)
+            render.Render(w, request, ErrInvalidRequest(err))
+            return
+        }
 
 		h, err := dealer.Holdings(d, e.GetName())
 		if err != nil {
@@ -135,12 +146,20 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		depositRequest.Balance = balance.TotalValue
 
+		depositRequest.Price, err = getDollarValue(e, depositRequest.Code, asset.Spot)
+		if err != nil {
+            logrus.Errorf("failed to get dollar value: %s\n", err)
+        }
+
 		ctx := context.WithValue(request.Context(), "response", &depositRequest)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})
 }
 
-// WithAccount returns a channel with the account id.
+// TODO FIX ME: On FTX it keeps returning random subaccounts
+// But we want to stop when the main account has been found
+
+// WithAccount returns a channel with the account id but try to find the "main" account first
 func WithAccount(e exchange.IBotExchange, accountId chan string) {
 	accounts, err := e.FetchAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
@@ -153,4 +172,65 @@ func WithAccount(e exchange.IBotExchange, accountId chan string) {
 			break
 		}
 	}
+}
+
+
+// TODO : needs refactoring and this can be done in a better way
+// check first if with a loop for USDT, USD, BTC and ETH Pairs
+// When found, start fetching price to get a dollar value
+
+// getDollarValue returns the dollar value of the currency and route if there's no USDT pair available
+func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
+
+	//err := e.CanTrade(code, asset.Spot)
+
+	if code.IsFiatCurrency() {
+        return 0, errors.New("cannot get dollar value for fiat currency")
+    }
+
+	if code.Match(currency.USDT) || code.Match(currency.USD) {
+		return 0, errors.New("cannot get dollar value for USDT")
+	}
+
+	// get available pairs for spot
+	pairs, err := e.GetAvailablePairs(asset.Spot)
+	if err != nil {
+		logrus.Errorf("failed to get available pairs: %s\n", err)
+	}
+
+	// create a pair with USDT and try that first
+	p := currency.NewPair(code, currency.USDT)
+	if pairs.Contains(p, true) {
+		ticker, err := e.FetchTicker(context.Background(), p, assetType)
+		if err == nil {
+			return ticker.Last, nil
+		}
+	}
+
+	// if no USDT pair is found, try USD
+	p = currency.NewPair(code, currency.USD)
+	if pairs.Contains(p, true) {
+		ticker, err := e.FetchTicker(context.Background(), p, assetType)
+		if err == nil {
+			return ticker.Last, nil
+		}
+	}
+
+	// Try to match with a BTC pair
+	p = currency.NewPair(code, currency.BTC) // ie VIA-BTC
+	if pairs.Contains(p, true) {  // confirm there's a BTC pair
+		// if no USD pair is found, try BTC
+		BTCUSDT := currency.NewPair(currency.BTC, currency.USDT)
+		btcTicker, err := e.FetchTicker(context.Background(), BTCUSDT, assetType)
+		if err != nil {
+			logrus.Errorf("failed to get ticker: %s\n", err)
+		}
+
+        ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
+        if err == nil {
+				return ticker.Last * btcTicker.Last, nil  // ie return VIABTC price * BTCUSDT price
+        }
+    }
+
+    return 0, errors.New("no USD, USDT or BTC pair found")
 }

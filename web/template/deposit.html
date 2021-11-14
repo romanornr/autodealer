@@ -70,6 +70,7 @@
             return {
                 loading: false,
                 errored: false,
+                assetData: "",
                 error: "",
                 options: [
                     {text: 'FTX', value: 'ftx'},
@@ -82,6 +83,7 @@
                 exchangeName: "ftx",
                 address: "",
                 balance: "",
+                price: 0,
                 chain: "default",
             }
         },
@@ -113,10 +115,12 @@
             },
             processData(result) {
                 const data = result.data
+                this.assetData = data
                 console.log(data)
                 this.address = data.address["Address"]
                 this.symbol = data.code
                 this.balance = data.balance
+                this.price = data.price
                 this.exchangeName = data.exchange
             }
         },
