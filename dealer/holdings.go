@@ -1,6 +1,9 @@
 package dealer
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"net/http"
@@ -26,9 +29,26 @@ type ExchangeHoldings struct {
 	Accounts map[string]SubAccount
 }
 
-// Render Holdings renders the holdings for the user.
+// Render ExchangeHoldings balances for each account to a json response
 func (h *ExchangeHoldings) Render(w http.ResponseWriter, r *http.Request) error {
-	//h.Accounts = make(map[string]SubAccount)
+
+	c := CurrencyBalance{}
+	for _, v := range h.Accounts {
+		for _, v2 := range v.Balances {
+			for _, v3 := range v2 {
+				v3.TotalValue = v3.Hold + v3.TotalValue
+				c = v3
+			}
+		}
+	}
+
+	err, b := json.Marshal(c)
+
+	if err != nil {
+		logrus.Errorf("Error rendering holdings: %s", err)
+	}
+
+	fmt.Println(b)
 	return nil
 }
 
@@ -39,18 +59,21 @@ func NewExchangeHoldings() *ExchangeHoldings {
 	}
 }
 
-// CurrencyBalance method is just a simple way to conform and enforce that we pass
-// a exchange and an item, and we use them to match what we store and retrieve.
-func (h *ExchangeHoldings) CurrencyBalance(accountID string, code currency.Code, asset asset.Item) (CurrencyBalance, error) {
+// CurrencyBalance method is an easy way to get the total value of a currency held.
+func (h *ExchangeHoldings) CurrencyBalance(accountID string, asset asset.Item, code currency.Code) (CurrencyBalance, error) {
 	account, ok := h.Accounts[accountID]
 	if !ok {
 		var empty CurrencyBalance
-		return empty, ErrCurrencyNotFound
+
+		return empty, ErrAccountNotFound
 	}
+
 	c, ok := account.Balances[asset][code]
 	if !ok {
 		var empty CurrencyBalance
+
 		return empty, ErrCurrencyNotFound
 	}
+
 	return c, nil
 }
