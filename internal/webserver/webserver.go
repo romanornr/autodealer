@@ -32,7 +32,7 @@ func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{})
 	logrus.Infof(util2.Location())
-	tpl = template.Must(template.ParseGlob("./internal/web/template/*.html"))
+	tpl = template.Must(template.ParseGlob("./internal/webserver/templates/*.html"))
 }
 
 func service() http.Handler {
@@ -56,7 +56,7 @@ func service() http.Handler {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		if err := tpl.ExecuteTemplate(w, "404.html", nil); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			logrus.Errorf("error template: %s\n", err)
+			logrus.Errorf("error templates: %s\n", err)
 		}
 	})
 
@@ -189,7 +189,7 @@ func apiSubrouter() http.Handler {
 func HomeHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Errorf("error template: %s\n", err)
+		logrus.Errorf("error templates: %s\n", err)
 		return
 	}
 }
@@ -197,7 +197,7 @@ func HomeHandler(w http.ResponseWriter, _ *http.Request) {
 func SearchHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "search.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Errorf("error template: %s\n", err)
+		logrus.Errorf("error templates: %s\n", err)
 		return
 	}
 }

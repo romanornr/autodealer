@@ -57,7 +57,7 @@ func ErrDepositRender(err error) render.Renderer {
 func DepositHandler(w http.ResponseWriter, _ *http.Request) {
 	err := tpl.ExecuteTemplate(w, "deposit.html", nil)
 	if err != nil {
-		logrus.Errorf("error template: %s\n", err)
+		logrus.Errorf("error templates: %s\n", err)
 	}
 }
 

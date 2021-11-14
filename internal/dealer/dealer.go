@@ -32,7 +32,7 @@ type (
 // It also stores internal values such as the path the configs will be read from, the closures/recipe function it will use while conditioning config values.
 // Our Augment() will run before the Build() code is called. In this case, the config itself may have been read from a filepath.
 // In this case, our function augments with a value from the dealerBuilder struct/obj. That function is then run, and various further functions that had been defined for this.
-// Finally, if a file wasn't found, one of the directives within our builder will be constructed a new default template as an alternative to the expected input not found (the expected input "initial")
+// Finally, if a file wasn't found, one of the directives within our builder will be constructed a new default templates as an alternative to the expected input not found (the expected input "initial")
 type Builder struct {
 	augment            AugmentConfigFunc
 	balanceRefreshRate time.Duration
@@ -88,11 +88,11 @@ func (b *Builder) Reporter(r Reporter) *Builder {
 	return b
 }
 
-// Build constructs a new dealer from a provides settings template argument. In case the provided template is nil, a default template will be used as a starting point.
-// In both cases the template config file the read from filepath. If the filepath can not be read, it may be imported from the directory.
+// Build constructs a new dealer from a provides settings templates argument. In case the provided templates is nil, a default templates will be used as a starting point.
+// In both cases the templates config file the read from filepath. If the filepath can not be read, it may be imported from the directory.
 // Only if no filepath is provided, filepath.DefaultConfig will be used as an initial config for this dealer
-// If the template is a zero value but non nil, a default template will be returned. If the template config is non-zero, it will be constructed from template itself.
-// In case the template config can't be successfully constructed, an error will be returned. Along with a resulting *Dealer instance
+// If the templates is a zero value but non nil, a default templates will be returned. If the templates config is non-zero, it will be constructed from templates itself.
+// In case the templates config can't be successfully constructed, an error will be returned. Along with a resulting *Dealer instance
 // This function will also return an error.
 func (b Builder) Build() (*Dealer, error) {
 	b.settings.ConfigFile = util2.ConfigFile(b.settings.ConfigFile)

@@ -34,7 +34,7 @@ func newTemplates(folder string, reload bool) *templates {
 	return t
 }
 
-// filepath constructs the template path from the template ID
+// filepath constructs the templates path from the templates ID
 func (t *templates) filepath(name string) string {
 	return filepath.Join(t.folder, name+".tmpl")
 }
@@ -50,7 +50,7 @@ func (t *templates) addTemplate(name string, preloads ...string) *templates {
 	files = append(files, t.filepath(name))
 	temp, err := template.New(name).Funcs(templateFuncs).ParseFiles(files...)
 	if err != nil {
-		t.addErr = fmt.Errorf("error adding template %s: %w", name, err)
+		t.addErr = fmt.Errorf("error adding templates %s: %w", name, err)
 		return t
 	}
 	t.templates[name] = pageTemplate{
@@ -84,21 +84,21 @@ func (t *templates) reloadTemplates() error {
 func (t *templates) execTemplateToString(name string, data interface{}) (string, error) {
 	temp, ok := t.templates[name]
 	if !ok {
-		return "", fmt.Errorf("template %s unknown", name)
+		return "", fmt.Errorf("templates %s unknown", name)
 	}
 	var page strings.Builder
 	err := temp.template.ExecuteTemplate(&page, name, data)
 	return page.String(), err
 }
 
-// exectWithReload is the same as execTemplateToString but will reload the template first
+// exectWithReload is the same as execTemplateToString but will reload the templates first
 func (t *templates) exectWithReload(name string, data interface{}) (string, error) {
 	tmpl, found := t.templates[name]
 	if !found {
 		return "", fmt.Errorf("templates %s nout found", name)
 	}
 	t.addTemplate(name, tmpl.preloads...)
-	logrus.Debugf("reloaded HTML template %q\n", name)
+	logrus.Debugf("reloaded HTML templates %q\n", name)
 	return t.execTemplateToString(name, data)
 }
 

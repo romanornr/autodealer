@@ -19,7 +19,7 @@ import (
 func TradeHandler(w http.ResponseWriter, r *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "trade.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Errorf("error template: %s\n", err)
+		logrus.Errorf("error templates: %s\n", err)
 		return
 	}
 }

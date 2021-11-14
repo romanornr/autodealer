@@ -14,7 +14,7 @@ import (
 func bankTransferHandler(w http.ResponseWriter, r *http.Request) {
 	err := tpl.ExecuteTemplate(w, "bank.html", nil)
 	if err != nil {
-		logrus.Errorf("error template: %s\n", err)
+		logrus.Errorf("error templates: %s\n", err)
 	}
 }
 

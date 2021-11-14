@@ -42,7 +42,7 @@ type ExchangeWithdrawResponse struct {
 func WithdrawHandler(w http.ResponseWriter, _ *http.Request) {
 	err := tpl.ExecuteTemplate(w, "withdraw.html", nil)
 	if err != nil {
-		logrus.Errorf("error template: %s\n", err)
+		logrus.Errorf("error templates: %s\n", err)
 	}
 }
 
