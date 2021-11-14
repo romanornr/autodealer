@@ -6,6 +6,7 @@ package webserver
 
 import (
 	"context"
+	"github.com/romanornr/autodealer/dealer"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"net/http"
 	"strings"
@@ -121,6 +122,18 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			render.Render(w, request, ErrInvalidRequest(err))
 			return
 		}
+
+		h, err := dealer.Holdings(d, e.GetName())
+		if err != nil {
+			logrus.Errorf("failed to get holdings: %s\n", err)
+		}
+
+		balance, err := h.CurrencyBalance(depositRequest.Account, asset.Spot, depositRequest.Code)
+		if err != nil {
+			logrus.Errorf("failed to get balance: %s\n", err)
+		}
+
+		depositRequest.Balance = balance.TotalValue
 
 		ctx := context.WithValue(request.Context(), "response", &depositRequest)
 		next.ServeHTTP(w, request.WithContext(ctx))

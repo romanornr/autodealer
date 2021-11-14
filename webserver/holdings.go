@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"net/http"
 )
 
@@ -21,7 +20,7 @@ func getHoldingsExchangeResponse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a := response.Accounts["main"].Balances[asset.Spot]
+	a := response.Accounts
 
 	aa, err := json.Marshal(a)
 	if err != nil {

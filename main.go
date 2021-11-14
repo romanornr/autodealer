@@ -24,10 +24,10 @@ func main() {
 	//go func() {
 	//	d.Run(context.Background())
 	//}()
-	//
+	////
 	//var d2 = 10 * time.Second
 	//var t = time.Now().Add(d2)
-	//
+	////
 	//var orderReq order.GetOrdersRequest
 	//orderReq.AssetType = asset.Spot
 	//pairs := []string{"FTT/USD", "BTC/USD", "BTC/USDT"}
@@ -36,10 +36,10 @@ func main() {
 	//	logrus.Errorf("new pairs failed: %s\n", err)
 	//}
 	//orderReq.Pairs = p
-	//if orderReq.Validate() != nil {
-	//	logrus.Errorf("failed to validate order: %s\n", orderReq)
-	//}
-	//
+	////if orderReq.Validate() != nil {
+	////	logrus.Errorf("failed to validate order: %s\n", orderReq)
+	////}
+	////
 	//go func() {
 	//	for {
 	//		logrus.Infof("getting active orders")
