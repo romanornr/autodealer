@@ -11,16 +11,15 @@ import (
 	"net/http"
 )
 
-
 // getHoldings Handler returns all holdings for a given exchange
 func getHoldingsExchangeResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	response, ok := ctx.Value("response").(*dealer.ExchangeHoldings)
 	if !ok {
-        logrus.Error("could not get response from context")
-        w.WriteHeader(http.StatusInternalServerError)
-        return
-    }
+		logrus.Error("could not get response from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	a := response.Accounts["main"].Balances[asset.Spot]
 
@@ -30,12 +29,10 @@ func getHoldingsExchangeResponse(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(aa)
 
-
 	render.JSON(w, r, aa)
 	return
 
 }
-
 
 // HoldingsExchangeCtx middleware adds the holdings to the context
 func HoldingsExchangeCtx(next http.Handler) http.Handler {
