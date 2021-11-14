@@ -121,18 +121,18 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		if chain == "default" {
 			if len(depositRequest.Chains) > 0 {
-                chain = depositRequest.Chains[0]
-            } else {
+				chain = depositRequest.Chains[0]
+			} else {
 				chain = ""
 			}
 		}
 
 		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
 		if err != nil {
-            logrus.Errorf("failed to get deposit address: %s\n", err)
-            render.Render(w, request, ErrInvalidRequest(err))
-            return
-        }
+			logrus.Errorf("failed to get deposit address: %s\n", err)
+			render.Render(w, request, ErrInvalidRequest(err))
+			return
+		}
 
 		h, err := dealer.Holdings(d, e.GetName())
 		if err != nil {
@@ -148,8 +148,8 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		depositRequest.Price, err = getDollarValue(e, depositRequest.Code, asset.Spot)
 		if err != nil {
-            logrus.Errorf("failed to get dollar value: %s\n", err)
-        }
+			logrus.Errorf("failed to get dollar value: %s\n", err)
+		}
 
 		ctx := context.WithValue(request.Context(), "response", &depositRequest)
 		next.ServeHTTP(w, request.WithContext(ctx))
@@ -174,7 +174,6 @@ func WithAccount(e exchange.IBotExchange, accountId chan string) {
 	}
 }
 
-
 // TODO : needs refactoring and this can be done in a better way
 // check first if with a loop for USDT, USD, BTC and ETH Pairs
 // When found, start fetching price to get a dollar value
@@ -185,8 +184,8 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 	//err := e.CanTrade(code, asset.Spot)
 
 	if code.IsFiatCurrency() {
-        return 0, errors.New("cannot get dollar value for fiat currency")
-    }
+		return 0, errors.New("cannot get dollar value for fiat currency")
+	}
 
 	if code.Match(currency.USDT) || code.Match(currency.USD) {
 		return 0, errors.New("cannot get dollar value for USDT")
@@ -218,7 +217,7 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 
 	// Try to match with a BTC pair
 	p = currency.NewPair(code, currency.BTC) // ie VIA-BTC
-	if pairs.Contains(p, true) {  // confirm there's a BTC pair
+	if pairs.Contains(p, true) {             // confirm there's a BTC pair
 		// if no USD pair is found, try BTC
 		BTCUSDT := currency.NewPair(currency.BTC, currency.USDT)
 		btcTicker, err := e.FetchTicker(context.Background(), BTCUSDT, assetType)
@@ -226,11 +225,11 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 			logrus.Errorf("failed to get ticker: %s\n", err)
 		}
 
-        ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
-        if err == nil {
-				return ticker.Last * btcTicker.Last, nil  // ie return VIABTC price * BTCUSDT price
-        }
-    }
+		ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
+		if err == nil {
+			return ticker.Last * btcTicker.Last, nil // ie return VIABTC price * BTCUSDT price
+		}
+	}
 
-    return 0, errors.New("no USD, USDT or BTC pair found")
+	return 0, errors.New("no USD, USDT or BTC pair found")
 }
