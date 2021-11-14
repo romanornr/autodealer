@@ -17,12 +17,9 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/deposit"
-	"gopkg.in/errgo.v2/fmt/errors"
 )
 
-// depositResponse struct with pre-defined members. This response may be populated by a deposit response from the exchange or an error.
-// If it's populated by a deposit response from the exchange, the depositResponse struct fills the fields.
-// If it's populated by an error, then the Err member will contain an error object.
+// depositResponse is the response payload for deposit requests
 type depositResponse struct {
 	Asset   *currency.Item   `json:"asset"`
 	Code    currency.Code    `json:"code"`
@@ -34,26 +31,7 @@ type depositResponse struct {
 	Account string           `json:"account"`
 }
 
-// Render depositResponse assigns the Time value to a new special variable called time.Now().
-// This value represents the time when the validation function is called.
-// The d.Time value changes and gets updated with the current time every time we make a validation.
-// Then it assigns the error value, which represents the errors data passed in the http response, to a new special variable called d.Err.
-func (d *depositResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	d.Time = time.Now()
-	return d.Err
-}
-
-// ErrDepositRender checks for the error. If the error exists, it then returns
-// a DepositRender wrapper that contains that error in it.
-func ErrDepositRender(err error) render.Renderer {
-	return &depositResponse{
-		Err: err,
-	}
-}
-
-// DepositHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
-// The second argument will be the file named deposit.html inside the folder templates.
-// The function can now be used as part of the router by adding the path to the function.
+// DepositHandler handles deposit requests
 func DepositHandler(w http.ResponseWriter, _ *http.Request) {
 	err := tpl.ExecuteTemplate(w, "deposit.html", nil)
 	if err != nil {
@@ -61,29 +39,19 @@ func DepositHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-// getDepositAddress extracts the `*DepositResponse` from the context. This will make sure we are
-// always working with the correct type and will allow us to return an error if the type is wrong Next, we check if the depositInfo is not nil.
-// We will have to check this in order to ensure that problems in the middleware doesn't cause the whole request to fail.
-// Our server will return a 422 error instead. Finally, we return the depositInfo variable to the user
+// getDepositAddress is a function that returns the deposit address for a given exchange and asset.
 func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	depositResponse, ok := ctx.Value("response").(*depositResponse)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, ErrDepositRender(errors.Newf("Failed to render deposit response")))
+		render.Status(r, http.StatusUnprocessableEntity)
 		return
 	}
-	render.Render(w, r, depositResponse)
-	return
+	render.JSON(w, r, depositResponse)
 }
 
-// DepositAddressCtx wraps the incoming API http request to request context
-// and adds a depositResponse structure to it with the exchange and code assigned.
-// This depositResponse structure is then used to look up the deposit address
-// and deposit instructions for a particular exchange and asset pair.
-// Next, it runs the next middleware handler in the chain.
-// In our case, this is the router object, and this continues with the original request.
-// The next handler is provided with the updated context and proceeds in the usual way.
+// DepositAddressCtx is a function that returns a context with a depositResponse struct.
 func DepositAddressCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		var depositRequest depositResponse
@@ -159,6 +127,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 	})
 }
 
+// WithAccount returns a channel with the account id.
 func WithAccount(e exchange.IBotExchange, accountId chan string) {
 	accounts, err := e.FetchAccountInfo(context.Background(), asset.Spot)
 	if err != nil {

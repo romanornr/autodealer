@@ -2,9 +2,12 @@ package webserver
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/go-chi/render"
 	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"net/http"
 )
 
@@ -19,14 +22,22 @@ func getHoldingsExchangeResponse(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-	if err := render.Render(w, r, response); err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
+	a := response.Accounts["main"].Balances[asset.Spot]
+
+	aa, err := json.Marshal(a)
+	if err != nil {
+		logrus.Errorf("could not marshal holdings: %v", err)
 	}
+	fmt.Println(aa)
+
+
+	render.JSON(w, r, aa)
 	return
 
 }
 
+
+// HoldingsExchangeCtx middleware adds the holdings to the context
 func HoldingsExchangeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		d := GetDealerInstance()
@@ -36,7 +47,7 @@ func HoldingsExchangeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("Error getting holdings: %s\n", err)
 		}
 
-		logrus.Println(holdings)
+		//logrus.Println(holdings.Accounts)
 
 		ctx := context.WithValue(request.Context(), "response", holdings)
 		next.ServeHTTP(w, request.WithContext(ctx))

@@ -1,12 +1,8 @@
 package dealer
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"net/http"
 )
 
 // CurrencyBalance struct is an easy way to house the pairs of currency held.
@@ -29,28 +25,9 @@ type ExchangeHoldings struct {
 	Accounts map[string]SubAccount
 }
 
-// Render ExchangeHoldings balances for each account to a json response
-func (h *ExchangeHoldings) Render(w http.ResponseWriter, r *http.Request) error {
-
-	c := CurrencyBalance{}
-	for _, v := range h.Accounts {
-		for _, v2 := range v.Balances {
-			for _, v3 := range v2 {
-				v3.TotalValue = v3.Hold + v3.TotalValue
-				c = v3
-			}
-		}
-	}
-
-	err, b := json.Marshal(c)
-
-	if err != nil {
-		logrus.Errorf("Error rendering holdings: %s", err)
-	}
-
-	fmt.Println(b)
-	return nil
-}
+//// Render ExchangeHoldings balances for each account to a json response
+//func (h *ExchangeHoldings) Render(w http.ResponseWriter, r *http.Request) error {
+//}
 
 // NewExchangeHoldings function is an easy way to create an empty ExchangeHoldings struct, so we can create an empty struct on startup to avoid us facing gct/goat by ensuring state on startup
 func NewExchangeHoldings() *ExchangeHoldings {

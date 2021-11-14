@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"gopkg.in/errgo.v2/fmt/errors"
 	"net/http"
 )
 
@@ -17,11 +16,6 @@ type pair struct {
 
 type pairResponse struct {
 	Pair []pair `json:"pair"`
-}
-
-// Render Pairs renders the pairs
-func (p pairResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
 }
 
 // FetchPairsCtx fetches pairs from the exchange
@@ -58,9 +52,9 @@ func getPairsResponse(w http.ResponseWriter, r *http.Request) {
 	response, ok := ctx.Value("response").(*pairResponse)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, ErrDepositRender(errors.Newf("Failed to render deposit response")))
+		render.Status(r, http.StatusUnprocessableEntity)
 		return
 	}
-	render.Render(w, r, response)
+	render.JSON(w, r, response)
 	return
 }
