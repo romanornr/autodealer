@@ -198,26 +198,44 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 		logrus.Errorf("failed to get available pairs: %s\n", err)
 	}
 
-	// create a pair with USDT and try that first
-	p := currency.NewPair(code, currency.USDT)
-	if pairs.Contains(p, true) {
-		ticker, err := e.FetchTicker(context.Background(), p, assetType)
-		if err == nil {
-			return ticker.Last, nil
+	tradeAblePairs := currency.Pairs{}
+
+	//INFO[0013] found pair: ETH/BRZ
+	//INFO[0013] found pair: ETH/BTC
+	//INFO[0013] found pair: ETH/EUR
+	//INFO[0013] found pair: ETH/USD
+	//INFO[0013] found pair: ETH/USDT
+	for _, p := range pairs {
+		if p.ContainsCurrency(code) {
+			tradeAblePairs = append(tradeAblePairs, p)
+			logrus.Printf("found pair: %s\n", p.String())
 		}
 	}
 
-	// if no USDT pair is found, try USD
-	p = currency.NewPair(code, currency.USD)
-	if pairs.Contains(p, true) {
-		ticker, err := e.FetchTicker(context.Background(), p, assetType)
-		if err == nil {
-			return ticker.Last, nil
-		}
+	for _, p := range tradeAblePairs {
+		if p.Quote.Match(currency.USD) {
+            logrus.Printf("found USD pair: %s\n", p.String())
+            ticker, err := e.FetchTicker(context.Background(), p, assetType)
+            if err != nil {
+                logrus.Errorf("failed to get price: %s\n", err)
+            }
+            return ticker.Last, nil
+        }
+
+		if p.Quote.Match(currency.USDT) {
+            logrus.Printf("found USDT pair: %s\n", p.String())
+            ticker, err := e.FetchTicker(context.Background(), p, assetType)
+            if err != nil {
+                logrus.Errorf("failed to get price: %s\n", err)
+            }
+            return ticker.Last, nil
+        }
 	}
+
+	// TODO need to figure out the fastest pair routing for USD price when there's no USD or USDT as quote currency, code below sucks.
 
 	// Try to match with a BTC pair
-	p = currency.NewPair(code, currency.BTC) // ie VIA-BTC
+	p := currency.NewPair(code, currency.BTC) // ie VIA-BTC
 	if pairs.Contains(p, true) {  // confirm there's a BTC pair
 		// if no USD pair is found, try BTC
 		BTCUSDT := currency.NewPair(currency.BTC, currency.USDT)
@@ -235,6 +253,7 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
     return 0, errors.New("no USD, USDT or BTC pair found")
 }
 
+// TODO need to figure out the fastest pair routing for USD price when there's no USD or USDT as quote currency, code below sucks.
 
 func GetDollarValueBTCPair(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 	p := currency.NewPair(code, currency.BTC) // ie VIA-BTC
