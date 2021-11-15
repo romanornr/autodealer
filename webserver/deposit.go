@@ -187,11 +187,12 @@ func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAc
 func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 
 	if code.IsFiatCurrency() {
-        return 0, errors.New("cannot get dollar value for fiat currency")
+        return 1, nil
     }
 
-	if code.Match(currency.USDT) || code.Match(currency.USD) {
-		return 0, errors.New("cannot get dollar value for USDT")
+	if code.Match(currency.USDT) || code.Match(currency.USD) || code.Match(currency.BUSD) || code.Match(currency.UST) {
+		logrus.Infof("stable coin price is pegged to $1: %s\n", code.String())
+		return 1, nil
 	}
 
 	// get available pairs for spot
