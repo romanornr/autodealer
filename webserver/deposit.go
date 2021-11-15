@@ -156,9 +156,6 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 	})
 }
 
-// TODO FIX ME: On FTX it keeps returning random subaccounts
-// But we want to stop when the main account has been found
-
 // GetSubAccountByID is a function that returns a subaccount by ID.
 func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAccount, error) {
 	accounts, err := e.UpdateAccountInfo(context.Background(), asset.Spot)
