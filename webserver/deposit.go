@@ -24,15 +24,15 @@ import (
 
 // depositResponse is the response payload for deposit requests
 type depositResponse struct {
-	Asset   *currency.Item   `json:"asset"`
-	Code    currency.Code    `json:"code"`
-	Chains  []string         `json:"chains"`
-	Address *deposit.Address `json:"address"`
-	Time    time.Time        `json:"time"`
-	Balance float64          `json:"balance"`
-	Price   float64          `json:"price"`
-	Value   float64          `json:"value"`
-	Err     error            `json:"error"`
+	Asset     *currency.Item   `json:"asset"`
+	Code      currency.Code    `json:"code"`
+	Chains    []string         `json:"chains"`
+	Address   *deposit.Address `json:"address"`
+	Time      time.Time        `json:"time"`
+	Balance   float64          `json:"balance"`
+	Price     float64          `json:"price"`
+	Value     float64          `json:"value"`
+	Err       error            `json:"error"`
 	AccountID string           `json:"account"`
 }
 
@@ -121,18 +121,18 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		if chain == "default" {
 			if len(depositRequest.Chains) > 0 {
-                chain = depositRequest.Chains[0]
-            } else {
+				chain = depositRequest.Chains[0]
+			} else {
 				chain = ""
 			}
 		}
 
 		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.AccountID, chain)
 		if err != nil {
-            logrus.Errorf("failed to get deposit address: %s\n", err)
-            render.Render(w, request, ErrInvalidRequest(err))
-            return
-        }
+			logrus.Errorf("failed to get deposit address: %s\n", err)
+			render.Render(w, request, ErrInvalidRequest(err))
+			return
+		}
 
 		h, err := dealer.Holdings(d, e.GetName())
 		if err != nil {
@@ -148,8 +148,8 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 
 		depositRequest.Price, err = getDollarValue(e, depositRequest.Code, asset.Spot)
 		if err != nil {
-            logrus.Errorf("failed to get dollar value: %s\n", err)
-        }
+			logrus.Errorf("failed to get dollar value: %s\n", err)
+		}
 
 		ctx := context.WithValue(request.Context(), "response", &depositRequest)
 		next.ServeHTTP(w, request.WithContext(ctx))
@@ -169,12 +169,11 @@ func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAc
 		}
 
 		if a.ID == accountId {
-            return a, nil
-        }
+			return a, nil
+		}
 	}
 	return account.SubAccount{}, err
 }
-
 
 // TODO : needs refactoring and this can be done in a better way
 // check first if with a loop for USDT, USD, BTC and ETH Pairs
@@ -184,8 +183,8 @@ func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAc
 func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 
 	if code.IsFiatCurrency() {
-        return 1, nil
-    }
+		return 1, nil
+	}
 
 	if code.Match(currency.USDT) || code.Match(currency.USD) || code.Match(currency.BUSD) || code.Match(currency.UST) {
 		logrus.Infof("stable coin price is pegged to $1: %s\n", code.String())
@@ -218,7 +217,7 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 
 	// Try to match with a BTC pair
 	p = currency.NewPair(code, currency.BTC) // ie VIA-BTC
-	if pairs.Contains(p, true) {  // confirm there's a BTC pair
+	if pairs.Contains(p, true) {             // confirm there's a BTC pair
 		// if no USD pair is found, try BTC
 		BTCUSDT := currency.NewPair(currency.BTC, currency.USDT)
 		btcTicker, err := e.FetchTicker(context.Background(), BTCUSDT, assetType)
@@ -226,15 +225,14 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 			logrus.Errorf("failed to get ticker: %s\n", err)
 		}
 
-        ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
-        if err == nil {
-				return ticker.Last * btcTicker.Last, nil  // ie return VIABTC price * BTCUSDT price
-        }
-    }
+		ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
+		if err == nil {
+			return ticker.Last * btcTicker.Last, nil // ie return VIABTC price * BTCUSDT price
+		}
+	}
 
-    return 0, errors.New("no USD, USDT or BTC pair found")
+	return 0, errors.New("no USD, USDT or BTC pair found")
 }
-
 
 func GetDollarValueBTCPair(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 	p := currency.NewPair(code, currency.BTC) // ie VIA-BTC
@@ -246,7 +244,7 @@ func GetDollarValueBTCPair(e exchange.IBotExchange, code currency.Code, assetTyp
 
 	ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
 	if err != nil {
-		return 0 , err
+		return 0, err
 	}
 	return ticker.Last * btcTicker.Last, err
 }
@@ -261,7 +259,7 @@ func GetDollarValueETHPair(e exchange.IBotExchange, code currency.Code, assetTyp
 
 	ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
 	if err != nil {
-		return 0 , err
+		return 0, err
 	}
 	return ticker.Last * btcTicker.Last, err
 }
@@ -276,18 +274,16 @@ func GetDollarValueBNBPair(e exchange.IBotExchange, code currency.Code, assetTyp
 
 	ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
 	if err != nil {
-		return 0 , err
+		return 0, err
 	}
 	return ticker.Last * btcTicker.Last, err
 }
 
 func GetDollarValueBUSDPair(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
-	p := currency.NewPair(code, currency.BUSD) // ie VIA-BTC
+	p := currency.NewPair(code, currency.BUSD)                       // ie VIA-BTC
 	ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
 	if err != nil {
-		return 0 , err
+		return 0, err
 	}
 	return ticker.Last, err
 }
-
-
