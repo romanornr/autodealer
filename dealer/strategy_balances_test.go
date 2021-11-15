@@ -36,9 +36,10 @@ func TestInitBalancesStrategy(t *testing.T) {
 	}
 
 	b := &BalancesStrategy{
-		balances: sync.Map{},
+		holdings: sync.Map{},
 		ticker:   ts,
 	}
+
 	d, err := NewBuilder().Build()
 	if err != nil {
 		t.Errorf("expected no error, got %v\n", err)
@@ -62,7 +63,7 @@ func TestInitBalancesStrategyError(t *testing.T) {
 	}
 
 	b := &BalancesStrategy{
-		balances: sync.Map{},
+		holdings: sync.Map{},
 		ticker:   ts,
 	}
 
@@ -88,7 +89,7 @@ func TestStoreBalancesStrategyError(t *testing.T) {
 	}
 
 	b := &BalancesStrategy{
-		balances: sync.Map{},
+		holdings: sync.Map{},
 		ticker:   ts,
 	}
 
@@ -109,9 +110,9 @@ func TestStoreBalancesStrategyError(t *testing.T) {
 		logrus.Errorf("fetch account info failed: %v\n", err)
 	}
 
-	b.Store(a)
+	b.holdings.Store(a, a)
 
-	holdings, ok := b.balances.Load(e.GetName())
+	holdings, ok := b.holdings.Load(e.GetName())
 	if !ok {
 		t.Errorf("expected no error, got %v\n", err)
 	}
