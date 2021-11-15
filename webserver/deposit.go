@@ -182,8 +182,6 @@ func WithAccount(e exchange.IBotExchange, accountId chan string) {
 // getDollarValue returns the dollar value of the currency and route if there's no USDT pair available
 func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 
-	//err := e.CanTrade(code, asset.Spot)
-
 	if code.IsFiatCurrency() {
         return 0, errors.New("cannot get dollar value for fiat currency")
     }

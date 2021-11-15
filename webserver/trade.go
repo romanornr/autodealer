@@ -2,14 +2,13 @@ package webserver
 
 import (
 	"context"
+	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"gopkg.in/errgo.v2/fmt/errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -47,11 +46,11 @@ func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		logrus.Errorf("Got unexpected response %T\n", response)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
+		//render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
+		render.JSON(w, r, ErrRender(errors.New("failed to get trade response")))
 		return
 	}
 	render.Render(w, r, response)
-	return
 }
 
 // TradeCtx Handler handleHome is the handler for the '/trade' page request.

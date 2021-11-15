@@ -10,6 +10,8 @@ import (
 	"gopkg.in/errgo.v2/fmt/errors"
 )
 
+
+// KrakenConvertUSDT converts all USDT to Euros
 func KrakenConvertUSDT(code currency.Code) (order.SubmitResponse, error) {
 
 	d := GetDealerInstance()
@@ -59,6 +61,7 @@ func KrakenConvertUSDT(code currency.Code) (order.SubmitResponse, error) {
 	return response, nil
 }
 
+// KrakenInternationalBankAccountWithdrawal withdraws funds to an international bank account
 func KrakenInternationalBankAccountWithdrawal(code currency.Code) (ExchangeWithdrawResponse, error) {
 
 	d := GetDealerInstance()
@@ -123,8 +126,7 @@ func KrakenInternationalBankAccountWithdrawal(code currency.Code) (ExchangeWithd
 		},
 	}
 
-	err = withdrawRequest.Validate()
-	if err != nil {
+	if err = withdrawRequest.Validate(); err != nil {
 		return ExchangeWithdrawResponse{}, errors.Newf("validation error withdraw request: %s\n", err)
 	}
 

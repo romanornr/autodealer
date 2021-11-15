@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/errgo.v2/fmt/errors"
 )
 
 func bankTransferHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,13 +22,11 @@ func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 	exchangeResponse, ok := ctx.Value("response").(*transfer.ExchangeWithdrawResponse)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("kraken international bank account request failed CTX")))
+		render.JSON(w, r, http.StatusUnprocessableEntity)
 		return
 	}
 
-	render.Render(w, r, exchangeResponse)
-
-	return
+	render.JSON(w, r, exchangeResponse)
 }
 
 func BankTransferCtx(next http.Handler) http.Handler {
@@ -40,7 +37,8 @@ func BankTransferCtx(next http.Handler) http.Handler {
 		submitResponse, err := transfer.KrakenConvertUSDT(currencyCode)
 		if err != nil {
 			logrus.Errorf("Failed to sell USDT to Euro: %s\n", err)
-			render.Render(w, request, transfer.ErrWithdawRender(err))
+			render.Status(request, http.StatusUnprocessableEntity)
+			render.JSON(w, request, http.StatusUnprocessableEntity)
 			return
 		}
 		logrus.Infof("submit response %v\n", submitResponse)
@@ -49,7 +47,7 @@ func BankTransferCtx(next http.Handler) http.Handler {
 		if err != nil {
 			logrus.Errorf("Failed to get bank account transfer: %s\n", err)
 			response.Error = err
-			render.Render(w, request, transfer.ErrWithdawRender(err))
+			render.JSON(w, request, response.Error)
 			return
 		}
 

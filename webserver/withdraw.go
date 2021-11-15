@@ -13,7 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
-	"gopkg.in/errgo.v2/fmt/errors"
 )
 
 // ExchangeWithdrawResponse is a struct that is designed to represent
@@ -55,13 +54,11 @@ func getExchangeWithdrawResponse(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		logrus.Errorf("Got unexpected response %T instead of *ExchangeWithdrawResponse", exchangeResponse)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
+		render.JSON(w, r, http.StatusUnprocessableEntity)
 		return
 	}
-
-	render.Render(w, r, exchangeResponse)
-
-	return
+	//render.Render(w, r, exchangeResponse)
+	render.JSON(w, r, exchangeResponse)
 }
 
 // WithdrawCtx is an HTTP handler function which stores the request input with the help of chi.URLParams get method
@@ -87,9 +84,10 @@ func WithdrawCtx(next http.Handler) http.Handler {
 
 		size, err := strconv.ParseFloat(sizeReq, 64)
 		if err != nil {
-			logrus.Errorf("failed to parse size %s\n", err) // 3.14159265
-			render.Render(w, request, transfer.ErrWithdawRender(err))
-		}
+            logrus.Errorf("failed to convert size %s\n", err)
+			render.Status(request, http.StatusUnprocessableEntity)
+			render.JSON(w, request, http.StatusUnprocessableEntity)
+        }
 
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		assetInfo.Code.Item.Role = currency.Cryptocurrency
@@ -114,10 +112,10 @@ func WithdrawCtx(next http.Handler) http.Handler {
 
 		response, err := transfer.CreateExchangeWithdrawResponse(wi, exchangeEngine)
 		if err != nil {
-			render.Render(w, request, ErrRender(err))
+			render.JSON(w, request, ErrRender(err))
 		}
 
-		logrus.Infof("exchange withdraw response %v", response)
+		logrus.Infof("exchange withdraw response %v\n", response)
 		ctx := context.WithValue(request.Context(), "response", &response)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})
