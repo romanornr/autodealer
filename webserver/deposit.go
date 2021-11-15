@@ -9,6 +9,7 @@ import (
 	"errors"
 	"github.com/romanornr/autodealer/dealer"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"net/http"
 	"strings"
 	"time"
@@ -32,7 +33,7 @@ type depositResponse struct {
 	Price   float64          `json:"price"`
 	Value   float64          `json:"value"`
 	Err     error            `json:"error"`
-	Account string           `json:"account"`
+	AccountID string           `json:"account"`
 }
 
 // DepositHandler handles deposit requests
@@ -62,7 +63,6 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		depositRequest.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		chain := chi.URLParam(request, "chain")
-		accountId := make(chan string)
 
 		d := GetDealerInstance()
 
@@ -79,12 +79,12 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			logrus.Printf("%s\n", p.Base.String())
 		}
 
-		go WithAccount(e, accountId)
+		subAccount, err := GetSubAccountByID(e, "")
 
 		depositRequest.Chains, err = e.GetAvailableTransferChains(context.Background(), depositRequest.Code)
 		logrus.Info(depositRequest.Chains)
 		depositRequest.Asset = depositRequest.Code.Item
-		depositRequest.Account = <-accountId
+		depositRequest.AccountID = subAccount.ID
 
 		// need to figure out chain selection
 		// USDT FTX: [erc20 trx sol]
@@ -127,7 +127,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			}
 		}
 
-		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.Account, chain)
+		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.AccountID, chain)
 		if err != nil {
             logrus.Errorf("failed to get deposit address: %s\n", err)
             render.Render(w, request, ErrInvalidRequest(err))
@@ -139,7 +139,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to get holdings: %s\n", err)
 		}
 
-		balance, err := h.CurrencyBalance(depositRequest.Account, asset.Spot, depositRequest.Code)
+		balance, err := h.CurrencyBalance(depositRequest.AccountID, asset.Spot, depositRequest.Code)
 		if err != nil {
 			logrus.Errorf("failed to get balance: %s\n", err)
 		}
@@ -159,19 +159,23 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 // TODO FIX ME: On FTX it keeps returning random subaccounts
 // But we want to stop when the main account has been found
 
-// WithAccount returns a channel with the account id but try to find the "main" account first
-func WithAccount(e exchange.IBotExchange, accountId chan string) {
-	accounts, err := e.FetchAccountInfo(context.Background(), asset.Spot)
+// GetSubAccountByID is a function that returns a subaccount by ID.
+func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAccount, error) {
+	accounts, err := e.UpdateAccountInfo(context.Background(), asset.Spot)
 	if err != nil {
 		logrus.Errorf("failed to get exchange account: %s\n", err)
 	}
 	for _, a := range accounts.Accounts {
-		accountId <- a.ID
-		if a.ID == "main" {
-			accountId <- "main"
-			break
+		// return the main account for FTX
+		if a.ID == "main" && e.GetName() == "FTX" {
+			return a, nil
 		}
+
+		if a.ID == accountId {
+            return a, nil
+        }
 	}
+	return account.SubAccount{}, err
 }
 
 
