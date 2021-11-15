@@ -10,7 +10,6 @@ import (
 	"gopkg.in/errgo.v2/fmt/errors"
 )
 
-
 // KrakenConvertUSDT converts all USDT to Euros
 func KrakenConvertUSDT(code currency.Code) (order.SubmitResponse, error) {
 
