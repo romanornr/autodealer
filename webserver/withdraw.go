@@ -84,10 +84,10 @@ func WithdrawCtx(next http.Handler) http.Handler {
 
 		size, err := strconv.ParseFloat(sizeReq, 64)
 		if err != nil {
-            logrus.Errorf("failed to convert size %s\n", err)
+			logrus.Errorf("failed to convert size %s\n", err)
 			render.Status(request, http.StatusUnprocessableEntity)
 			render.JSON(w, request, http.StatusUnprocessableEntity)
-        }
+		}
 
 		assetInfo.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		assetInfo.Code.Item.Role = currency.Cryptocurrency
