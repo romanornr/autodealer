@@ -62,7 +62,7 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
 		}
 
-		qtyUSD, err := strconv.ParseFloat(chi.URLParam(request, "qty"), 32)
+		qtyUSD, err := strconv.ParseFloat(chi.URLParam(request, "qty"), 64)
 		if err != nil {
 			logrus.Errorf("failed to parse qty %s\n", err)
 		}
