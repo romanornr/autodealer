@@ -84,6 +84,9 @@ func TradeCtx(next http.Handler) http.Handler {
 			orderType = order.Limit
 			side = order.Ask
 			postOnly = true
+		case "marketSell":
+			orderType = order.Market
+			side = order.Ask
 		}
 
 		d := GetDealerInstance()

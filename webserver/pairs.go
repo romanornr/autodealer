@@ -26,13 +26,14 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 		if err != nil {
 			logrus.Errorf("Failed to get exchange: %s\n", err)
 		}
-		assetTypes := e.GetAssetTypes(true)
-		response := new(pairResponse)
 
 		// enable for Bittrex
 		if err != e.GetBase().CurrencyPairs.SetAssetEnabled(asset.Spot, true) {
 			logrus.Errorf("Failed to enable asset: %s\n", err)
 		}
+
+		assetTypes := e.GetAssetTypes(true)
+		response := new(pairResponse)
 
 		for _, a := range assetTypes {
 			c, err := e.GetAvailablePairs(a)
