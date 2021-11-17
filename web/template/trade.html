@@ -205,6 +205,13 @@
         // this.exchangeName = data.exchange
       }
     },
+    watch: {
+      exchangeName: {
+        handler: function(value) {
+          this.onPairsLoaded();
+        }
+      }
+    }
   })
   app.mount('#app').created().mounted();
   </script>

@@ -29,6 +29,11 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 		assetTypes := e.GetAssetTypes(true)
 		response := new(pairResponse)
 
+		// enable for Bittrex
+		if err != e.GetBase().CurrencyPairs.SetAssetEnabled(asset.Spot, true) {
+			logrus.Errorf("Failed to enable asset: %s\n", err)
+		}
+
 		for _, a := range assetTypes {
 			c, err := e.GetAvailablePairs(a)
 			if err != nil {
