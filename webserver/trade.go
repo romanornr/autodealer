@@ -79,14 +79,14 @@ func TradeCtx(next http.Handler) http.Handler {
 		switch chi.URLParam(request, "orderType") {
 		case "marketBuy":
 			orderType = order.Market
-			side = order.Bid
+			side = order.Ask
 		case "limitBuy":
 			orderType = order.Limit
 			side = order.Ask
 			postOnly = true
 		case "marketSell":
 			orderType = order.Market
-			side = order.Ask
+			side = order.Bid
 		}
 
 		d := GetDealerInstance()
@@ -105,7 +105,7 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to update ticker %s\n", err)
 		}
 
-		qty := qtyUSD / price.Ask
+		qty := qtyUSD / price.Last
 		logrus.Printf("%s quantity %f\n", p.String(), qty)
 
 		o := order.Submit{
