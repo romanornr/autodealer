@@ -62,7 +62,6 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
 		}
 
-
 		d := GetDealerInstance()
 		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
