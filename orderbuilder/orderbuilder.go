@@ -11,9 +11,8 @@ type OrderBuilder struct {
 }
 
 // NewOrderBuilder returns a new instance of OrderBuilder
-func NewOrderBuilder() *order.Submit {
-    return &order.Submit{}
-
+func NewOrderBuilder() *OrderBuilder {
+    return &OrderBuilder{ Order: order.Submit{}}
 }
 
 func (o *OrderBuilder) AtExchange(exchange string) *OrderBuilder {
@@ -48,11 +47,24 @@ func (o *OrderBuilder) WithAmount(amount float64) *OrderBuilder {
 
 func (o *OrderBuilder) UseOrderType(orderType order.Type) *OrderBuilder {
     o.Order.Type = orderType
+    if orderType == order.Limit {
+        o.WithPostOnly(true)
+    }
+    return o
+}
+
+func (o *OrderBuilder) SetSide(side order.Side) *OrderBuilder {
+    o.Order.Side = side
     return o
 }
 
 func (o *OrderBuilder) WithPostOnly(postOnly bool) *OrderBuilder {
     o.Order.PostOnly = postOnly
+    return o
+}
+
+func (o *OrderBuilder) SetReduceOnly(reduce bool) *OrderBuilder {
+    o.Order.ReduceOnly = reduce
     return o
 }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/romanornr/autodealer/orderbuilder"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -91,7 +92,7 @@ func TradeCtx(next http.Handler) http.Handler {
 
 		var orderType order.Type
 		var side order.Side
-		var postOnly bool
+		//var postOnly bool
 
 		switch chi.URLParam(request, "orderType") {
 		case "marketBuy":
@@ -99,56 +100,76 @@ func TradeCtx(next http.Handler) http.Handler {
 			side = order.Ask
 		case "limitBuy":
 			orderType = order.Limit
-			side = order.Ask
-			postOnly = true
+			side = order.Bid
+			//postOnly = true
 		case "marketSell":
 			orderType = order.Market
 			side = order.Bid
 		}
 
 		qty := qtyUSD / price.Last
+		subAccount, err := GetSubAccountByID(e, "")
+		orderBuilder := orderbuilder.NewOrderBuilder()
+		orderBuilder.
+			AtExchange(e.GetName()).
+			ForCurrencyPair(p).
+			WithAssetType(assetItem).
+			BySide(side).
+			ForPrice(price.Last).
+			WithAmount(qty).
+			UseOrderType(orderType).
+			SetSide(side).
+			WithPostOnly(false).
+			UseImmediateOrCancel(false).
+			ForAccountID(subAccount.ID)
+
+		newOrder, err := orderBuilder.Build()
+		if err != nil {
+			logrus.Errorf("failed to build order %s\n", err)
+		}
+
 		logrus.Printf("%s quantity %f\n", p.String(), qty)
 
-		o := order.Submit{
-			ImmediateOrCancel: false,
-			HiddenOrder:       false,
-			FillOrKill:        false,
-			PostOnly:          postOnly,
-			ReduceOnly:        false,
-			Leverage:          0,
-			Price:             price.Ask,
-			Amount:            qty,
-			StopPrice:         0,
-			LimitPriceUpper:   0,
-			LimitPriceLower:   0,
-			TriggerPrice:      0,
-			TargetAmount:      0,
-			ExecutedAmount:    0,
-			RemainingAmount:   0,
-			Fee:               0,
-			Exchange:          e.GetName(),
-			InternalOrderID:   "",
-			ID:                "",
-			AccountID:         "",
-			ClientID:          "",
-			ClientOrderID:     "",
-			WalletAddress:     "",
-			Offset:            "",
-			Type:              orderType,
-			Side:              side,
-			Status:            "",
-			AssetType:         assetItem,
-			Date:              time.Now(),
-			LastUpdated:       time.Now(),
-			Pair:              p,
-			Trades:            nil,
-		}
+		//o := order.Submit{
+		//	ImmediateOrCancel: false,
+		//	HiddenOrder:       false,
+		//	FillOrKill:        false,
+		//	PostOnly:          postOnly,
+		//	ReduceOnly:        false,
+		//	Leverage:          0,
+		//	Price:             price.Ask,
+		//	Amount:            qty,
+		//	StopPrice:         0,
+		//	LimitPriceUpper:   0,
+		//	LimitPriceLower:   0,
+		//	TriggerPrice:      0,
+		//	TargetAmount:      0,
+		//	ExecutedAmount:    0,
+		//	RemainingAmount:   0,
+		//	Fee:               0,
+		//	Exchange:          e.GetName(),
+		//	InternalOrderID:   "",
+		//	ID:                "",
+		//	AccountID:         "",
+		//	ClientID:          "",
+		//	ClientOrderID:     "",
+		//	WalletAddress:     "",
+		//	Offset:            "",
+		//	Type:              orderType,
+		//	Side:              side,
+		//	Status:            "",
+		//	AssetType:         assetItem,
+		//	Date:              time.Now(),
+		//	LastUpdated:       time.Now(),
+		//	Pair:              p,
+		//	Trades:            nil,
+		//}
+		//
+		//if err = o.Validate(); err != nil {
+		//	logrus.Errorf("failed to validate order: %s\n", err)
+		//}
 
-		if err = o.Validate(); err != nil {
-			logrus.Errorf("failed to validate order: %s\n", err)
-		}
-
-		submitResponse, err := d.SubmitOrderUD(context.Background(), e.GetName(), o, nil) //e.SubmitOrder(context.Background(), &o)
+		submitResponse, err := d.SubmitOrderUD(context.Background(), e.GetName(), *newOrder, nil) //e.SubmitOrder(context.Background(), &o)
 		if err != nil {
 			logrus.Errorf("submit order failed: %s\n", err)
 		}
@@ -156,7 +177,7 @@ func TradeCtx(next http.Handler) http.Handler {
 
 		response := OrderResponse{
 			Response:  submitResponse,
-			Order:     o,
+			Order:     *newOrder,
 			Pair:      p.String(),
 			QtyUSD:    qtyUSD,
 			Qty:       qty,
