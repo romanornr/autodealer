@@ -54,6 +54,7 @@ func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 // TradeCtx Handler handleHome is the handler for the '/trade' page request.
+// trade/{exchange}/{pair}/{qty}/{assetType}/{orderType}"
 func TradeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
@@ -62,14 +63,30 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
 		}
 
+		assetItem := asset.Item(chi.URLParam(request, "assetType"))
+		if !assetItem.IsValid() {
+            logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
+        }
+
+		d := GetDealerInstance()
+		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
+		if err != nil {
+			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
+			return
+		}
+
+		// try to find out how to enable all pairs??
+		d.Settings.EnableAllPairs = true
+		d.Settings.EnableCurrencyStateManager = true
+
+		price, err := e.UpdateTicker(context.Background(), p, assetItem)
+		if err != nil {
+			logrus.Errorf("failed to update ticker %s\n", err)
+		}
+
 		qtyUSD, err := strconv.ParseFloat(chi.URLParam(request, "qty"), 64)
 		if err != nil {
 			logrus.Errorf("failed to parse qty %s\n", err)
-		}
-
-		assetItem, err := asset.New(chi.URLParam(request, "assetType"))
-		if err != nil {
-			logrus.Errorf("failed to parse assetType %s\n", err)
 		}
 
 		var orderType order.Type
@@ -87,22 +104,6 @@ func TradeCtx(next http.Handler) http.Handler {
 		case "marketSell":
 			orderType = order.Market
 			side = order.Bid
-		}
-
-		d := GetDealerInstance()
-		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
-		if err != nil {
-			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
-			return
-		}
-
-		// try to find out how to enable all pairs??
-		d.Settings.EnableAllPairs = true
-		d.Settings.EnableCurrencyStateManager = true
-
-		price, err := e.UpdateTicker(context.Background(), p, assetItem)
-		if err != nil {
-			logrus.Errorf("failed to update ticker %s\n", err)
 		}
 
 		qty := qtyUSD / price.Last
