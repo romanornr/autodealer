@@ -30,11 +30,6 @@ func (o *OrderBuilder) WithAssetType(assetType asset.Item) *OrderBuilder {
     return o
 }
 
-func (o *OrderBuilder) BySide(side order.Side) *OrderBuilder {
-    o.Order.Side = side
-    return o
-}
-
 func (o *OrderBuilder) ForPrice(price float64) *OrderBuilder {
     o.Order.Price = price
     return o
@@ -69,8 +64,8 @@ func (o *OrderBuilder) SetReduceOnly(reduce bool) *OrderBuilder {
 }
 
 func (o *OrderBuilder) UseImmediateOrCancel(immediateOrCancel bool) *OrderBuilder {
-    o.Order.ImmediateOrCancel = immediateOrCancel
-    return o
+   o.Order.ImmediateOrCancel = immediateOrCancel
+   return o
 }
 
 func (o *OrderBuilder) ForAccountID(accountID string) *OrderBuilder {

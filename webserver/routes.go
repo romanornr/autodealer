@@ -6,7 +6,7 @@ const (
 	routeWithdraw           = "/withdraw/{exchange}/{asset}/{size}/{destinationAddress}/{chain}"
 	routeGetWithdrawHistory = "/withdraw/history/{exchange}/{asset}"
 	routePairs              = "/pairs/{exchange}"
-	routeTrade              = "/trade/{exchange}/{pair}/{qty}/{assetType}/{orderType}"
+	routeTrade              = "/trade/{exchange}/{pair}/{qty}/{assetType}/{orderType}/{side}"
 	routeGetTicker          = "/ticker/{exchange}/{base}/{quote}"
 	routePriceToUSD         = "/{exchange}/{base}/priceusd"
 	routeTWAP               = "/twap/{exchange}/{base}/{quote}/{quantity}"

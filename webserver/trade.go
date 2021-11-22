@@ -35,11 +35,6 @@ type OrderResponse struct {
 	Timestamp time.Time            `json:"timestamp"`
 }
 
-// Render Pairs renders the pairs
-func (o OrderResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
 // getTradeResponse returns the trade response
 func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -47,15 +42,14 @@ func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		logrus.Errorf("Got unexpected response %T\n", response)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		//render.Render(w, r, transfer.ErrWithdawRender(errors.Newf("Failed to renderWithdrawResponse")))
 		render.JSON(w, r, ErrRender(errors.New("failed to get trade response")))
 		return
 	}
-	render.Render(w, r, response)
+	render.JSON(w, r, response)
 }
 
 // TradeCtx Handler handleHome is the handler for the '/trade' page request.
-// trade/{exchange}/{pair}/{qty}/{assetType}/{orderType}"
+// trade/{exchange}/{pair}/{qty}/{assetType}/{orderType}/{side}
 func TradeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		exchangeNameReq := chi.URLParam(request, "exchange")
@@ -68,6 +62,11 @@ func TradeCtx(next http.Handler) http.Handler {
 		if !assetItem.IsValid() {
             logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
         }
+
+		side, err := order.StringToOrderSide(chi.URLParam(request, "side"))
+		if err != nil {
+			logrus.Errorf("failed to parse side: %s\n", chi.URLParam(request, "side"))
+		}
 
 		d := GetDealerInstance()
 		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
@@ -90,21 +89,9 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse qty %s\n", err)
 		}
 
-		var orderType order.Type
-		var side order.Side
-		//var postOnly bool
-
-		switch chi.URLParam(request, "orderType") {
-		case "marketBuy":
-			orderType = order.Market
-			side = order.Ask
-		case "limitBuy":
-			orderType = order.Limit
-			side = order.Bid
-			//postOnly = true
-		case "marketSell":
-			orderType = order.Market
-			side = order.Bid
+		orderType, err := order.StringToOrderType(chi.URLParam(request, "orderType"))
+		if err != nil {
+			logrus.Errorf("failed to parse orderType %s\n", err)
 		}
 
 		qty := qtyUSD / price.Last
@@ -114,7 +101,6 @@ func TradeCtx(next http.Handler) http.Handler {
 			AtExchange(e.GetName()).
 			ForCurrencyPair(p).
 			WithAssetType(assetItem).
-			BySide(side).
 			ForPrice(price.Last).
 			WithAmount(qty).
 			UseOrderType(orderType).
@@ -129,45 +115,6 @@ func TradeCtx(next http.Handler) http.Handler {
 		}
 
 		logrus.Printf("%s quantity %f\n", p.String(), qty)
-
-		//o := order.Submit{
-		//	ImmediateOrCancel: false,
-		//	HiddenOrder:       false,
-		//	FillOrKill:        false,
-		//	PostOnly:          postOnly,
-		//	ReduceOnly:        false,
-		//	Leverage:          0,
-		//	Price:             price.Ask,
-		//	Amount:            qty,
-		//	StopPrice:         0,
-		//	LimitPriceUpper:   0,
-		//	LimitPriceLower:   0,
-		//	TriggerPrice:      0,
-		//	TargetAmount:      0,
-		//	ExecutedAmount:    0,
-		//	RemainingAmount:   0,
-		//	Fee:               0,
-		//	Exchange:          e.GetName(),
-		//	InternalOrderID:   "",
-		//	ID:                "",
-		//	AccountID:         "",
-		//	ClientID:          "",
-		//	ClientOrderID:     "",
-		//	WalletAddress:     "",
-		//	Offset:            "",
-		//	Type:              orderType,
-		//	Side:              side,
-		//	Status:            "",
-		//	AssetType:         assetItem,
-		//	Date:              time.Now(),
-		//	LastUpdated:       time.Now(),
-		//	Pair:              p,
-		//	Trades:            nil,
-		//}
-		//
-		//if err = o.Validate(); err != nil {
-		//	logrus.Errorf("failed to validate order: %s\n", err)
-		//}
 
 		submitResponse, err := d.SubmitOrderUD(context.Background(), e.GetName(), *newOrder, nil) //e.SubmitOrder(context.Background(), &o)
 		if err != nil {

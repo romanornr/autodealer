@@ -94,7 +94,7 @@
           </button>
         </form>
 
-        <div>${ result }</div>
+        <code>${ result }</code>
         <!-- TradingView Widget BEGIN -->
         <div class="tradingview-widget-container">
           <div id="tradingview_7829e"></div>
@@ -151,6 +151,8 @@
         exchangeName: "ftx",
         qtyUSD: "",
         orderType: "",
+        side: "",
+        type: "",
         balance: "",
         assetType: "spot",
         twap: false,
@@ -183,7 +185,30 @@
         // disable the form
         this.loading = true
 
-        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType)
+        switch (this.orderType) {
+          case "limitBuy":
+            this.side = "buy"
+            this.orderType = "limit"
+            break;
+          case "marketBuy":
+            this.side = "buy"
+            this.orderType = "market"
+            break;
+          case "limitSell":
+            this.side = "sell"
+            this.orderType = "limit"
+            break;
+          case "marketSell":
+            this.side = "sell"
+            this.orderType = "market"
+            break;
+          default:
+            this.side = "buy"
+            this.orderType = "market"
+            break;
+        }
+
+        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType + '/' + this.side)
                 .then(response => {
                   this.processData(response)
                 })
@@ -198,11 +223,6 @@
       processData(result) {
         const data = result.data
         this.result = data
-        // console.log(data)
-        // this.address = data.address["Address"]
-        // this.symbol = data.code
-        // this.balance = data.balance
-        // this.exchangeName = data.exchange
       }
     },
     watch: {

@@ -47,7 +47,7 @@ func NewBuilder() *Builder {
 	var settings engine.Settings
 	return &Builder{
 		augment:            nil,
-		balanceRefreshRate: 2,
+		balanceRefreshRate: 15,
 		factory:            nil,
 		settings:           settings,
 		reporters:          []Reporter{},
