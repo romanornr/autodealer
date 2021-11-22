@@ -60,8 +60,8 @@ func TradeCtx(next http.Handler) http.Handler {
 
 		assetItem := asset.Item(chi.URLParam(request, "assetType"))
 		if !assetItem.IsValid() {
-            logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
-        }
+			logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
+		}
 
 		side, err := order.StringToOrderSide(chi.URLParam(request, "side"))
 		if err != nil {
