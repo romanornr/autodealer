@@ -28,7 +28,7 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 		}
 
 		/// enable for Bittrex
-		if e.GetName() == "Bittrex" {
+		if e.GetName() == "Bittrex" || e.GetName() == "Huobi" {
 			if err := e.GetBase().CurrencyPairs.SetAssetEnabled(asset.Spot, true); err != nil {
 				logrus.Errorf("Failed to enable asset: %s\n", err)
 			}

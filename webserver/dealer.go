@@ -25,6 +25,7 @@ var mu sync.Mutex
 func GetDealerInstance() *dealer.Dealer {
 	var err error
 	if atomic.LoadUint32(&initialized) == 1 {
+		logrus.Print("Dealer already loaded")
 		return instance
 	}
 	mu.Lock()
