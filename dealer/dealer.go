@@ -492,13 +492,24 @@ func (bot *Dealer) ActivatePair(e exchange.IBotExchange, a asset.Item, p currenc
 		return err
 	}
 
-	availablePairs, err := base.CurrencyPairs.GetPairs(a, false)
+	// updated enabled pairs
+	enabledpairs, err := base.CurrencyPairs.GetPairs(a, true)
 	if err != nil {
 		return err
 	}
 
-	availablePairs = append(availablePairs, p)
-	base.CurrencyPairs.StorePairs(a, availablePairs, false)
+	enabledpairs = append(enabledpairs, p)
+	base.CurrencyPairs.StorePairs(a, enabledpairs, true)
+
+	// updated available pairs
+	availablepairs, err := base.CurrencyPairs.GetPairs(a, false)
+	if err != nil {
+		return err
+	}
+
+	availablepairs = append(availablepairs, p)
+	base.CurrencyPairs.StorePairs(a, availablepairs, false)
+
 	return nil
 }
 
