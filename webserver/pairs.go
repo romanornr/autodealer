@@ -27,9 +27,11 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 			logrus.Errorf("Failed to get exchange: %s\n", err)
 		}
 
-		// enable for Bittrex
-		if err != e.GetBase().CurrencyPairs.SetAssetEnabled(asset.Spot, true) {
-			logrus.Errorf("Failed to enable asset: %s\n", err)
+		/// enable for Bittrex
+		if e.GetName() == "Bittrex" {
+			if err := e.GetBase().CurrencyPairs.SetAssetEnabled(asset.Spot, true); err != nil {
+				logrus.Errorf("Failed to enable asset: %s\n", err)
+			}
 		}
 
 		assetTypes := e.GetAssetTypes(true)
@@ -38,14 +40,22 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 		for _, a := range assetTypes {
 			c, err := e.GetAvailablePairs(a)
 			if err != nil {
-				logrus.Errorf("Failed to get enabled pairs: %s\n", err)
+				logrus.Errorf("Failed to get pairs: %s\n", err)
 			}
 
-			formattedPair := c.Format("-", "", true)
-			for _, p := range formattedPair {
-				response.Pair = append(response.Pair, pair{Name: p.String(), AssetType: a})
+			for _, p := range c {
+				response.Pair = append(response.Pair, pair{
+					Name:      p.String(),
+					AssetType: a,
+				})
 			}
 		}
+
+		//	formattedPair := c.Format("-", "", true)
+		//	for _, p := range formattedPair {
+		//		response.Pair = append(response.Pair, pair{Name: p.String(), AssetType: a})
+		//	}
+		//}
 
 		request = request.WithContext(context.WithValue(request.Context(), "response", response))
 		next.ServeHTTP(w, request)

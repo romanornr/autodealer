@@ -45,9 +45,9 @@ func BankTransferCtx(next http.Handler) http.Handler {
 
 		response, err := transfer.KrakenInternationalBankAccountWithdrawal(currencyCode)
 		if err != nil {
-			logrus.Errorf("Failed to get bank account transfer: %s\n", err)
-			response.Error = err
-			render.JSON(w, request, response.Error)
+			logrus.Errorf("Failed to withdraw EUR from bank account: %s\n", err)
+			render.Status(request, http.StatusUnprocessableEntity)
+			render.JSON(w, request, http.StatusUnprocessableEntity)
 			return
 		}
 
