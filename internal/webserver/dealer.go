@@ -38,7 +38,7 @@ func GetDealerInstance() *dealer.Dealer {
 		}
 		atomic.StoreUint32(&initialized, 1)
 
-		instance.Run(context.Background())
+		go instance.Run(context.Background())
 
 		logrus.Infof("Created dealer instance\n")
 	}

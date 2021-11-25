@@ -86,6 +86,7 @@ func New() {
 	logrus.Infof("API route mounted on port %d", port)
 	logrus.Infof("creating http Server")
 
+	//go singleton.GetDealerInstance()
 	go GetDealerInstance()
 
 	httpServer := &http.Server{

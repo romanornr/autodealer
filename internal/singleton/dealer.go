@@ -2,7 +2,7 @@ package singleton
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/dealer"
+	"github.com/romanornr/autodealer/internal/dealer"
 	"github.com/sirupsen/logrus"
 	"sync"
 	"sync/atomic"
@@ -37,9 +37,14 @@ func GetDealerInstance() *dealer.Dealer {
 		}
 		atomic.StoreUint32(&initialized, 1)
 
-		instance.Run(context.Background())
+		go instance.Run(context.Background())
 
 		logrus.Infof("Created dealer instance\n")
 	}
 	return instance
+}
+
+// IsDealerInitialized function to check if dealer is initialized
+func IsDealerInitialized() bool {
+	return atomic.LoadUint32(&initialized) == 1
 }
