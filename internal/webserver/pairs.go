@@ -46,7 +46,7 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 
 			for _, p := range c {
 				response.Pair = append(response.Pair, pair{
-					Name:      p.String(),
+					Name:      p.Format("-", true).String(),
 					AssetType: a,
 				})
 			}

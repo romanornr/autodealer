@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	orderbuilder2 "github.com/romanornr/autodealer/internal/orderbuilder"
+	"github.com/romanornr/autodealer/internal/orderbuilder"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -97,27 +97,30 @@ func TradeCtx(next http.Handler) http.Handler {
 
 		qty := qtyUSD / price.Last
 		subAccount, err := GetSubAccountByID(e, "")
-		orderBuilder := orderbuilder2.NewOrderBuilder()
-		orderBuilder.
+
+		ob := orderbuilder.NewOrderBuilder()
+		ob.
 			AtExchange(e.GetName()).
+			ForAccountID(subAccount.ID).
 			ForCurrencyPair(p).
 			WithAssetType(assetItem).
 			ForPrice(price.Last).
 			WithAmount(qty).
 			UseOrderType(orderType).
-			SetSide(side).
-			WithPostOnly(false).
-			UseImmediateOrCancel(false).
-			ForAccountID(subAccount.ID)
+			SetSide(side)
 
-		newOrder, err := orderBuilder.Build()
+		director := orderbuilder.Director{}
+		director.SetBuilder(ob)
+		newOrder, err := director.Construct()
 		if err != nil {
-			logrus.Errorf("failed to build order %s\n", err)
+			logrus.Errorf("failed to construct order %s\n", err)
 		}
+
+		logrus.Printf("new order: %+v\n", newOrder)
 
 		logrus.Printf("%s quantity %f\n", p.String(), qty)
 
-		submitResponse, err := d.SubmitOrderUD(context.Background(), e.GetName(), *newOrder, nil) //e.SubmitOrder(context.Background(), &o)
+		submitResponse, err := d.SubmitOrderUD(context.Background(), e.GetName(), *newOrder, nil)
 		if err != nil {
 			logrus.Errorf("submit order failed: %s\n", err)
 		}
