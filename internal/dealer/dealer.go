@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/rs/zerolog/log"
+	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"sync"
 	"time"
 
@@ -12,7 +14,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 
 	"github.com/sirupsen/logrus"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
@@ -138,8 +139,14 @@ func (b Builder) Build() (*Dealer, error) {
 	// Assign custom exchange builder.
 	dealer.ExchangeManager.Builder = b.factory
 
+	// enable GCT's verbose output through our logging system
+	if b.settings.Verbose {
+		dealer.setupGCTLogging()
+		gctlog.Infoln(gctlog.Global, "GCT logging initialized")
+	}
+
 	// Create and setup exchanges.
-	if err := dealer.setupExchanges(GCTLog{nil}); err != nil {
+	if err := dealer.setupExchanges(); err != nil {
 		return dealer, err
 	}
 
@@ -159,34 +166,6 @@ type Dealer struct {
 	registry        OrderRegistry
 	reporters       []Reporter
 }
-
-// “Dealer”, is getting injected with basic configuration properties such as an engine.Settings, login credentials and persistence information
-// The root strategy is a used as a placeholder for future functions. A registry object is created and set as a property of this object
-// The program gets the keys of an "Assets Currency" table from the configuration table in gocryptotrader.conf
-// a green flag that will be passed to the config.DEALER.SETTINGS.ACCOUNT when the new config.DEALER.DefaultCurrency property is evaluated to initialize the system?
-
-// *"Continuous Poller"
-// The Keep object will reset the previous values in Engine and request a New
-// Initialization every time a New Keep object is instantiated with a new root strategy
-// ******************************
-// The allocated memory for any other object will be reused for instances of the dealer.RootStrategy methods
-// The new config.dealer.defaultCurrency property for the config.DEALER.SETTINGS.ACCOUNT will be initialized using the dealer.Config.DefaultCurrency property
-// The suggested name of the property is in order to remove confusion about the green flag and make it more intuitive
-// There is a possibility for a "synchronize up to X times a second property that can be passed
-
-// 1. First you create a variable called `dealer` which is of type `*Dealer` This refers to the above struct
-// 2. Next is the declaration of NewDealer. Notice that `settings` is of type engine.Settings, whereas `dealer` is of type `*Dealer`.
-// This means that NewDealer may take any struct type as its first parameter (where the struct needs to fulfill the Signature of engine.Settings such as
-// having a ConfigFile or a EnableDryRun field), and that dealer is a pointer to a Dealer struct, not a naked Dealer. Note also that the returned value
-// is a pointer to Dealer as well. In other words: NewDealer takes any settings struct, and returns a pointer to a Dealer struct satisfying some arbitrary interface.
-// The interface is satisfied just by having a field called `Root` of type RootStrategy.
-// 3. Here we set the defaults for the engine.Settings (which is the incoming struct type), and instantiate the The configuration struct type.
-// 4. Reading the configuration from file happens in two parts: First we get the default path to the file using GetAndMigrateDefaultPath, then we set ReadConfigFromFile by the path.
-// 5. Dealer will request a new initialization every time a new Dealer object has been initiated with a new root strategy
-// 6. The allocated memory for any object will be reused for different instances of the Dealer.NewRootStrategy methods
-
-// Run starts the bot manager, streams every exchange for this bot
-// assuming all data providers are ready
 
 //Run is the entry point of all exchange data streams.  Strategy.On*() events for a single exchange are invoked from the same thread.
 //Thus, if a strategy deals with multiple exchanges simultaneously, there may be race conditions.
@@ -237,8 +216,7 @@ func (bot *Dealer) Run(ctx context.Context) {
 func Loop(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy) error {
 	// if the exchange doesn't support websockets we still need to keep running
 	if !e.IsWebsocketEnabled() {
-		gctlog := GCTLog{nil}
-		gctlog.Warnf(gctlog.ExchangeSys, "%s: no websocket support", e.GetName())
+		What(log.Warn().Str("exchange", e.GetName()), "no websocket support")
 		<-ctx.Done()
 		return nil
 	}
@@ -447,34 +425,6 @@ func (bot *Dealer) ReportValue(m Metric, v float64, labels ...string) {
 	}
 }
 
-// GCTLog struct has functions for each log type - the Warnf(), Errorf(), and Debugf() functions. The LoadExchange() method for Keep wants an *out log pointer of GCTLog type.
-// The bot variable is an interface which does not contain a struct that has methods for each log type and variable has to be changed to a struct for GCTLog type or a new struct needs to be created that has functions for each log type and use that as the input for LoadExchange().
-// For this code, it is preferred that GCTLog struct is changed to a struct of a log type
-type GCTLog struct {
-	ExchangeSys interface{}
-}
-
-func (g GCTLog) Infof(data string, v ...interface{}) {
-	logrus.Infof(data, v...)
-}
-
-func (g GCTLog) Warnf(_ interface{}, data string, v ...interface{}) {
-	logrus.Warnf(data, v...)
-}
-
-func (g GCTLog) Errorf(_ interface{}, data string, v ...interface{}) {
-	logrus.Errorf(data, v...)
-}
-
-func (g GCTLog) Debugf(_ interface{}, data string, v ...interface{}) {
-	logrus.Debugf(data, v...)
-}
-
-// LoadExchange loads the exchange from the given path.
-func (bot *Dealer) LoadExchange(cfg *config.Exchange, wg *sync.WaitGroup) error {
-	return bot.loadExchange(cfg, wg, GCTLog{nil})
-}
-
 // ActivateAsset will activate the asset for the given exchange.
 func (bot *Dealer) ActivateAsset(e exchange.IBotExchange, a asset.Item) error {
 	base := e.GetBase()
@@ -514,34 +464,24 @@ func (bot *Dealer) ActivatePair(e exchange.IBotExchange, a asset.Item, p currenc
 	return nil
 }
 
+// GetExchanges is a wrapper of GCT's Engine.GetExchanges
+func (bot *Dealer) GetExchanges() []exchange.IBotExchange {
+	exch, err := bot.ExchangeManager.GetExchanges()
+	if err != nil {
+		logrus.Errorf("unable to get exchanges: %s", err)
+		return []exchange.IBotExchange{}
+	}
+
+	return exch
+}
+
 var (
 	ErrNoExchangesLoaded    = errors.New("no exchanges have been loaded")
 	ErrExchangeFailedToLoad = errors.New("exchange failed to load")
 )
 
-// getExchange is an unchanged copy of Engine.GetExchanges.
-//nolint
-func (bot *Dealer) getExchanges(gctlog GCTLog) []exchange.IBotExchange {
-	exch, err := bot.ExchangeManager.GetExchanges()
-	if err != nil {
-		gctlog.Warnf(gctlog.ExchangeSys, "Cannot get exchanges: %v", err)
-		return []exchange.IBotExchange{}
-	}
-	return exch
-}
-
-// GetExchanges returns a list of all loaded exchanges.
-func (bot *Dealer) GetExchanges() []exchange.IBotExchange {
-	return bot.getExchanges(GCTLog{nil})
-}
-
-// LoadExchange creates an exchange object for the loaded exchange by calling ExchangeManager.NewExchangeByName.
-// We check that the exchange loaded supports the expected base currency by calling CurrencyPairs.IsAssetEnabled.
-// call to the exchange object's Setup function which checks the exchange for its name and retrieves all the configurable values for the exchange. Setup is called by both the ExchangeManager and the Base.
-// call to validate credentials, which checks whether or not the exchange supports the asset's currency. If validation is successful, we log an INFO message and pass.
-// check the actual auth status of the exchange and make sure that there is no mismatch between the configured auth and the actual auth. If there is a mismatch with isAuthenticatedSupport and AuthenticatedSupport status, we log a WARN message and set the AutheticatedSupport attributes to false.
-// We test exchange name is set correctly and make sure that the exchange is set up  normal and we then start the exchange. This last step is performed by both the ExchangeManager and the Base.
-func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gctlog GCTLog) error {
+// loadExchange is an adapted version of GCT's Engine.LoadExchange.
+func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup) error {
 	exch, err := bot.ExchangeManager.NewExchangeByName(exchCfg.Name)
 	if err != nil {
 		return err
@@ -553,7 +493,8 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gc
 	}
 
 	exch.SetDefaults()
-
+	// overwrite whatever name the exchange wrapper has decided with the name that's in the config,
+	// this is due to the exchange alias functionality that we offer over GCT.
 	base.Name = exchCfg.Name
 
 	if bot.Settings.EnableAllPairs &&
@@ -561,10 +502,12 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gc
 		assets := exchCfg.CurrencyPairs.GetAssetTypes(false)
 		for x := range assets {
 			var pairs currency.Pairs
+
 			pairs, err = exchCfg.CurrencyPairs.GetPairs(assets[x], false)
 			if err != nil {
 				return err
 			}
+
 			exchCfg.CurrencyPairs.StorePairs(assets[x], pairs, true)
 		}
 	}
@@ -572,79 +515,92 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gc
 	if bot.Settings.EnableExchangeVerbose {
 		exchCfg.Verbose = true
 	}
+
+	// nolint: nestif
 	if exchCfg.Features != nil {
 		if bot.Settings.EnableExchangeWebsocketSupport &&
 			base.Features.Supports.Websocket {
 			exchCfg.Features.Enabled.Websocket = true
 
 			if exchCfg.WebsocketTrafficTimeout <= 0 {
-				gctlog.Infof("%V", gctlog.ExchangeSys,
-					"Exchange %s Websocket response traffic timeout value not set, defaulting to %v.",
-					exchCfg.Name,
-					defaultWebsocketTrafficTimeout)
+				What(log.Info().
+					Str("exchange", exchCfg.Name).
+					Dur("default", defaultWebsocketTrafficTimeout),
+					"Websocket response traffic timeout value not set, setting default")
+
 				exchCfg.WebsocketTrafficTimeout = defaultWebsocketTrafficTimeout
 			}
 		}
+
 		if bot.Settings.EnableExchangeAutoPairUpdates &&
 			base.Features.Supports.RESTCapabilities.AutoPairUpdates {
 			exchCfg.Features.Enabled.AutoPairUpdates = true
 		}
+
 		if bot.Settings.DisableExchangeAutoPairUpdates {
 			if base.Features.Supports.RESTCapabilities.AutoPairUpdates {
 				exchCfg.Features.Enabled.AutoPairUpdates = false
 			}
 		}
 	}
+
 	if bot.Settings.HTTPUserAgent != "" {
 		exchCfg.HTTPUserAgent = bot.Settings.HTTPUserAgent
 	}
+
 	if bot.Settings.HTTPProxy != "" {
 		exchCfg.ProxyAddress = bot.Settings.HTTPProxy
 	}
+
 	if bot.Settings.HTTPTimeout != exchange.DefaultHTTPTimeout {
 		exchCfg.HTTPTimeout = bot.Settings.HTTPTimeout
 	}
+
 	if bot.Settings.EnableExchangeHTTPDebugging {
 		exchCfg.HTTPDebugging = bot.Settings.EnableExchangeHTTPDebugging
 	}
 
 	if !bot.Settings.EnableExchangeHTTPRateLimiter {
-		gctlog.Warnf(gctlog.ExchangeSys,
-			"Loaded exchange %s rate limiting has been turned off.\n",
-			exch.GetName(),
-		)
-		err = exch.DisableRateLimiter()
-		if err != nil {
-			gctlog.Errorf(gctlog.ExchangeSys,
-				"Loaded exchange %s rate limiting cannot be turned off: %s.\n",
-				exch.GetName(),
-				err,
-			)
+		What(log.Info().
+			Str("exchange", exch.GetName()),
+			"Rate limiting has been turned off")
+
+		if err := exch.DisableRateLimiter(); err != nil {
+			What(log.Error().
+				Err(err).
+				Str("exchange", exch.GetName()),
+				"unable to disable exchange rate limiter")
 		}
 	}
 
 	exchCfg.Enabled = true
-	err = exch.Setup(exchCfg)
-	if err != nil {
+
+	if err := exch.Setup(exchCfg); err != nil {
 		exchCfg.Enabled = false
+
 		return err
 	}
 
 	bot.ExchangeManager.Add(exch)
+
 	if base.API.AuthenticatedSupport ||
 		base.API.AuthenticatedWebsocketSupport {
 		assetTypes := base.GetAssetTypes(false)
+
 		var useAsset asset.Item
+
 		for a := range assetTypes {
 			err = base.CurrencyPairs.IsAssetEnabled(assetTypes[a])
 			if err != nil {
 				continue
 			}
+
 			useAsset = assetTypes[a]
+
 			break
 		}
-		err = exch.ValidateCredentials(context.TODO(), useAsset)
-		if err != nil {
+
+		if err := exch.ValidateCredentials(context.TODO(), useAsset); err != nil {
 			gctlog.Warnf(gctlog.ExchangeSys,
 				"%s: Cannot validate credentials: %s\n",
 				base.Name,
@@ -653,44 +609,55 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup, gc
 	}
 
 	if wg != nil {
-		exch.Start(wg)
+		if err := exch.Start(wg); err != nil {
+			return fmt.Errorf("unable to start exchange: %w", err)
+		}
 	} else {
 		tempWG := sync.WaitGroup{}
-		exch.Start(&tempWG)
+
+		if err := exch.Start(&tempWG); err != nil {
+			return fmt.Errorf("unable to start exchange: %w", err)
+		}
+
 		tempWG.Wait()
 	}
 
 	return nil
 }
 
-// setupExchanges function first determines if enabled is true or false, and then determines whether any exchanges have been loaded.
-// If the exchanges have not been loaded, the exchanges will be loaded using the GetExchanges function. Because this function implements a waitgroup, the code execution will continue.
-// The code attempts to load a single transaction and then moves on to the next stagename in the actions list, which is the setup Operations Stage.
-func (bot *Dealer) setupExchanges(gctlog GCTLog) error {
+// setupExchanges is an (almost) unchanged copy of Engine.SetupExchanges.
+//
+//nolint
+func (bot *Dealer) setupExchanges() error {
 	var wg sync.WaitGroup
-	configs := bot.Config.GetAllExchangeConfigs()
 
-	// DELETED: parameters -> dryRun...()
+	configs := bot.Config.GetAllExchangeConfigs()
 
 	for x := range configs {
 		if !configs[x].Enabled && !bot.Settings.EnableAllExchanges {
-			gctlog.Debugf(gctlog.ExchangeSys, "%s: Exchange support: Disabled\n", configs[x].Name)
+			What(log.Debug().
+				Str("exchange", configs[x].Name),
+				"exchange disabled")
 			continue
 		}
 		wg.Add(1)
 		go func(c config.Exchange) {
 			defer wg.Done()
-			err := bot.LoadExchange(&c, &wg)
+			err := bot.loadExchange(&c, &wg)
 			if err != nil {
-				gctlog.Errorf(gctlog.ExchangeSys, "LoadExchange %s failed: %s\n", c.Name, err)
+				What(log.Error().
+					Err(err).
+					Str("exchange", c.Name),
+					"exchange load failed")
+
 				return
 			}
-			gctlog.Debugf(gctlog.ExchangeSys,
-				"%s: Exchange support: Enabled (Authenticated API support: %s - Verbose mode: %s).\n",
-				c.Name,
-				common.IsEnabled(c.API.AuthenticatedSupport),
-				common.IsEnabled(c.Verbose),
-			)
+
+			What(log.Debug().
+				Str("exchange", c.Name).
+				Bool("authenticated", c.API.AuthenticatedSupport).
+				Bool("verbose", c.Verbose),
+				"exchange load failed")
 		}(configs[x])
 	}
 	wg.Wait()

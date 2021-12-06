@@ -69,7 +69,7 @@
 
                 <div class="col">
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                    <input class="form-check-input" type="checkbox" role="switch" v-model="twap" id="flexSwitchCheckDefault">
                     <label class="form-check-label" for="reduceFlexSwitchCheckDefault">TWAP</label>
                   </div>
                 </div>
@@ -173,18 +173,8 @@
           console.log(error);
         });
       },
-      onSubmit() {
-        // reset previous result
-        this.errored = false
-        this.result = ""
-        this.error =""
-
-        // reset address and balance for new result
-        this.balance = ""
-
-        // disable the form
-        this.loading = true
-
+      // onOrderType switch case for order type
+      onOrderType: function () {
         switch (this.orderType) {
           case "limitBuy":
             this.side = "buy"
@@ -207,7 +197,47 @@
             this.orderType = "market"
             break;
         }
+      },
+      // axios call to place a TWAP order on the exchange
+      onTWAPOrder: function () {
 
+      },
+      onSubmit() {
+        // reset previous result
+        this.errored = false
+        this.result = ""
+        this.error =""
+
+        // reset address and balance for new result
+        this.balance = ""
+
+        // disable the form
+        this.loading = true
+
+        // switch (this.orderType) {
+        //   case "limitBuy":
+        //     this.side = "buy"
+        //     this.orderType = "limit"
+        //     break;
+        //   case "marketBuy":
+        //     this.side = "buy"
+        //     this.orderType = "market"
+        //     break;
+        //   case "limitSell":
+        //     this.side = "sell"
+        //     this.orderType = "limit"
+        //     break;
+        //   case "marketSell":
+        //     this.side = "sell"
+        //     this.orderType = "market"
+        //     break;
+        //   default:
+        //     this.side = "buy"
+        //     this.orderType = "market"
+        //     break;
+        // }
+
+        this.onOrderType()
         axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType + '/' + this.side)
                 .then(response => {
                   this.processData(response)
