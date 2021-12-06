@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	util2 "github.com/romanornr/autodealer/internal/util"
+	"github.com/romanornr/autodealer/internal/util"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 
@@ -23,7 +23,8 @@ import (
 var ErrNoAssetType = errors.New("asset type not associated with currency pair")
 
 const (
-	defaultWebsocketTrafficTimeout = time.Second * 30
+	constDefaultWebsocketTrafficTimeout    = time.Second * 30
+	constDefaultValidateCredentialsTimeout = time.Second * 5
 )
 
 type (
@@ -85,19 +86,15 @@ func (b *Builder) Settings(s engine.Settings) *Builder {
 	return b
 }
 
+// Reporter function will add a reporter to the list of reporters.
 func (b *Builder) Reporter(r Reporter) *Builder {
 	b.reporters = append(b.reporters, r)
 	return b
 }
 
-// Build constructs a new dealer from a provides settings template argument. In case the provided template is nil, a default template will be used as a starting point.
-// In both cases the template config file the read from filepath. If the filepath can not be read, it may be imported from the directory.
-// Only if no filepath is provided, filepath.DefaultConfig will be used as an initial config for this dealer
-// If the template is a zero value but non nil, a default template will be returned. If the template config is non-zero, it will be constructed from template itself.
-// In case the template config can't be successfully constructed, an error will be returned. Along with a resulting *Dealer instance
-// This function will also return an error.
-func (b Builder) Build() (*Dealer, error) {
-	b.settings.ConfigFile = util2.ConfigFile(b.settings.ConfigFile)
+// Build function is used to build the dealer object. When we call `dealer, err := builder.build()` we get a *dealer and an error back.
+func (b Builder) Build(ctx context.Context) (*Dealer, error) {
+	b.settings.ConfigFile = util.ConfigFile(b.settings.ConfigFile)
 	filePath, err := config.GetAndMigrateDefaultPath(b.settings.ConfigFile)
 	if err != nil {
 		return nil, err
@@ -146,7 +143,7 @@ func (b Builder) Build() (*Dealer, error) {
 	}
 
 	// Create and setup exchanges.
-	if err := dealer.setupExchanges(); err != nil {
+	if err := dealer.setupExchanges(ctx); err != nil {
 		return dealer, err
 	}
 
@@ -327,7 +324,7 @@ func (bot *Dealer) SubmitOrderUD(ctx context.Context, exchangeOrName interface{}
 // If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
 // ListOrder method will not be executed if Contains method returns an error.
 func (bot *Dealer) SubmitOrders(ctx context.Context, e exchange.IBotExchange, xs ...order.Submit) error {
-	var wg util2.ErrorWaitGroup
+	var wg util.ErrorWaitGroup
 	bot.ReportEvent(SubmitBulkOrderLatencyMetric, e.GetName())
 	defer bot.ReportLatency(SubmitBulkOrderLatencyMetric, time.Now(), e.GetName())
 
@@ -481,7 +478,7 @@ var (
 )
 
 // loadExchange is an adapted version of GCT's Engine.LoadExchange.
-func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup) error {
+func (bot *Dealer) loadExchange(ctx context.Context, exchCfg *config.Exchange, wg *sync.WaitGroup) error {
 	exch, err := bot.ExchangeManager.NewExchangeByName(exchCfg.Name)
 	if err != nil {
 		return err
@@ -525,10 +522,10 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup) er
 			if exchCfg.WebsocketTrafficTimeout <= 0 {
 				What(log.Info().
 					Str("exchange", exchCfg.Name).
-					Dur("default", defaultWebsocketTrafficTimeout),
+					Dur("default", constDefaultWebsocketTrafficTimeout),
 					"Websocket response traffic timeout value not set, setting default")
 
-				exchCfg.WebsocketTrafficTimeout = defaultWebsocketTrafficTimeout
+				exchCfg.WebsocketTrafficTimeout = constDefaultWebsocketTrafficTimeout
 			}
 		}
 
@@ -600,11 +597,19 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup) er
 			break
 		}
 
-		if err := exch.ValidateCredentials(context.TODO(), useAsset); err != nil {
-			gctlog.Warnf(gctlog.ExchangeSys,
-				"%s: Cannot validate credentials: %s\n",
-				base.Name,
-				err)
+		// enforce a max timeout of 5 seconds for validating credentials,
+		// it might be the case that an exchange is rate limiting us, so
+		// we don't want to be waiting forever for this validation to complete
+		ctx, cancel := context.WithTimeout(ctx, constDefaultValidateCredentialsTimeout)
+		defer cancel()
+
+		if err := exch.ValidateCredentials(ctx, useAsset); err != nil {
+			What(log.Warn().
+				Err(err).
+				Str("exchange", exch.GetName()),
+				"unable to validate exchange credentials")
+
+			return err
 		}
 	}
 
@@ -628,7 +633,7 @@ func (bot *Dealer) loadExchange(exchCfg *config.Exchange, wg *sync.WaitGroup) er
 // setupExchanges is an (almost) unchanged copy of Engine.SetupExchanges.
 //
 //nolint
-func (bot *Dealer) setupExchanges() error {
+func (bot *Dealer) setupExchanges(ctx context.Context) error {
 	var wg sync.WaitGroup
 
 	configs := bot.Config.GetAllExchangeConfigs()
@@ -643,7 +648,7 @@ func (bot *Dealer) setupExchanges() error {
 		wg.Add(1)
 		go func(c config.Exchange) {
 			defer wg.Done()
-			err := bot.loadExchange(&c, &wg)
+			err := bot.loadExchange(ctx, &c, &wg)
 			if err != nil {
 				What(log.Error().
 					Err(err).

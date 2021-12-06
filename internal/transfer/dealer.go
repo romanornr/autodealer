@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 
@@ -30,7 +31,7 @@ func GetDealerInstance() *dealer.Dealer {
 	mu.Lock()
 	defer mu.Unlock()
 	if initialized == 0 {
-		instance, err = dealer.NewBuilder().Build()
+		instance, err = dealer.NewBuilder().Build(context.Background())
 		if err != nil {
 			logrus.Errorf("failed to create instance: %v", err)
 		}
