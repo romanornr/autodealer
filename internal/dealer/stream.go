@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sirupsen/logrus"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
@@ -41,7 +40,9 @@ func Stream(ctx context.Context, d *Dealer, e exchange.IBotExchange, s Strategy)
 	for data := range ws.ToRoutine {
 		err := handleData(d, e, s, data)
 		if err != nil {
-			logrus.Errorf("error handling data: %s\n", err)
+			What(log.Error().
+				Err(err),
+				"error handling data")
 		}
 	}
 
@@ -110,7 +111,10 @@ func handleData(d *Dealer, e exchange.IBotExchange, s Strategy, data interface{}
 // If this is true, Go will output "error: <errormessage>". Otherwise, nothing is outputted.
 func handleError(method string, err error) {
 	if err != nil {
-		logrus.Warnf("method %v error: %s\n", method, err)
+		What(log.Warn().
+			Err(err).
+			Str("method", method),
+			"method failed")
 	}
 }
 
@@ -155,12 +159,13 @@ func OpenWebsocket(e exchange.IBotExchange) (*stream.Websocket, error) {
 // unhandledType function displays debug information about the error. It simply formats the given error message.
 func unhandledType(data interface{}, warn bool) {
 	e := log.Debug()
+
 	if warn {
 		e = log.Warn()
 	}
 
-	t := fmt.Sprintf("%T\n", data)
+	t := fmt.Sprintf("%T", data)
 	e = e.Interface("data", data).Str("type", t)
 
-	logrus.Warnf("unhandledType: %v\n", e)
+	What(e, "unhandled type")
 }
