@@ -1,5 +1,14 @@
 package algo
 
+import (
+	"github.com/romanornr/autodealer/internal/orderbuilder"
+)
+
+// Twap is a twap strategy that will attempt to execute an order and achieve the TWAP or better. A TWAP strategy underpins more sophisticated ways of buying and selling than simply executing orders en masse: for example, dumping a huge number of shares in one block is likely to affect market perceptions, with an adverse effect on the price. A TWAP strategy is often used to minimize a large order's the impact on the market and result in price improvement
+func Twap(director orderbuilder.Director, hours float64, minutes float64) {
+
+}
+
 //import (
 //	"fmt"
 //	"github.com/shopspring/decimal"

@@ -156,8 +156,8 @@
         balance: "",
         assetType: "spot",
         twap: false,
-        hours: "",
-        minutes: "",
+        hours: 0,
+        minutes: 0,
         notification: 0,
         result: "",
       }
@@ -200,7 +200,28 @@
       },
       // axios call to place a TWAP order on the exchange
       onTWAPOrder: function () {
-
+        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType + '/' + this.side + '/' + this.hours + '/' + this.minutes)
+        .then(response => {
+          this.processData(response)
+        })
+        .catch(error => {
+          console.log(error);
+          this.error =  error
+          this.errored = true
+        });
+      },
+      onTradeOrder: function () {
+        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType + '/' + this.side)
+                .then(response => {
+                  this.processData(response)
+                })
+                .catch(error => {
+                  console.log(error)
+                  this.error = error
+                  this.errored = true
+                }
+                )
+                .finally(() => this.loading = false)
       },
       onSubmit() {
         // reset previous result
@@ -215,18 +236,15 @@
         this.loading = true
 
         this.onOrderType()
-        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType + '/' + this.side)
-                .then(response => {
-                  this.processData(response)
-                })
-                .catch(error => {
-                          console.log(error)
-                          this.error = error
-                          this.errored = true
-                        }
-                )
-                .finally(() => this.loading = false)
+
+        if (this.twap) {
+          this.onTWAPOrder()
+        } else {
+          this.onTradeOrder()
+        }
       },
+
+      // axios call to create a new TWAP order
       processData(result) {
         const data = result.data
         this.result = data

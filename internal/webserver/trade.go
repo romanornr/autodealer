@@ -3,6 +3,7 @@ package webserver
 import (
 	"context"
 	"errors"
+	"github.com/romanornr/autodealer/internal/algo"
 	"net/http"
 	"strconv"
 	"time"
@@ -49,7 +50,7 @@ func getTradeResponse(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, response)
 }
 
-// TradeCtx Handler handleHome is the handler for the '/trade' page request.
+// TradeCtx is the context for the '/trade' request.
 // trade/{exchange}/{pair}/{qty}/{assetType}/{orderType}/{side}
 func TradeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
@@ -136,6 +137,85 @@ func TradeCtx(next http.Handler) http.Handler {
 			Timestamp: time.Now(),
 		}
 
+		ctx := context.WithValue(request.Context(), "response", &response)
+		next.ServeHTTP(w, request.WithContext(ctx))
+	})
+}
+
+func TWAPCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+
+		exchangeNameReq := chi.URLParam(request, "exchange")
+		p, err := currency.NewPairFromString(chi.URLParam(request, "pair"))
+		if err != nil {
+			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
+		}
+
+		assetItem := asset.Item(chi.URLParam(request, "assetType"))
+		if !assetItem.IsValid() {
+			logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
+		}
+
+		side, err := order.StringToOrderSide(chi.URLParam(request, "side"))
+		if err != nil {
+			logrus.Errorf("failed to parse side: %s\n", chi.URLParam(request, "side"))
+		}
+
+		d := GetDealerInstance()
+		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
+		if err != nil {
+			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
+			return
+		}
+
+		hours := chi.URLParam(request, "hours")
+		h, err := strconv.ParseFloat(hours, 32)
+		if err != nil {
+			logrus.Errorf("hours %f\n", h)
+		}
+
+		minutes := chi.URLParam(request, "minutes")
+		m, err := strconv.ParseFloat(minutes, 32)
+		if err != nil {
+			logrus.Errorf("hours %f\n", h)
+		}
+
+		subAccount, err := GetSubAccountByID(e, "")
+
+		qtyUSD, err := strconv.ParseFloat(chi.URLParam(request, "qty"), 64)
+		if err != nil {
+			logrus.Errorf("failed to parse qty %s\n", err)
+		}
+
+		orderType, err := order.StringToOrderType(chi.URLParam(request, "orderType"))
+		if err != nil {
+			logrus.Errorf("failed to parse orderType %s\n", err)
+		}
+
+		price, err := e.UpdateTicker(context.Background(), p, assetItem)
+		if err != nil {
+			logrus.Errorf("failed to update ticker %s\n", err)
+		}
+
+		qty := qtyUSD / price.Last
+
+		ob := orderbuilder.NewOrderBuilder()
+		ob.
+			AtExchange(e.GetName()).
+			ForAccountID(subAccount.ID).
+			ForCurrencyPair(p).
+			WithAssetType(assetItem).
+			ForPrice(price.Last).
+			WithAmount(qty).
+			UseOrderType(orderType).
+			SetSide(side)
+
+		director := orderbuilder.Director{}
+		director.SetBuilder(ob)
+
+		algo.Twap(director, h, m)
+
+		response := OrderResponse{}
 		ctx := context.WithValue(request.Context(), "response", &response)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})

@@ -188,6 +188,11 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getBankTransfer)
 	})
 
+	r.Route(routeMoveTermStructure, func(r chi.Router) {
+		r.Use(MoveTermStructureCtx)
+		r.Get("/", getMoveTermStructure)
+	})
+
 	return r
 }
 
