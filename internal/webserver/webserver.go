@@ -3,6 +3,10 @@ package webserver
 import (
 	"context"
 	"fmt"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/go-echarts/go-echarts/v2/types"
+	"github.com/romanornr/autodealer/internal/move"
 	"html/template"
 	"net/http"
 	"os"
@@ -72,6 +76,7 @@ func service() http.Handler {
 	r.Get("/withdraw", WithdrawHandler) // http://127.0.0.1:3333/withdraw
 	r.Get("/bank/transfer", bankTransferHandler)
 	r.Get("/s", SearchHandler)
+	r.Get("/move", MoveHandler) // http://127.0.0.1:3333/move
 
 	// func subrouter generates a new router for each sub route.
 	r.Mount("/api", apiSubrouter())
@@ -212,4 +217,34 @@ func SearchHandler(w http.ResponseWriter, _ *http.Request) {
 		logrus.Errorf("error template: %s\n", err)
 		return
 	}
+}
+
+// MoveHandler handleMove is the handler for the '/move' page request.
+func MoveHandler(w http.ResponseWriter, _ *http.Request) {
+	line := charts.NewLine()
+	// set some global options like Title/Legend/ToolTip or anything else
+	line.SetGlobalOptions(
+		charts.WithInitializationOpts(opts.Initialization{Theme: types.ThemeWesteros}),
+		charts.WithTitleOpts(opts.Title{
+			Title:    "FTX Move Contracts",
+			Subtitle: "TermStructure",
+		}))
+
+	d := GetDealerInstance()
+	termStructure := move.GetTermStructure(d)
+
+	items := make([]opts.LineData, 0)
+	xstring := []string{}
+
+	for _, m := range termStructure.MOVE {
+		items = append(items, opts.LineData{Value: m.Last})
+		xstring = append(xstring, m.ExpiryDescription)
+		//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
+	}
+
+	line.SetXAxis(xstring).
+		AddSeries("move", items).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	line.Render(w)
 }

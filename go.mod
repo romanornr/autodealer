@@ -6,6 +6,7 @@ require (
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/render v1.0.1
+	github.com/go-echarts/go-echarts/v2 v2.2.4 // indirect
 	github.com/rs/cors v1.8.0
 	github.com/rs/zerolog v1.26.1
 	github.com/shopspring/decimal v1.3.1
