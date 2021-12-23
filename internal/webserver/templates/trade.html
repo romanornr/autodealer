@@ -167,6 +167,7 @@
     },
     methods: {
       onPairsLoaded: function() {
+        this.pairs = []; // clear the array
         axios.get('http://127.0.0.1:3333/api/pairs/' + this.exchangeName).then(response => {
           this.pairs = response.data["pair"];
         }).catch(error => {
