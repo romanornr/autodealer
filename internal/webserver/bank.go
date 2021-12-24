@@ -34,8 +34,9 @@ func BankTransferCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		// currencyCode := currency.NewCode(chi.URLParam(request, "exchange"))     // TODO fix currency.EUR
 		currencyCode := currency.EUR
+		d := GetDealerInstance()
 
-		submitResponse, err := transfer2.KrakenConvertUSDT(currencyCode)
+		submitResponse, err := transfer2.KrakenConvertUSDT(currencyCode, d)
 		if err != nil {
 			logrus.Errorf("Failed to sell USDT to Euro: %s\n", err)
 			render.Status(request, http.StatusUnprocessableEntity)
@@ -44,7 +45,7 @@ func BankTransferCtx(next http.Handler) http.Handler {
 		}
 		logrus.Infof("submit response %v\n", submitResponse)
 
-		response, err := transfer2.KrakenInternationalBankAccountWithdrawal(currencyCode)
+		response, err := transfer2.KrakenInternationalBankAccountWithdrawal(currencyCode, d)
 		if err != nil {
 			logrus.Errorf("Failed to withdraw EUR from bank account: %s\n", err)
 			render.Status(request, http.StatusUnprocessableEntity)

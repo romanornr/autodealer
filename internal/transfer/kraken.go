@@ -2,6 +2,7 @@ package transfer
 
 import (
 	"context"
+	"github.com/romanornr/autodealer/internal/dealer"
 
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -12,9 +13,7 @@ import (
 )
 
 // KrakenConvertUSDT converts all USDT to Euros
-func KrakenConvertUSDT(code currency.Code) (order.SubmitResponse, error) {
-
-	d := GetDealerInstance()
+func KrakenConvertUSDT(code currency.Code, d *dealer.Dealer) (order.SubmitResponse, error) {
 
 	exchange, err := d.ExchangeManager.GetExchangeByName("Kraken")
 	if err != nil {
@@ -62,9 +61,8 @@ func KrakenConvertUSDT(code currency.Code) (order.SubmitResponse, error) {
 }
 
 // KrakenInternationalBankAccountWithdrawal withdraws funds to an international bank account
-func KrakenInternationalBankAccountWithdrawal(code currency.Code) (ExchangeWithdrawResponse, error) {
+func KrakenInternationalBankAccountWithdrawal(code currency.Code, d *dealer.Dealer) (ExchangeWithdrawResponse, error) {
 
-	d := GetDealerInstance()
 	exchange, err := d.ExchangeManager.GetExchangeByName("Kraken")
 	if err != nil {
 		return ExchangeWithdrawResponse{}, err
