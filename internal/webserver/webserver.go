@@ -224,7 +224,7 @@ func MoveHandler(w http.ResponseWriter, _ *http.Request) {
 	line := charts.NewLine()
 	// set some global options like Title/Legend/ToolTip or anything else
 	line.SetGlobalOptions(
-		charts.WithInitializationOpts(opts.Initialization{Theme: types.ThemeChalk}),
+		charts.WithInitializationOpts(opts.Initialization{Theme: types.ThemeWesteros}),
 		charts.WithTitleOpts(opts.Title{
 			Title:    "FTX Move Contracts",
 			Subtitle: "TermStructure",

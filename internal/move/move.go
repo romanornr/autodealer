@@ -25,6 +25,7 @@ func GetTermStructure(d *dealer.Dealer) TermStructure {
 		logrus.Errorf("Error getting available pairs: %s", err)
 	}
 
+	var quarterlyCount int
 	for _, future := range futures {
 		// if futures strong contains "BTC-MOVE"
 		if strings.Contains(future.String(), "BTC-MOVE") {
@@ -33,6 +34,17 @@ func GetTermStructure(d *dealer.Dealer) TermStructure {
 			if err != nil {
 				logrus.Errorf("Error getting future: %s", err)
 			}
+
+			if stat.Group == "quarterly" {
+				quarterlyCount++
+			}
+
+			// Avoid adding "Today", "Next Week" and "This Quarter" MOVE Contracts
+			// Avoid first Quarter MOVE Contract by checking if quarterlyCount is 1
+			if stat.ExpiryDescription == "Today" || stat.ExpiryDescription == "This Week" || stat.ExpiryDescription == "This Month" || quarterlyCount == 1 && stat.Group == "quarterly" {
+				continue
+			}
+
 			termStructure.MOVE = append(termStructure.MOVE, stat)
 		}
 	}
