@@ -234,16 +234,19 @@ func MoveHandler(w http.ResponseWriter, _ *http.Request) {
 	termStructure := move.GetTermStructure(d)
 
 	items := make([]opts.LineData, 0)
-	xstring := []string{}
+	yesterday := make([]opts.LineData, 0)
+	var xstring []string
 
 	for _, m := range termStructure.MOVE {
-		items = append(items, opts.LineData{Value: m.Last})
+		items = append(items, opts.LineData{Value: m.Mark})
+		yesterday = append(yesterday, opts.LineData{Value: m.Mark + m.Change24h})
 		xstring = append(xstring, m.ExpiryDescription)
 		//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
 	}
 
 	line.SetXAxis(xstring).
 		AddSeries("move", items).
+		AddSeries("yesterday", yesterday).
 		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
 
 	line.Render(w)
