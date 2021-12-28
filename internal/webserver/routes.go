@@ -11,6 +11,7 @@ const (
 	routeGetTicker          = "/ticker/{exchange}/{base}/{quote}"
 	routePriceToUSD         = "/{exchange}/{base}/priceusd"
 	routeMoveTermStructure  = "/move"
+	routeMoveStats          = "/move/stats"
 	routeBankTransfer       = "/bank/transfer/{currency}"
 	routeHoldingsExchange   = "/holdings/{exchange}"
 )

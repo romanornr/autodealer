@@ -198,6 +198,11 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getMoveTermStructure)
 	})
 
+	r.Route(routeMoveStats, func(r chi.Router) {
+		r.Use(MoveStatsCtx)
+		r.Get("/", getMoveStats)
+	})
+
 	return r
 }
 
