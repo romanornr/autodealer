@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"context"
+	"github.com/thrasher-corp/gocryptotrader/currency"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -74,4 +75,52 @@ func getPairsResponse(w http.ResponseWriter, r *http.Request) {
 	}
 	render.JSON(w, r, response)
 	return
+}
+
+// currencyList is the response for the get currencies endpoint
+type currencyList struct {
+	Code []currency.Code `json:"code"`
+}
+
+// getCurrencyList is the response for the get currencies endpoint
+func getCurrencyList(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	response, ok := ctx.Value("response").(*currencyList)
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		render.Status(r, http.StatusUnprocessableEntity)
+		return
+	}
+	render.JSON(w, r, response)
+	return
+}
+
+// CurrencyListCtx fetches currencies from the exchange
+func CurrencyListCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+
+		d := GetDealerInstance()
+		var response = new(currencyList)
+		e, err := d.ExchangeManager.GetExchangeByName(chi.URLParam(request, "exchange"))
+		if err != nil {
+			logrus.Errorf("Failed to get exchange: %s\n", err)
+		}
+
+		pairs, err := e.GetAvailablePairs(asset.Spot)
+		if err != nil {
+			logrus.Errorf("Failed to get pairs: %s\n", err)
+		}
+
+		//keys := make(map[string]bool)
+		var list []currency.Code
+
+		for _, p := range pairs {
+			list = append(list, p.Base)
+		}
+
+		response.Code = list
+
+		request = request.WithContext(context.WithValue(request.Context(), "response", response))
+		next.ServeHTTP(w, request)
+	})
 }
