@@ -29,11 +29,27 @@
                             <!--                        </option>-->
                             <!--                    </select>-->
                         </div>
-                        <div class="input-group mb-3">
-                            <div class="input-group mb-3"><span class="input-group-text">asset</span> <input type="text" class="form-control" id="assetName" v-model="asset" aria-label="asset" required /></div>
-                            <input type="text" class="form-control" placeholder="Destination address" id="destinationAddress" v-model="destinationAddress" aria-label="Address" aria-describedby="basic-addon2"/>
-                            <span class="input-group-text" id="basic-addon2">Address</span>
+<!--                        <div class="input-group mb-3">-->
+<!--                            <div class="input-group mb-3"><span class="input-group-text">asset</span> <input type="text" class="form-control" id="assetName" v-model="asset" aria-label="asset" required /></div>-->
+<!--                            <input type="text" class="form-control" placeholder="Destination address" id="destinationAddress" v-model="destinationAddress" aria-label="Address" aria-describedby="basic-addon2"/>-->
+<!--                            <span class="input-group-text" id="basic-addon2">Address</span>-->
+<!--                        </div>-->
+
+                        <div class="row">
+                            <div class="col">
+                                <v-select v-model="currency"
+                                          :options="currencies"
+                                          placeholder="USDT">
+                                </v-select>
+                            </div>
+<!--                            <div class="col">-->
+<!--                                <label class="form-check-label">${ pair.assetType}</label>-->
+<!--                            </div>-->
                         </div>
+
+<!--                        <script src='https://unpkg.com/vue@latest'></script>-->
+<!--                        <script src='https://unpkg.com/vue-select@latest'></script>-->
+
                         <div class="input-group mb-3">
                             <span class="input-group-text">$</span> <input type="number" class="form-control" id="amountUSD" v-model="amountUSD" /> <span class="input-group-text">Amount</span>
                             <input type="number" class="form-control" id="amount" v-model="amount" step="any" />
@@ -71,6 +87,7 @@
                     {text: 'BTSE', value: 'btse'}
                 ],
                 asset: "",
+                assets: [],
                 chain: "default",
                 destinationAddress: "",
                 exchangeName: "FTX",
@@ -83,7 +100,18 @@
                 isDisabled: false,
             }
         },
+        mounted() {
+            this.onAssetsLoaded();
+        },
         methods: {
+            onAssetsLoaded: function() {
+                this.pairs = []; // clear the array
+                axios.get('http://127.0.0.1:3333/api/assets/' + this.exchangeName).then(response => {
+                    this.currencies = response.data["code"];
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
             onSubmit() {
                 if (this.isDisabled) return; // Button is disabled, halt block execution
                 this.clickCount++;
