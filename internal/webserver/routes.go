@@ -14,5 +14,5 @@ const (
 	routeMoveStats          = "/move/stats"
 	routeBankTransfer       = "/bank/transfer/{currency}"
 	routeHoldingsExchange   = "/holdings/{exchange}"
-	routeAssets             = "/asset/{exchange}"
+	routeAssets             = "/assets/{exchange}"
 )
