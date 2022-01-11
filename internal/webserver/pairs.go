@@ -2,7 +2,6 @@ package webserver
 
 import (
 	"context"
-	"github.com/thrasher-corp/gocryptotrader/currency"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -18,6 +17,14 @@ type pair struct {
 
 type pairResponse struct {
 	Pair []pair `json:"pair"`
+}
+
+type exchangeAsset struct {
+	Code string `json:"code"`
+}
+
+type exchangeAssetResponse struct {
+	ExchangeAsset []exchangeAsset `json:"assets"`
 }
 
 // FetchPairsCtx fetches pairs from the exchange
@@ -77,15 +84,10 @@ func getPairsResponse(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// currencyList is the response for the get currencies endpoint
-type currencyList struct {
-	Code []currency.Code `json:"code"`
-}
-
 // getCurrencyList is the response for the get currencies endpoint
 func getCurrencyList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	response, ok := ctx.Value("response").(*currencyList)
+	response, ok := ctx.Value("response").(*exchangeAssetResponse)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		render.Status(r, http.StatusUnprocessableEntity)
@@ -100,7 +102,6 @@ func CurrencyListCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 
 		d := GetDealerInstance()
-		var response = new(currencyList)
 		e, err := d.ExchangeManager.GetExchangeByName(chi.URLParam(request, "exchange"))
 		if err != nil {
 			logrus.Errorf("Failed to get exchange: %s\n", err)
@@ -111,14 +112,19 @@ func CurrencyListCtx(next http.Handler) http.Handler {
 			logrus.Errorf("Failed to get pairs: %s\n", err)
 		}
 
-		//keys := make(map[string]bool)
-		var list []currency.Code
+		response := new(exchangeAssetResponse)
 
+		// range over pairs and get the currencies from the exchange
 		for _, p := range pairs {
-			list = append(list, p.Base)
-		}
+			// pair BTC-USDT
+			response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{
+				Code: p.Base.String(), // BTC
+			})
 
-		response.Code = list
+			response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{
+				Code: p.Quote.String(), // USDT
+			})
+		}
 
 		request = request.WithContext(context.WithValue(request.Context(), "response", response))
 		next.ServeHTTP(w, request)

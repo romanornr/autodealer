@@ -15,42 +15,24 @@
                         <div class="input-group mb-3">
 
                             {{template "exchangesRadioButtons"}}
-                            <!--                    <select class="form-select" v-model="exchangeInput" id="exchangeInput" aria-label="Default select exchange">-->
-                            <!--                        <option v-for="option in options" :value="option.value">-->
-                            <!--                            ${ option.text }-->
-                            <!--                        </option>-->
-                            <!--                    </select>-->
-                            <!--                    <span class="input-group-text">Exchange destination*</span>-->
-                            {{template "exchangesRadioButtons2"}}
 
-                            <!--                    <select class="form-select" v-model="exchangeDestination" id="exchangeDestination" aria-label="Default select example">-->
-                            <!--                        <option v-for="option in options" :value="option.value">-->
-                            <!--                            ${ option.text }-->
-                            <!--                        </option>-->
-                            <!--                    </select>-->
+                            {{template "exchangesRadioButtons2"}}
                         </div>
-<!--                        <div class="input-group mb-3">-->
-<!--                            <div class="input-group mb-3"><span class="input-group-text">asset</span> <input type="text" class="form-control" id="assetName" v-model="asset" aria-label="asset" required /></div>-->
-<!--                            <input type="text" class="form-control" placeholder="Destination address" id="destinationAddress" v-model="destinationAddress" aria-label="Address" aria-describedby="basic-addon2"/>-->
-<!--                            <span class="input-group-text" id="basic-addon2">Address</span>-->
-<!--                        </div>-->
+                    </div>
 
                         <div class="row">
                             <div class="col">
-                                <v-select v-model="currency"
-                                          :options="currencies"
-                                          placeholder="USDT">
-                                </v-select>
+                                <v-select v-model="asset"
+                                          :options="assets"
+                                          label="code"
+                                          placeholder="BTC"
+                                ></v-select>
                             </div>
-<!--                            <div class="col">-->
-<!--                                <label class="form-check-label">${ pair.assetType}</label>-->
-<!--                            </div>-->
-                        </div>
 
-<!--                        <script src='https://unpkg.com/vue@latest'></script>-->
-<!--                        <script src='https://unpkg.com/vue-select@latest'></script>-->
+                        <script src='https://unpkg.com/vue@latest'></script>
+                        <script src='https://unpkg.com/vue-select@latest'></script>
 
-                        <div class="input-group mb-3">
+                        <div class="input-group mb-1">
                             <span class="input-group-text">$</span> <input type="number" class="form-control" id="amountUSD" v-model="amountUSD" /> <span class="input-group-text">Amount</span>
                             <input type="number" class="form-control" id="amount" v-model="amount" step="any" />
                         </div>
@@ -72,11 +54,12 @@
 </html>
 
 <script type="text/javascript">
-    const app = Vue.createApp({
+    Vue.component("v-select", VueSelect.VueSelect);
+    new Vue({
+        el: "#app",
         delimiters: ['${', '}'],
-
         data() {
-            return {
+        return {
                 loading: false,
                 errored: false,
                 options: [
@@ -86,11 +69,11 @@
                     {text: 'Kraken', value: 'kraken'},
                     {text: 'BTSE', value: 'btse'}
                 ],
-                asset: "",
+                asset: "USDT",
                 assets: [],
                 chain: "default",
                 destinationAddress: "",
-                exchangeName: "FTX",
+                exchangeName: "ftx",
                 exchangeDestination: "",
                 loadingDestinationAddress: false,
                 amount: "",
@@ -105,9 +88,9 @@
         },
         methods: {
             onAssetsLoaded: function() {
-                this.pairs = []; // clear the array
+                this.assets = []; // clear the array
                 axios.get('http://127.0.0.1:3333/api/assets/' + this.exchangeName).then(response => {
-                    this.currencies = response.data["code"];
+                    this.assets = response.data["assets"]
                 }).catch(error => {
                     console.log(error);
                 });
@@ -178,6 +161,6 @@
             }
         }
     })
-    app.mount('#app').created()
+    app.mount('#app').created().mounted()
 </script>
 </html>
