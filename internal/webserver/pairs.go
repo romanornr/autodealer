@@ -115,20 +115,20 @@ func CurrencyListCtx(next http.Handler) http.Handler {
 		response := new(exchangeAssetResponse)
 
 		// `m` is used to store unique assets for easy search in the loop below
-		m := make(map[string]bool)
+		m := make(map[string]struct{})
 
 		for i := 0; i < len(pairs); i++ {
 			b := pairs[i].Base.String()
 			q := pairs[i].Quote.String()
 
 			// if there is no such currency in map, add it to map and assets
-			if t := m[b]; !t {
-				m[b] = true
+			if _, ok := m[b]; !ok {
+				m[b] = struct{}{}
 				response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{Code: b})
 			}
 
-			if t := m[q]; !t {
-				m[q] = true
+			if _, ok := m[q]; !ok {
+				m[q] = struct{}{}
 				response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{Code: q})
 			}
 		}
