@@ -114,16 +114,23 @@ func CurrencyListCtx(next http.Handler) http.Handler {
 
 		response := new(exchangeAssetResponse)
 
-		// range over pairs and get the currencies from the exchange
-		for _, p := range pairs {
-			// pair BTC-USDT
-			response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{
-				Code: p.Base.String(), // BTC
-			})
+		// `m` is used to store unique assets for easy search in the loop below
+		m := make(map[string]bool)
 
-			response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{
-				Code: p.Quote.String(), // USDT
-			})
+		for i := 0; i < len(pairs); i++ {
+			b := pairs[i].Base.String()
+			q := pairs[i].Quote.String()
+
+			// if there is no such currency in map, add it to map and assets
+			if t := m[b]; !t {
+				m[b] = true
+				response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{Code: b})
+			}
+
+			if t := m[q]; !t {
+				m[q] = true
+				response.ExchangeAsset = append(response.ExchangeAsset, exchangeAsset{Code: q})
+			}
 		}
 
 		request = request.WithContext(context.WithValue(request.Context(), "response", response))
