@@ -13,28 +13,20 @@
                     <div class="input-group mb-3">
                     {{template "exchangesRadioButtons"}}
                     </div>
-<!--                    <div class="input-group mb-3">-->
-<!--                        <span class="input-group-text" id="basic-addon1">Exchange</span>-->
-<!--                        <select class="form-select" v-model="exchangeName" id="exchangeName" aria-label="Default select exchange">-->
-<!--                            <option v-for="option in options" :value="option.value">-->
-<!--                                ${ option.text }-->
-<!--                            </option>-->
-<!--                        </select>-->
-<!--                    </div>-->
 
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">asset</span>
-                        <input type="text" class="form-control" id="assetName" v-model="asset" aria-label="asset" required>
-                    </div>
+                        <div class="row">
+                            <div class="col">
+                                <v-select v-model="asset"
+                                          :options="assets"
+                                          label="code"
+                                          placeholder="BTC"
+                                ></v-select>
+                            </div>
+                            <script src='https://unpkg.com/vue@latest'></script>
+                            <script src='https://unpkg.com/vue-select@latest'></script>
+                        </div>
 
                     {{template "chain"}}
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-2 col-form-label">Selected exchange</label>
-                        <div class="col-sm-10">
-                            <input type="text" readonly class="form-control-plaintext" id="exchangeName" :value="exchangeName">
-                        </div>
-                    </div>
 
                     <button class="btn btn-primary" type="submit" :disabled="loading">
                         <span v-if="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -63,9 +55,10 @@
 </body>
 
 <script>
-    const app = Vue.createApp({
+    Vue.component("v-select", VueSelect.VueSelect);
+    new Vue({
+        el: "#app",
         delimiters: ['${', '}'],
-
         data() {
             return {
                 loading: false,
@@ -79,6 +72,8 @@
                     {text: 'Kraken', value: 'kraken'},
                     {text: 'BTSE', value: 'btse'}
                 ],
+                asset: "USDT",
+                assets: [],
                 exchangeInput: "",
                 exchangeName: "ftx",
                 address: "",
@@ -87,7 +82,18 @@
                 chain: "default",
             }
         },
+        mounted() {
+            this.onAssetsLoaded();
+        },
         methods: {
+            onAssetsLoaded: function () {
+                this.assets = []; // clear the array
+                axios.get('http://127.0.0.1:3333/api/assets/' + this.exchangeName).then(response => {
+                    this.assets = response.data["assets"]
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
             onSubmit() {
                 // reset previous result
                 this.errored = false
@@ -101,7 +107,7 @@
                 this.loading = true
 
                 axios
-                    .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeName + '/' + this.asset + '/' + this.chain)
+                    .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeName + '/' + this.asset['code'] + '/' + this.chain)
                     .then(response => {
                         this.processData(response)
                     })
@@ -116,15 +122,21 @@
             processData(result) {
                 const data = result.data
                 this.assetData = data
-                console.log(data)
                 this.address = data.address["Address"]
                 this.symbol = data.code
                 this.balance = data.balance
                 this.price = data.price
-                this.exchangeName = data.exchange
+                //this.exchangeName = data.exchange
             }
         },
+        watch: {
+            exchangeName: {
+                handler: function (value) {
+                    this.onAssetsLoaded();
+                }
+            }
+        }
     })
-    app.mount('#app').created()
+    app.mount('#app').created().mounted()
 </script>
 </html>
