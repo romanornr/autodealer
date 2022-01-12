@@ -87,7 +87,7 @@
             this.onAssetsLoaded();
         },
         methods: {
-            onAssetsLoaded: function() {
+            onAssetsLoaded: function () {
                 this.assets = []; // clear the array
                 axios.get('http://127.0.0.1:3333/api/assets/' + this.exchangeName).then(response => {
                     this.assets = response.data["assets"]
@@ -104,11 +104,11 @@
 
                 this.sentToDestinationAddress()
             },
-            sentToDestinationAddress: function() {
+            sentToDestinationAddress: function () {
                 // if exchange destination is selected, get the deposit address and put that as destinationAddress
                 if (this.exchangeDestination.length < 1) {
                     this.withdraw()
-                }else {
+                } else {
                     this.loadingDestinationAddress = true
                     axios
                         .get('http://127.0.0.1:3333/api/deposit/' + this.exchangeDestination + '/' + this.asset + '/' + this.chain)
@@ -158,6 +158,13 @@
             handleDepositAddressData(result) {
                 const data = result.data
                 this.destinationAddress = data.address["Address"]
+            }
+        },
+        watch: {
+            exchangeName: {
+                handler: function (value) {
+                    this.onAssetsLoaded();
+                }
             }
         }
     })
