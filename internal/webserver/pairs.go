@@ -84,8 +84,8 @@ func getPairsResponse(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// getCurrencyList is the response for the get currencies endpoint
-func getCurrencyList(w http.ResponseWriter, r *http.Request) {
+// getAssetList is the response for the get currencies endpoint
+func getAssetList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	response, ok := ctx.Value("response").(*exchangeAssetResponse)
 	if !ok {
@@ -97,8 +97,8 @@ func getCurrencyList(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// CurrencyListCtx fetches currencies from the exchange
-func CurrencyListCtx(next http.Handler) http.Handler {
+// AssetListCtx fetches currencies from the exchange
+func AssetListCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 
 		d := GetDealerInstance()

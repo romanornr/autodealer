@@ -204,8 +204,8 @@ func apiSubrouter() http.Handler {
 	})
 
 	r.Route(routeAssets, func(r chi.Router) {
-		r.Use(CurrencyListCtx)
-		r.Get("/", getCurrencyList)
+		r.Use(AssetListCtx)
+		r.Get("/", getAssetList)
 	})
 
 	return r
