@@ -31,7 +31,7 @@ func main() {
 	//            Use (*Client).Enqueue method.
 	// ------------------------------------------------------
 
-	task, err := algo.NewTwapOrderTask("binance")
+	task, err := algo.NewTwapOrderTask("FTX")
 	if err != nil {
 		log.Fatalf("could not create task: %v", err)
 	}

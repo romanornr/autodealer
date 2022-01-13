@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hibiken/asynq"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 const (
@@ -13,12 +14,12 @@ const (
 )
 
 type TwapOrderPayload struct {
-	exchange string
+	Exchange string
 }
 
 func NewTwapOrderTask(exchange string) (*asynq.Task, error) {
 	payload, err := json.Marshal(TwapOrderPayload{
-		exchange: exchange,
+		Exchange: exchange,
 	})
 	if err != nil {
 		return nil, err
@@ -32,7 +33,9 @@ func HandleTwapOrderTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
-	logrus.Printf("Sending order to %s\n", p.exchange)
+	logrus.Printf("Sending order to %s\n", p.Exchange)
+	time.Sleep(60 * time.Second)
+	logrus.Printf("Order sent to %s\n complete", p.Exchange)
 	// TWAP order code ...
 	return nil
 }
