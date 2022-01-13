@@ -6,8 +6,11 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/go-echarts/go-echarts/v2/types"
+	"github.com/hibiken/asynq"
+	"github.com/romanornr/autodealer/internal/algo"
 	"github.com/romanornr/autodealer/internal/move"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,8 +29,8 @@ var tpl *template.Template
 const (
 	httpConnTimeout = 160
 	port            = 3333
-
-	baseCSP = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
+	redisAddr       = "127.0.0.1:6379"
+	baseCSP         = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
 )
 
 // Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
@@ -93,6 +96,7 @@ func New() {
 
 	//go singleton.GetDealerInstance()
 	go GetDealerInstance()
+	go asyncWebWorker()
 
 	httpServer := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
@@ -209,6 +213,32 @@ func apiSubrouter() http.Handler {
 	})
 
 	return r
+}
+
+func asyncWebWorker() {
+	srv := asynq.NewServer(
+		asynq.RedisClientOpt{Addr: redisAddr},
+		asynq.Config{
+			// Specify how many concurrent workers to use
+			Concurrency: 10,
+			// Optionally specify multiple queues with different priority.
+			Queues: map[string]int{
+				"critical": 6,
+				"default":  3,
+				"low":      1,
+			},
+			// See the godoc for other configuration options
+		},
+	)
+
+	// mux maps a type to a handler
+	mux := asynq.NewServeMux()
+	mux.HandleFunc(algo.TypeTwapOrder, algo.HandleTwapOrderTask) ///  TODO find url 127.0.0.1:3333/twap ??
+	// ...register other handlers...
+
+	if err := srv.Run(mux); err != nil {
+		log.Fatalf("could not run server: %v", err)
+	}
 }
 
 // HomeHandler handleHome is the handler for the '/' page request. It redirects the

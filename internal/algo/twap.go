@@ -1,13 +1,46 @@
 package algo
 
 import (
-	"github.com/romanornr/autodealer/internal/orderbuilder"
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/hibiken/asynq"
+	"github.com/sirupsen/logrus"
 )
 
-// Twap is a twap strategy that will attempt to execute an order and achieve the TWAP or better. A TWAP strategy underpins more sophisticated ways of buying and selling than simply executing orders en masse: for example, dumping a huge number of shares in one block is likely to affect market perceptions, with an adverse effect on the price. A TWAP strategy is often used to minimize a large order's the impact on the market and result in price improvement
-func Twap(director orderbuilder.Director, hours float64, minutes float64) {
+const (
+	TypeTwapOrder = "twap"
+)
 
+type TwapOrderPayload struct {
+	exchange string
 }
+
+func NewTwapOrderTask(exchange string) (*asynq.Task, error) {
+	payload, err := json.Marshal(TwapOrderPayload{
+		exchange: exchange,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return asynq.NewTask(TypeTwapOrder, payload), nil
+}
+
+func HandleTwapOrderTask(ctx context.Context, t *asynq.Task) error {
+	var p TwapOrderPayload
+	if err := json.Unmarshal(t.Payload(), &p); err != nil {
+		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
+	}
+	logrus.Printf("Sending order to %s\n", p.exchange)
+	// TWAP order code ...
+	return nil
+}
+
+//// Twap is a twap strategy that will attempt to execute an order and achieve the TWAP or better. A TWAP strategy underpins more sophisticated ways of buying and selling than simply executing orders en masse: for example, dumping a huge number of shares in one block is likely to affect market perceptions, with an adverse effect on the price. A TWAP strategy is often used to minimize a large order's the impact on the market and result in price improvement
+//func Twap(director orderbuilder.Director, hours float64, minutes float64) {
+//
+//}
 
 //import (
 //	"fmt"

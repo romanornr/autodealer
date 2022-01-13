@@ -3,7 +3,6 @@ package webserver
 import (
 	"context"
 	"errors"
-	"github.com/romanornr/autodealer/internal/algo"
 	"net/http"
 	"strconv"
 	"time"
@@ -213,7 +212,8 @@ func TWAPCtx(next http.Handler) http.Handler {
 		director := orderbuilder.Director{}
 		director.SetBuilder(ob)
 
-		algo.Twap(director, h, m)
+		//algo.Twap(director, h, m)
+		logrus.Println(h, m)
 
 		response := OrderResponse{}
 		ctx := context.WithValue(request.Context(), "response", &response)
