@@ -3,6 +3,9 @@ package webserver
 import (
 	"context"
 	"errors"
+	"github.com/hibiken/asynq"
+	"github.com/romanornr/autodealer/internal/algo"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -109,12 +112,7 @@ func TradeCtx(next http.Handler) http.Handler {
 			UseOrderType(orderType).
 			SetSide(side)
 
-		director := orderbuilder.Director{}
-		director.SetBuilder(ob)
-		newOrder, err := director.Construct()
-		if err != nil {
-			logrus.Errorf("failed to construct order %s\n", err)
-		}
+		newOrder, err := ob.Build()
 
 		logrus.Printf("new order: %+v\n", newOrder)
 
@@ -141,11 +139,27 @@ func TradeCtx(next http.Handler) http.Handler {
 	})
 }
 
+// getTwapResponse returns the twap response
+func getTwapResponse(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	response, ok := ctx.Value("response").(*algo.TwapOrderPayload) // TODO fix
+	if !ok {
+		logrus.Errorf("Got unexpected response %T\n", response)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		render.JSON(w, r, ErrRender(errors.New("failed to get twap response")))
+		return
+	}
+	render.JSON(w, r, response)
+}
+
+// TWAPCtx is the context for the '/twap' request
+// twap/{exchange}/{pair}/{qty}/{assetType}/{orderType}/{side}
 func TWAPCtx(next http.Handler) http.Handler {
+
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		p, err := currency.NewPairFromString(chi.URLParam(request, "pair"))
+		pair, err := currency.NewPairFromString(chi.URLParam(request, "pair"))
 		if err != nil {
 			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
 		}
@@ -191,31 +205,41 @@ func TWAPCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse orderType %s\n", err)
 		}
 
-		price, err := e.UpdateTicker(context.Background(), p, assetItem)
-		if err != nil {
-			logrus.Errorf("failed to update ticker %s\n", err)
+		//price, err := e.UpdateTicker(context.Background(), p, assetItem)
+		//if err != nil {
+		//	logrus.Errorf("failed to update ticker %s\n", err)
+		//}
+
+		//qty := qtyUSD / price.Last
+
+		var orderPayload = algo.TwapOrderPayload{
+			Exchange:          e.GetName(),
+			AccountID:         subAccount.ID,
+			Pair:              pair,
+			Asset:             assetItem,
+			Start:             time.Now(),
+			End:               time.Now().Add(time.Hour * time.Duration(h)).Add(time.Minute * time.Duration(m)),
+			OrderType:         orderType,
+			TargetAmountQuote: qtyUSD,
+			Side:              side,
 		}
 
-		qty := qtyUSD / price.Last
+		task, err := algo.NewTwapOrderTask(orderPayload)
+		if err != nil {
+			logrus.Errorf("failed to create twap order task %s\n", err)
+		}
 
-		ob := orderbuilder.NewOrderBuilder()
-		ob.
-			AtExchange(e.GetName()).
-			ForAccountID(subAccount.ID).
-			ForCurrencyPair(p).
-			WithAssetType(assetItem).
-			ForPrice(price.Last).
-			WithAmount(qty).
-			UseOrderType(orderType).
-			SetSide(side)
+		client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
+		defer client.Close()
 
-		director := orderbuilder.Director{}
-		director.SetBuilder(ob)
+		info, err := client.Enqueue(task)
+		if err != nil {
+			log.Fatalf("could not enqueue task: %v", err)
+		}
 
-		//algo.Twap(director, h, m)
-		logrus.Println(h, m)
+		logrus.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
 
-		response := OrderResponse{}
+		response := orderPayload
 		ctx := context.WithValue(request.Context(), "response", &response)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})

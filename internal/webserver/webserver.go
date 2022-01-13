@@ -212,6 +212,11 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getAssetList)
 	})
 
+	r.Route(routeTWAP, func(r chi.Router) {
+		r.Use(TWAPCtx)
+		r.Get("/", getTwapResponse)
+	})
+
 	return r
 }
 

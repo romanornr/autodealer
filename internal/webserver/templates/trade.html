@@ -201,7 +201,7 @@
       },
       // axios call to place a TWAP order on the exchange
       onTWAPOrder: function () {
-        axios.get('http://127.0.0.1:3333/api/trade/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType + '/' + this.side + '/' + this.hours + '/' + this.minutes)
+        axios.get('http://127.0.0.1:3333/api/twap/' + this.exchangeName + '/' + this.pair.name + '/'+ this.qtyUSD +'/' + this.pair.assetType + '/' + this.orderType + '/' + this.side + '/' + this.hours + '/' + this.minutes)
         .then(response => {
           this.processData(response)
         })

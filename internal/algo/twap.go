@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"github.com/hibiken/asynq"
 	"github.com/sirupsen/logrus"
+	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"time"
 )
 
@@ -14,20 +17,27 @@ const (
 )
 
 type TwapOrderPayload struct {
-	Exchange string
+	Exchange          string
+	AccountID         string
+	Pair              currency.Pair
+	Asset             asset.Item // SPOT, FUTURES, INDEX
+	Start             time.Time
+	End               time.Time
+	TargetAmountQuote float64
+	Side              order.Side
+	OrderType         order.Type
 }
 
-func NewTwapOrderTask(exchange string) (*asynq.Task, error) {
-	payload, err := json.Marshal(TwapOrderPayload{
-		Exchange: exchange,
-	})
+// NewTwapOrderTask creates a new TwapOrderTask
+func NewTwapOrderTask(order TwapOrderPayload) (*asynq.Task, error) {
+	payload, err := json.Marshal(order)
 	if err != nil {
 		return nil, err
 	}
-
 	return asynq.NewTask(TypeTwapOrder, payload), nil
 }
 
+// HandleTwapOrderTask handles a TwapOrderTask
 func HandleTwapOrderTask(ctx context.Context, t *asynq.Task) error {
 	var p TwapOrderPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {

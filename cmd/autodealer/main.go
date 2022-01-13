@@ -6,13 +6,10 @@ package main
 
 import (
 	"github.com/hibiken/asynq"
-	"github.com/romanornr/autodealer/internal/algo"
 	webserver2 "github.com/romanornr/autodealer/internal/webserver"
-	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
-	"log"
 )
 
 const redisAddr = "127.0.0.1:6379"
@@ -31,15 +28,15 @@ func main() {
 	//            Use (*Client).Enqueue method.
 	// ------------------------------------------------------
 
-	task, err := algo.NewTwapOrderTask("FTX")
-	if err != nil {
-		log.Fatalf("could not create task: %v", err)
-	}
-	info, err := client.Enqueue(task)
-	if err != nil {
-		log.Fatalf("could not enqueue task: %v", err)
-	}
-	logrus.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
+	//task, err := algo.NewTwapOrderTask("FTX")
+	//if err != nil {
+	//	log.Fatalf("could not create task: %v", err)
+	//}
+	//info, err := client.Enqueue(task)
+	//if err != nil {
+	//	log.Fatalf("could not enqueue task: %v", err)
+	//}
+	//logrus.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
 	// d, err := dealer.NewBuilder().Build()
 	// if err != nil {
 	//	logrus.Errorf("expected no error, got %v\n", err)
