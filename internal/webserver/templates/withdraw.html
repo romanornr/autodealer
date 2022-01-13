@@ -69,7 +69,7 @@
                     {text: 'Kraken', value: 'kraken'},
                     {text: 'BTSE', value: 'btse'}
                 ],
-                asset: "USDT",
+                asset: { code: 'USDT' },
                 assets: [],
                 chain: "default",
                 destinationAddress: "",
@@ -125,7 +125,7 @@
             },
             withdraw: function () {
                 axios
-                    .get('http://127.0.0.1:3333/api/withdraw/' + this.exchangeName + '/' + this.asset + '/' + this.amount + '/' + this.destinationAddress + '/' + this.chain)
+                    .get('http://127.0.0.1:3333/api/withdraw/' + this.exchangeName + '/' + this.asset['code'] + '/' + this.amount + '/' + this.destinationAddress + '/' + this.chain)
                     .then(response => {
                         console.log(response)
                         this.result = response.data
