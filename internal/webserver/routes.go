@@ -13,6 +13,6 @@ const (
 	routeMoveTermStructure  = "/move"
 	routeMoveStats          = "/move/stats"
 	routeBankTransfer       = "/bank/transfer/{currency}"
-	routeHoldingsExchange   = "/holdings/{exchange}"
+	routeHoldingsExchange   = "/holdings/{exchange}/{asset}"
 	routeAssets             = "/assets/{exchange}"
 )

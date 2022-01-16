@@ -25,10 +25,6 @@ type ExchangeHoldings struct {
 	Accounts map[string]SubAccount
 }
 
-//// Render ExchangeHoldings balances for each account to a json response
-//func (h *ExchangeHoldings) Render(w http.ResponseWriter, r *http.Request) error {
-//}
-
 // NewExchangeHoldings function is an easy way to create an empty ExchangeHoldings struct, so we can create an empty struct on startup to avoid us facing gct/goat by ensuring state on startup
 func NewExchangeHoldings() *ExchangeHoldings {
 	return &ExchangeHoldings{
