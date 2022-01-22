@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -26,10 +27,19 @@ type TwapOrderPayload struct {
 	TargetAmountQuote float64
 	Side              order.Side
 	OrderType         order.Type
+	Status            string
 }
 
 // NewTwapOrderTask creates a new TwapOrderTask
 func NewTwapOrderTask(order TwapOrderPayload) (*asynq.Task, error) {
+	payload, err := json.Marshal(order)
+	if err != nil {
+		return nil, err
+	}
+	return asynq.NewTask(TypeTwapOrder, payload), nil
+}
+
+func NewOrderTask(order order.Submit) (*asynq.Task, error) {
 	payload, err := json.Marshal(order)
 	if err != nil {
 		return nil, err
@@ -43,11 +53,68 @@ func HandleTwapOrderTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
+	p.Status = "processing"
 	logrus.Printf("Sending order to %s\n", p.Exchange)
 	time.Sleep(60 * time.Second)
+	p.Status = "complete"
 	logrus.Printf("Order sent to %s\n complete", p.Exchange)
 	// TWAP order code ...
 	return nil
+}
+
+// Execute executes the TwapOrderTask
+func Execute(t TwapOrderPayload) {
+
+	// minimal size in dollars for each order
+	minimalSize := decimal.NewFromFloat(5)
+
+	// convert the target amount to a decimal
+	targetQuote := decimal.NewFromFloat(t.TargetAmountQuote)
+
+	// Calculate the average size of the order in dollars of each minute
+	averageSizeFillPerMinute := AverageSizeFillPerMinute(t.Start, t.End, targetQuote)
+
+	// minutes it takes to fill target amount (ie 900 minutes)
+	targetQuoteFillTimeMinutes := targetQuote.Div(averageSizeFillPerMinute)
+
+	// Amount of orders it takes to fill target amount
+	amountOfOrders := targetQuote.Div(minimalSize)
+
+	// minutes in between each order
+	minutesBetweenOrders := targetQuoteFillTimeMinutes.Div(amountOfOrders)
+
+	var nextExecutionTime = t.Start
+
+	logrus.Printf("minutes it takes to fill target amount %s\n: ", targetQuoteFillTimeMinutes.String())
+	logrus.Printf("amount of orders it takes to fill target amount %s\n: ", amountOfOrders.String())
+
+	client := asynq.NewClient(asynq.RedisClientOpt{Addr: "localhost:6379"})
+
+	for amountOfOrders.Cmp(decimal.Zero) > 0 {
+
+		// create a new order
+		// if nextExecutionTime is before t.End
+		// execute order
+
+		// next execution time is nextExecutionTime + minutesBetweenOrders
+		nextExecutionTime = nextExecutionTime.Add(time.Minute * time.Duration(minutesBetweenOrders.IntPart()))
+
+		// amountOfOrders--
+		amountOfOrders = amountOfOrders.Sub(decimal.NewFromFloat(1))
+		logrus.Printf("Order placed in queue. Next execution time: %v\n", nextExecutionTime)
+
+		t1, err := NewOrderTask(order.Submit{})
+		if err != nil {
+			logrus.Errorf("Error creating order task: %v", err)
+		}
+
+		info, err := client.Enqueue(t1, asynq.ProcessAt(nextExecutionTime))
+		if err != nil {
+			logrus.Errorf("Error enqueuing order task: %v", err)
+		}
+		logrus.Printf("Order task enqueued: %v\n", info)
+	}
+
 }
 
 //// Twap is a twap strategy that will attempt to execute an order and achieve the TWAP or better. A TWAP strategy underpins more sophisticated ways of buying and selling than simply executing orders en masse: for example, dumping a huge number of shares in one block is likely to affect market perceptions, with an adverse effect on the price. A TWAP strategy is often used to minimize a large order's the impact on the market and result in price improvement
@@ -169,11 +236,14 @@ func HandleTwapOrderTask(ctx context.Context, t *asynq.Task) error {
 //	}
 //}
 //
-//func (t TWAP) AverageSizeFillPerMinute(amount decimal.Decimal) decimal.Decimal {
-//	diff := t.End.Sub(t.Start).Minutes()
-//	a := amount.Div(decimal.NewFromFloat(diff)) // average size fill per minute
-//	return a
-//}
+
+// AverageSizeFillPerMinute returns the average size of the order that has to be filled per second to reach the target amount
+func AverageSizeFillPerMinute(start time.Time, end time.Time, amount decimal.Decimal) decimal.Decimal {
+	diff := end.Sub(start).Minutes()
+	a := amount.Div(decimal.NewFromFloat(diff)) // average size fill per minute
+	return a
+}
+
 //
 //func (t TWAP) AverageSizeFillPerSecond(amount decimal.Decimal) decimal.Decimal {
 //	diff := t.End.Sub(time.Now()).Seconds()

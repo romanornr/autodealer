@@ -229,6 +229,8 @@ func TWAPCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to create twap order task %s\n", err)
 		}
 
+		algo.Execute(orderPayload)
+
 		client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 		defer client.Close()
 

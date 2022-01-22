@@ -3,6 +3,8 @@
 {{template "head"}}
 <body>
 {{template "navbar"}}
+<script src="https://cdn.jsdelivr.net/npm/vue-trading-view@1.0.1/dist/vue-trading-view.umd.min.js"></script>
+
 <div class="container-fluid">
   <div class="row">
     {{template "sidebarMenu"}}
@@ -95,6 +97,33 @@
         </form>
 
         <code>${ result }</code>
+
+
+        import VueTradingView from 'vue-trading-view';
+
+        ...
+        <template>
+          <div class="hello">
+            <VueTradingView />
+          </div>
+        </template>
+
+        <script>
+          import VueTradingView from 'vue-trading-view';
+
+          export default {
+            name: 'HelloWorld',
+            props: {
+              msg: String
+            },
+            components: {
+              VueTradingView,
+            }
+          }
+        </script>
+
+
+
         <!-- TradingView Widget BEGIN -->
         <div class="tradingview-widget-container">
           <div id="tradingview_7829e"></div>
@@ -143,7 +172,7 @@
     delimiters: ['${', '}'],
     data() {
       return {
-        pair: "BTC-USD",
+        pair: { assetType: 'spot', name: 'BTC' },
         pairs: [],
         loading: false,
         errored: false,
