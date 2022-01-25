@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -105,38 +106,30 @@ func New() {
 		WriteTimeout: httpConnTimeout * (time.Second * 30),
 	}
 
-	// Server run context
-	serverCtx, serverStopCtx := context.WithCancel(context.Background())
-	// Save a reference to our context to be used later
-	// serverCtxVar = serverCtx
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
-		<-sig
-		shutdownCtx, _ := context.WithTimeout(serverCtx, 30*time.Second)
-		go func() {
-			<-shutdownCtx.Done()
-			if shutdownCtx.Err() == context.DeadlineExceeded {
-				logrus.Fatalf("graceful shutdown timeout... forcing exit")
-			}
-		}()
-
-		// Trigger graceful shutdown
-		err := httpServer.Shutdown(shutdownCtx)
-		if err != nil {
-			logrus.Fatalf("shutdown failed: %v\n", err)
+		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			logrus.Errorf("error starting http server: %s\n", err)
 		}
-		serverStopCtx()
+		logrus.Printf("server stopped serving new connections")
 	}()
 
-	// Run the server
-	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logrus.Fatalf("failed to start listening: %v", err)
+	// Graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	logrus.Printf("shutting down server...")
+
+	// Create a context to attempt a graceful 10-second shutdown.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Attempt the graceful shutdown by closing the listener
+	if err := httpServer.Shutdown(ctx); err != nil {
+		logrus.Fatalf("failed to shutdown: %v", err)
 	}
 
-	// Wait for server context to be stopped
-	<-serverCtx.Done()
+	logrus.Printf("server gracefully stopped")
 }
 
 // The `corsConfig` function returns a new CORS configuration. It is used to configure CORS for our application. The CORS configuration is used by the `cors.New` middleware.
