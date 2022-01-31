@@ -40,11 +40,11 @@ This project is highly experimental. <br>
 The author takes no responsibility
 <br><br>
 
-![alt text](https://github.com/romanornr/autodealer/blob/master/screenshots/1.png?raw=true)
+![alt text](https://raw.githubusercontent.com/romanornr/autodealer/main/screenshots/1.png)
 <br><br>
-![alt text](https://github.com/romanornr/autodealer/blob/master/screenshots/2.png?raw=true)
+![alt text](https://raw.githubusercontent.com/romanornr/autodealer/main/screenshots/2.png)
 <br><br>
-![alt text](https://github.com/romanornr/autodealer/blob/master/screenshots/3.png?raw=true)
+![alt text](https://raw.githubusercontent.com/romanornr/autodealer/main/screenshots/3.png)
 
 
 ###### API
@@ -79,4 +79,4 @@ API documentation will be added later.
 
 ``./asynqmon``
 
-![alt text](https://github.com/romanornr/autodealer/blob/master/screenshots/4.png?raw=true)
+![alt text](https://raw.githubusercontent.com/romanornr/autodealer/main/screenshots/4.png)
