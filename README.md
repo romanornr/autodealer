@@ -7,6 +7,11 @@
 #### autodealer is a simple application that allows you to connect to cryptocurrency exchanges to trade & transfer assets
 ###### This project relies on: https://github.com/thrasher-corp/gocryptotrader
 
+##### Stack
+- Golang
+- Vuejs
+- Redis
+
 ##### Features
 - [x] Deposit
 - [x] Withdraw
@@ -52,6 +57,9 @@ API documentation will be added later.
 ###### Minimum Recommended Specifications
 - Go 1.17.6
 
+##### libraries used
+- gocryptotrader https://github.com/thrasher-corp/gocryptotrader
+- asynq Golang https://github.com/hibiken/asynq
 
 ###### setup
 ``git clone https://github.com/romanornr/autodealer.git``
