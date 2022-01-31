@@ -15,12 +15,12 @@
 ##### Features
 - [x] Deposit
 - [x] Withdraw
-- [x] Transfer
+- [x] Transfer assets between exchanges
 - [x] Buy/Sell
 - [x] FTX Move Contracts term structure
-- [x] Tradingview library
+- [ ] Tradingview library
 - [ ] TWAP
-- [ ] Rebalance
+- [ ] Rebalance portfolio
 - [ ] Rebalance with TWAP
 - [ ] Grid trading
 - [ ] FTX Move Contracts dashboard panel
@@ -63,16 +63,20 @@ API documentation will be added later.
 
 ###### setup
 ``git clone https://github.com/romanornr/autodealer.git``
+
 ``cd autodealer``
 
 ###### config file
 ``cd ~/.gocryptotrader``
+
 ``wget https://raw.githubusercontent.com/thrasher-corp/gocryptotrader/master/config_example.json``
+
 ``mv config_example.json config.json``
 
 
 ###### async monitoring
 ``cd autodealer``
+
 ``./asynqmon``
 
 ![alt text](https://github.com/romanornr/autodealer/blob/master/screenshots/4.png?raw=true)
