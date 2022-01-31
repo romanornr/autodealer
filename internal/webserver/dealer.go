@@ -13,16 +13,13 @@ import (
 // Singleton perhaps?
 
 var initialized uint32
-
 var instance *dealer.Dealer
 var mu sync.Mutex
 
-// GetDealerInstance function takes no arguments and returns the singleton defined in `package dealer` object.
-// So this function figures out we have initialized the dealer or not, it takes a very long time to do this introspection, so we use `atomic uint32`.
-// Next, in this case, as this Go code is part of a singleton configuration, we early return `nil` if the dealer has been initialized before.
-// This gives us a single point of entry to initialize the object and is great for dependency injection. Each time we are trying to access the dealer
-// instance, we make sure we have one, otherwise we create the dealer.
-// Next, dealing with concurrent accesses. If a process wanted to access the dealer object, we use sync.Mutex to avoid a race condition.
+// GetDealerInstance checks if the dealer has been initialized. If it has, we return the instance.
+// Next, we lock the mutex. This is to avoid a race condition.
+// If the dealer has not been initialized, we create the dealer. We store the dealer in the instance variable.
+// We set the initialized flag to 1. We unlock the mutex. We return the instance.
 func GetDealerInstance() *dealer.Dealer {
 	var err error
 	if atomic.LoadUint32(&initialized) == 1 {

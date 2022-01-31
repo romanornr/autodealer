@@ -8,7 +8,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/go-echarts/go-echarts/v2/types"
 	"github.com/hibiken/asynq"
-	"github.com/romanornr/autodealer/internal/algo"
+	"github.com/romanornr/autodealer/internal/algo/twap"
 	"github.com/romanornr/autodealer/internal/move"
 	"html/template"
 	"log"
@@ -231,7 +231,8 @@ func asyncWebWorker() {
 
 	// mux maps a type to a handler
 	mux := asynq.NewServeMux()
-	mux.HandleFunc(algo.TypeTwapOrder, algo.HandleTwapOrderTask) ///  TODO find url 127.0.0.1:3333/twap ??
+	mux.HandleFunc(twap.TypeTwap, twap.HandleTwapTask) ///  TODO find url 127.0.0.1:3333/twap ??
+	mux.HandleFunc(twap.TypeOrder, twap.HandleOrderTask)
 	// ...register other handlers...
 
 	if err := srv.Run(mux); err != nil {

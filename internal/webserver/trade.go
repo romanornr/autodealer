@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/hibiken/asynq"
-	"github.com/romanornr/autodealer/internal/algo"
+	"github.com/romanornr/autodealer/internal/algo/twap"
 	"log"
 	"net/http"
 	"strconv"
@@ -142,7 +142,7 @@ func TradeCtx(next http.Handler) http.Handler {
 // getTwapResponse returns the twap response
 func getTwapResponse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	response, ok := ctx.Value("response").(*algo.TwapOrderPayload) // TODO fix
+	response, ok := ctx.Value("response").(*twap.Payload) // TODO fix
 	if !ok {
 		logrus.Errorf("Got unexpected response %T\n", response)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -159,7 +159,7 @@ func TWAPCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		pair, err := currency.NewPairFromString(chi.URLParam(request, "pair"))
+		p, err := currency.NewPairFromString(chi.URLParam(request, "pair"))
 		if err != nil {
 			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
 		}
@@ -210,36 +210,45 @@ func TWAPCtx(next http.Handler) http.Handler {
 		//	logrus.Errorf("failed to update ticker %s\n", err)
 		//}
 
-		//qty := qtyUSD / price.Last
+		targetAmountQuote := qtyUSD
 
-		var orderPayload = algo.TwapOrderPayload{
+		logrus.Printf("%s targetAmountQuote %f\n", p.String(), targetAmountQuote)
+
+		var orderPayload = twap.Payload{
 			Exchange:          e.GetName(),
 			AccountID:         subAccount.ID,
-			Pair:              pair,
+			Pair:              p,
 			Asset:             assetItem,
 			Start:             time.Now(),
 			End:               time.Now().Add(time.Hour * time.Duration(h)).Add(time.Minute * time.Duration(m)),
 			OrderType:         orderType,
-			TargetAmountQuote: qtyUSD,
+			TargetAmountQuote: targetAmountQuote,
 			Side:              side,
 		}
 
-		task, err := algo.NewTwapOrderTask(orderPayload)
+		task, err := twap.NewTwapTask(orderPayload)
 		if err != nil {
 			logrus.Errorf("failed to create twap order task %s\n", err)
 		}
 
-		algo.Execute(orderPayload)
+		//algo.Execute(orderPayload, d)
 
 		client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 		defer client.Close()
+
+		//info, err := client.Enqueue(task)
+		//if err != nil {
+		//	log.Fatalf("could not enqueue task: %v", err)
+		//}
+		//
+		//logrus.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
 
 		info, err := client.Enqueue(task)
 		if err != nil {
 			log.Fatalf("could not enqueue task: %v", err)
 		}
 
-		logrus.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
+		logrus.Printf("enqueued task: id=%s\n", info.ID)
 
 		response := orderPayload
 		ctx := context.WithValue(request.Context(), "response", &response)
