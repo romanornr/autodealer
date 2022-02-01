@@ -23,6 +23,7 @@
 - [ ] Rebalance portfolio
 - [ ] Rebalance with TWAP
 - [ ] Grid trading
+- [ ] Spread trading
 - [ ] Arbitrage
 - [ ] Triangular arbitrage
 - [ ] Leveraged tokens NAV arbitrage/Hedge
@@ -30,7 +31,9 @@
 - [ ] Leveraged tokens straddle strategy
 - [ ] FTX Move Contracts dashboard panel
 - [ ] Hedge with FTX Move Contracts
-
+- [ ] Hedge grid trading range with FTX Move Contracts
+- [ ] Hedge triangular arbitrage with FTX Move Contracts
+- 
 ##### Supported exchange
 - [x] FTX
 - [x] Binance
