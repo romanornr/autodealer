@@ -23,6 +23,11 @@
 - [ ] Rebalance portfolio
 - [ ] Rebalance with TWAP
 - [ ] Grid trading
+- [ ] Arbitrage
+- [ ] Triangular arbitrage
+- [ ] Leveraged tokens NAV arbitrage/Hedge
+- [ ] Leveraged tokens hedging
+- [ ] Leveraged tokens straddle strategy
 - [ ] FTX Move Contracts dashboard panel
 - [ ] Hedge with FTX Move Contracts
 
