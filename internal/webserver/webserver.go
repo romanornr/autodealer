@@ -30,6 +30,7 @@ var tpl *template.Template
 const (
 	httpConnTimeout = 160
 	port            = 3333
+	addr            = "127.0.0.1"
 	redisAddr       = "127.0.0.1:6379"
 	baseCSP         = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
 )
@@ -40,6 +41,9 @@ func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{})
 	logrus.Infof(util2.Location())
+
+	// time format YYYY-MM-DD HH:MM:SS
+	logrus.Infof("%s %s", time.Now().Format("2006-01-02 15:04:05"), util2.Location()+": Init")
 
 	tpl = template.Must(template.ParseGlob("internal/webserver/templates/*.html"))
 }
@@ -100,7 +104,7 @@ func New() {
 	go asyncWebWorker()
 
 	httpServer := &http.Server{
-		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
+		Addr:         fmt.Sprintf("%s:%d", addr, port),
 		Handler:      service(),
 		ReadTimeout:  httpConnTimeout * time.Second,
 		WriteTimeout: httpConnTimeout * (time.Second * 30),
