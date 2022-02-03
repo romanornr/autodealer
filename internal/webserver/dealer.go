@@ -8,14 +8,16 @@ import (
 	"sync/atomic"
 )
 
-var initialized uint32
-var instance *dealer.Dealer
-var once sync.Once
+var (
+	initialized uint32 // atomic flag
+	instance    *dealer.Dealer
+	once        sync.Once
+	err         error
+)
 
 //GetDealerInstance can only create and return an initialized instance of Dealer.
 //This means that GetDealerInstance will NOT create a new instance, if there is already an instance running.
 func GetDealerInstance() *dealer.Dealer {
-	var err error
 	once.Do(func() {
 		instance, err = dealer.NewBuilder().Build(context.Background())
 		if err != nil {
@@ -26,4 +28,9 @@ func GetDealerInstance() *dealer.Dealer {
 		logrus.Infof("Created dealer instance\n")
 	})
 	return instance
+}
+
+// IsDealerInitialized function to check if dealer is initialized
+func IsDealerInitialized() bool {
+	return atomic.LoadUint32(&initialized) == 1
 }
