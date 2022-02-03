@@ -1,15 +1,17 @@
 package webserver
 
+import "C"
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/go-echarts/go-echarts/v2/types"
 	"github.com/hibiken/asynq"
 	"github.com/romanornr/autodealer/internal/algo/twap"
+	"github.com/romanornr/autodealer/internal/config"
 	"github.com/romanornr/autodealer/internal/move"
+	"github.com/spf13/viper"
 	"html/template"
 	"log"
 	"net/http"
@@ -103,11 +105,16 @@ func New() {
 	go GetDealerInstance()
 	go asyncWebWorker()
 
+	// load config.AppConfig
+	config.AppConfig()
+
 	httpServer := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", addr, port),
+		// viper config .env get server address
+
+		Addr:         viper.GetViper().GetString("SERVER_ADDR") + ":" + viper.GetViper().GetString("SERVER_PORT"),
 		Handler:      service(),
-		ReadTimeout:  httpConnTimeout * time.Second,
-		WriteTimeout: httpConnTimeout * (time.Second * 30),
+		ReadTimeout:  viper.GetViper().GetDuration("SERVER_READ_TIMEOUT"),
+		WriteTimeout: viper.GetViper().GetDuration("SERVER_WRITE_TIMEOUT"),
 	}
 
 	go func() {

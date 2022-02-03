@@ -9,12 +9,13 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/hibiken/asynq v0.20.0 // indirect
+	github.com/hibiken/asynq v0.20.0
+	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/rs/cors v1.8.2
 	github.com/rs/zerolog v1.26.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0
+	github.com/spf13/viper v1.10.1 // indirect
 	github.com/thrasher-corp/gocryptotrader v0.0.0-20211231041858-008d2a9418cc
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0
