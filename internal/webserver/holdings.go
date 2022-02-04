@@ -3,6 +3,7 @@ package webserver
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/romanornr/autodealer/internal/singleton"
 	"github.com/romanornr/autodealer/internal/subaccount"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -30,7 +31,7 @@ func getHoldingsExchangeResponse(w http.ResponseWriter, r *http.Request) {
 // HoldingsExchangeCtx middleware adds the holdings to the context
 func HoldingsExchangeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		d := GetDealerInstance()
+		d := singleton.GetDealer()
 		e, err := d.GetExchangeByName(chi.URLParam(request, "exchange"))
 		if err != nil {
 			logrus.Errorf("could not get exchange: %v", err)

@@ -15,9 +15,9 @@ var (
 	err         error
 )
 
-//GetDealerInstance can only create and return an initialized instance of Dealer.
-//This means that GetDealerInstance will NOT create a new instance, if there is already an instance running.
-func GetDealerInstance() *dealer.Dealer {
+//GetDealer can only create and return an initialized instance of Dealer.
+//This means that GetDealer will NOT create a new instance, if there is already an instance running.
+func GetDealer() *dealer.Dealer {
 	once.Do(func() {
 		instance, err = dealer.NewBuilder().Build(context.Background())
 		if err != nil {

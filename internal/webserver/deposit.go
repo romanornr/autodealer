@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/romanornr/autodealer/internal/dealer"
+	"github.com/romanornr/autodealer/internal/singleton"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 
@@ -65,7 +66,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		chain := chi.URLParam(request, "chain")
 
-		d := GetDealerInstance()
+		d := singleton.GetDealer()
 
 		e, err := d.GetExchangeByName(exchangeNameReq)
 		if err != nil {

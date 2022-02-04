@@ -4,14 +4,6 @@ import "C"
 import (
 	"context"
 	"errors"
-	"github.com/go-echarts/go-echarts/v2/charts"
-	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/go-echarts/go-echarts/v2/types"
-	"github.com/hibiken/asynq"
-	"github.com/romanornr/autodealer/internal/algo/twap"
-	"github.com/romanornr/autodealer/internal/config"
-	"github.com/romanornr/autodealer/internal/move"
-	"github.com/spf13/viper"
 	"html/template"
 	"log"
 	"net/http"
@@ -19,6 +11,16 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/go-echarts/go-echarts/v2/types"
+	"github.com/hibiken/asynq"
+	"github.com/romanornr/autodealer/internal/algo/twap"
+	"github.com/romanornr/autodealer/internal/config"
+	"github.com/romanornr/autodealer/internal/move"
+	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/spf13/viper"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -101,8 +103,8 @@ func New() {
 	logrus.Infof("API route mounted on port %d", port)
 	logrus.Infof("creating http Server")
 
-	//go singleton.GetDealerInstance()
-	go GetDealerInstance()
+	//go singleton.singleton.GetDealerInstance()
+	go singleton.GetDealer()
 	go asyncWebWorker()
 
 	// load config.AppConfig
@@ -280,7 +282,7 @@ func MoveHandler(w http.ResponseWriter, _ *http.Request) {
 			Subtitle: "TermStructure",
 		}))
 
-	d := GetDealerInstance()
+	d := singleton.GetDealer()
 	termStructure := move.GetTermStructure(d)
 
 	items := make([]opts.LineData, 0)

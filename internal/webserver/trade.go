@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/hibiken/asynq"
 	"github.com/romanornr/autodealer/internal/algo/twap"
+	"github.com/romanornr/autodealer/internal/singleton"
 	"log"
 	"net/http"
 	"strconv"
@@ -72,7 +73,7 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse side: %s\n", chi.URLParam(request, "side"))
 		}
 
-		d := GetDealerInstance()
+		d := singleton.GetDealer()
 		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
@@ -174,7 +175,7 @@ func TWAPCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse side: %s\n", chi.URLParam(request, "side"))
 		}
 
-		d := GetDealerInstance()
+		d := singleton.GetDealer()
 		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)

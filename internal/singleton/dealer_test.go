@@ -1,22 +1,11 @@
 package singleton
 
 import (
-	"github.com/sirupsen/logrus"
 	"testing"
 )
 
-// TestGetDealerInstance tests the GetDealerInstance function
-func TestGetDealerInstance(t *testing.T) {
-	// create loop to test dealer
-	//var d *dealer.Dealer
-
-	for i := 0; i < 3; i++ {
-		if IsDealerInitialized() == true {
-			break
-		}
+func BenchmarkGetDealerInstanceOnce(b *testing.B) {
+	for i := 0; i < b.N; i++ {
 		GetDealerInstance()
 	}
-
-	logrus.Printf("Dealer initialization: %v", IsDealerInitialized())
-
 }
