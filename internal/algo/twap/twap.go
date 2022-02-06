@@ -1,82 +1,15 @@
 package twap
 
 import (
-	"context"
-	"encoding/json"
 	"github.com/hibiken/asynq"
 	"github.com/romanornr/autodealer/internal/orderbuilder"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"time"
 )
 
-const (
-	TypeTwap  = "twap"
-	TypeOrder = "order"
-)
-
-type Payload struct {
-	Exchange          string
-	AccountID         string
-	Pair              currency.Pair
-	Asset             asset.Item // SPOT, FUTURES, INDEX
-	Start             time.Time
-	End               time.Time
-	TargetAmountQuote float64
-	Side              order.Side
-	OrderType         order.Type
-	Status            string
-}
-
-func NewTwapTask(twap Payload) (*asynq.Task, error) {
-	payload, err := json.Marshal(twap)
-	if err != nil {
-		return nil, err
-	}
-	return asynq.NewTask(TypeTwap, payload), nil
-}
-
-func NewOrderTask(order *order.Submit) (*asynq.Task, error) {
-	payload, err := json.Marshal(order)
-	if err != nil {
-		return nil, err
-	}
-
-	logrus.Printf("sending order %s\n", order.ID)
-
-	return asynq.NewTask(TypeOrder, payload), nil
-}
-
-func HandleOrderTask(ctx context.Context, task *asynq.Task) error {
-	var payload order.Submit // order.Submit
-	err := json.Unmarshal(task.Payload(), &order.Submit{})
-	if err != nil {
-		return err
-	}
-
-	logrus.Printf("handling twap order %+v\n\n", payload)
-
-	return nil
-}
-
-// HandleTwapTask handles a TwapOrderTask
-func HandleTwapTask(ctx context.Context, t *asynq.Task) error {
-
-	var p Payload
-	err := json.Unmarshal(t.Payload(), &p)
-	if err != nil {
-		return err
-	}
-
-	Execute(p)
-
-	return nil
-}
-
-// Execute executes the TwapOrderTask
+// Execute executes the TWAP algorithm
+// We can improve the algorithm by using a queue of orders and processing them in a separate goroutine TODO
 func Execute(t Payload) {
 	// minimal size in dollars for each order
 	minimalSize := decimal.NewFromFloat(5)
@@ -144,7 +77,7 @@ func Execute(t Payload) {
 		if err != nil {
 			logrus.Errorf("Error enqueuing order task: %v", err)
 		}
-		logrus.Printf("Order task enqueued: %v\n", info)
+		logrus.Printf("Order task enqueued: %s\n", info.ID)
 	}
 
 }
