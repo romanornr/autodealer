@@ -50,6 +50,7 @@ func init() {
 }
 
 func service() http.Handler {
+
 	r := chi.NewRouter()
 
 	// The middleware stacks. Logger, per RequestId and re-hopping initialized variables.
@@ -64,6 +65,7 @@ func service() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	chiCors := corsConfig()
+
 	r.Use(chiCors.Handler)
 
 	// set 404 handler
@@ -91,6 +93,7 @@ func service() http.Handler {
 // New imports many libraries, effectively constructing the project's "infrastructure."
 // These are based on the namespaces' chi, go-chi-middleware, and go-chi-render. Additionally, some little logging was established.
 // The remainder of the Routes(), apiSubrouter(), and init() methods configure basic handlers for each resource.
+// TODO We can improve the project's performance by using the chi.Mux.StrictSlash(true) option.
 func New() {
 	// load config
 	config.AppConfig()
