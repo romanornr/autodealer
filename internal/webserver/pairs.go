@@ -82,7 +82,6 @@ func getPairsResponse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	render.JSON(w, r, response)
-	return
 }
 
 // getAssetList is the response for the get currencies endpoint
@@ -95,7 +94,6 @@ func getAssetList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	render.JSON(w, r, response)
-	return
 }
 
 // AssetListCtx fetches currencies from the exchange

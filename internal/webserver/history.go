@@ -34,7 +34,6 @@ func getWithdrawHistory(w http.ResponseWriter, r *http.Request) {
 		History: withdrawHistory,
 	}
 	render.Render(w, r, history)
-	return
 }
 
 // TODO fix FTX ERRO[0006] failed fetch history: not yet implemented
