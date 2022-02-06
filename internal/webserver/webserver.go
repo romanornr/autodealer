@@ -32,11 +32,8 @@ import (
 var tpl *template.Template
 
 const (
-	httpConnTimeout = 160
-	port            = 3333
-	addr            = "127.0.0.1"
-	redisAddr       = "127.0.0.1:6379"
-	baseCSP         = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
+	redisAddr = "127.0.0.1:6379"
+	baseCSP   = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
 )
 
 // Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
@@ -77,11 +74,6 @@ func service() http.Handler {
 		}
 	})
 
-	// Serve static files from "web" directory
-	// workDir, _ := os.Getwd()
-	// filesDir := filepath.Join(workDir, "web")
-	// http.FileServer(filesDir+"/static")
-
 	r.Get("/", HomeHandler)
 	r.Get("/trade", TradeHandler)
 	r.Get("/deposit", DepositHandler)   // http://127.0.0.1:3333/deposit
@@ -100,23 +92,23 @@ func service() http.Handler {
 // These are based on the namespaces' chi, go-chi-middleware, and go-chi-render. Additionally, some little logging was established.
 // The remainder of the Routes(), apiSubrouter(), and init() methods configure basic handlers for each resource.
 func New() {
-	logrus.Infof("API route mounted on port %d", port)
+	// load config
+	config.AppConfig()
+
+	logrus.Infof("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
 	logrus.Infof("creating http Server")
 
 	//go singleton.singleton.GetDealerInstance()
 	go singleton.GetDealer()
 	go asyncWebWorker()
 
-	// load config.AppConfig
-	config.AppConfig()
-
 	httpServer := &http.Server{
 		// viper config .env get server address
-
-		Addr:         viper.GetViper().GetString("SERVER_ADDR") + ":" + viper.GetViper().GetString("SERVER_PORT"),
-		Handler:      service(),
-		ReadTimeout:  viper.GetViper().GetDuration("SERVER_READ_TIMEOUT"),
-		WriteTimeout: viper.GetViper().GetDuration("SERVER_WRITE_TIMEOUT"),
+		Addr:           viper.GetViper().GetString("SERVER_ADDR") + ":" + viper.GetViper().GetString("SERVER_PORT"),
+		Handler:        service(),
+		ReadTimeout:    viper.GetViper().GetDuration("SERVER_READ_TIMEOUT"),
+		WriteTimeout:   viper.GetViper().GetDuration("SERVER_WRITE_TIMEOUT"),
+		MaxHeaderBytes: 1 << 20,
 	}
 
 	go func() {
