@@ -22,7 +22,7 @@
                                           placeholder="BTC"
                                 ></v-select>
                             </div>
-                            <script src='https://unpkg.com/vue@latest'></script>
+                            <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
                             <script src='https://unpkg.com/vue-select@latest'></script>
                         </div>
 
@@ -55,7 +55,10 @@
 </body>
 
 <script>
-    Vue.component("v-select", VueSelect.VueSelect);
+    // VueJS 3 - Vue.js
+
+    // write VueSelect component
+    Vue.component('v-select', VueSelect.VueSelect);
     new Vue({
         el: "#app",
         delimiters: ['${', '}'],
