@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+{{template "head"}}
+<body>
+{{template "navbar"}}
+<div class="container-fluid">
+    <div class="row">
+        {{template "sidebarMenu"}}
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            {{template "dashboard"}}
+
+            <!-- use the latest vue-select release -->
+            <!--            <script src="https://unpkg.com/vue-select@4.0.0-beta.2"></script>-->
+
+            <!--            <link rel="stylesheet" href="https://unpkg.com/vue-select@latest/dist/vue-select.css">-->
+
+            <script src="https://unpkg.com/vue-multiselect@2.1.0"></script>
+            <link rel="stylesheet" href="https://unpkg.com/vue-multiselect@2.1.0/dist/vue-multiselect.min.css">
+
+            <!-- Vue component -->
+            <template>
+                <div>
+                    <multiselect v-model="value" :options="options"></multiselect>
+                </div>
+            </template>
+
+
+
+
+
+            <!--            <div id="app">${ message }-->
+
+            <!--                &lt;!&ndash; Select assets from list &ndash;&gt;-->
+
+
+            <!--                &lt;!&ndash; use the latest vue-select release &ndash;&gt;-->
+
+            <!--&lt;!&ndash;                <div class="row">&ndash;&gt;-->
+            <!--&lt;!&ndash;                    <div class="col">&ndash;&gt;-->
+            <!--&lt;!&ndash;                        <v-select v-model="pair"&ndash;&gt;-->
+            <!--&lt;!&ndash;                                  :options="pairs"&ndash;&gt;-->
+            <!--&lt;!&ndash;                                  label="name"&ndash;&gt;-->
+            <!--&lt;!&ndash;                                  placeholder="BTC-USD"&ndash;&gt;-->
+            <!--&lt;!&ndash;                        ></v-select>&ndash;&gt;-->
+            <!--&lt;!&ndash;                    </div>&ndash;&gt;-->
+
+
+            <!--&lt;!&ndash;                <v-select :options="options" v-model="selected"></v-select>&ndash;&gt;-->
+
+
+            <!--                    <script src="https://unpkg.com/vue-select@4.0.0-beta.2"></script>-->
+
+            <!--&lt;!&ndash;                    <link rel="stylesheet" href="https://unpkg.com/vue-select@latest/dist/vue-select.css">&ndash;&gt;-->
+            <!--                    hello-->
+
+            <!--&lt;!&ndash;                <v-select :options="options" label="country" :reduce="country => country.code" />&ndash;&gt;-->
+
+
+
+
+
+        </main>
+    </div>
+</div>
+
+
+
+<script>
+    import Multiselect from 'vue-multiselect'
+
+    // register globally
+    Vue.component('multiselect', Multiselect)
+
+    export default {
+        // OR register locally
+        components: { Multiselect },
+        data () {
+            return {
+                value: null,
+                options: ['list', 'of', 'options']
+            }
+        }
+    }
+</script>
+
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+
+
+
+<!--<script>-->
+
+<!--    // Use vue-select beta library with VueJS version 3.2.x-->
+
+<!--    // Uncaught TypeError: Vue.component is not a function-->
+<!--    // Fix using the latest vue-select release-->
+
+<!--    // Vue.component("v-select", vSelect);-->
+
+<!--    Vue.createApp({-->
+<!--        // delimiters-->
+<!--        delimiters: ['${', '}'],-->
+<!--        data() {-->
+<!--            return {-->
+<!--                selected: ['Canada'],-->
+<!--                message: 'Hello Vue!',-->
+<!--                pair: { assetType: 'spot', name: 'BTC' },-->
+<!--                pairs: [],-->
+<!--                options: [-->
+<!--                    { text: 'One', value: 1 },-->
+<!--                    { text: 'Two', value: 2 },-->
+<!--                    { text: 'Three', value: 3 }-->
+<!--                ],-->
+<!--            }-->
+<!--        }-->
+<!--    }).mount('#app')-->
+<!--</script>-->
+
+</body>
+
+</html>

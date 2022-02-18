@@ -11,20 +11,20 @@
             <div id="app">
                 <form class="deposit-form" @submit.prevent="onSubmit">
                     <div class="input-group mb-3">
-                    {{template "exchangesRadioButtons"}}
+                        {{template "exchangesRadioButtons"}}
                     </div>
 
-                        <div class="row">
-                            <div class="col">
-                                <v-select v-model="asset"
-                                          :options="assets"
-                                          label="code"
-                                          placeholder="BTC"
-                                ></v-select>
-                            </div>
-                            <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-                            <script src='https://unpkg.com/vue-select@latest'></script>
+                    <div class="row">
+                        <div class="col">
+                            <v-select v-model="asset"
+                                      :options="assets"
+                                      label="code"
+                                      placeholder="BTC"
+                            ></v-select>
                         </div>
+                        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+                        <script src='https://unpkg.com/vue-select@latest'></script>
+                    </div>
 
                     {{template "chain"}}
 

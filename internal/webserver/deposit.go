@@ -76,11 +76,12 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		pairs, _ := e.GetAvailablePairs(asset.Spot)
-		for _, p := range pairs {
-			logrus.Printf("pairs: %s\n", p.Quote.String())
-			logrus.Printf("%s\n", p.Base.String())
-		}
+		//pairs, _ := e.GetAvailablePairs(asset.Spot)
+
+		//for _, p := range pairs {
+		//	logrus.Printf("pairs: %s\n", p.Quote.String())
+		//	logrus.Printf("%s\n", p.Base.String())
+		//}
 
 		subAccount, err := GetSubAccountByID(e, "")
 
@@ -191,6 +192,7 @@ func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAc
 // getDollarValue returns the dollar value of the currency and route if there's no USDT pair available
 func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 
+	logrus.Info(currency.GetTranslation(code))
 	if code.Match(currency.USDT) || code.Match(currency.USD) || code.Match(currency.BUSD) || code.Match(currency.UST) {
 		logrus.Infof("stable coin price is pegged to $1: %s\n", code.String())
 		return 1, nil
@@ -218,6 +220,8 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 	//}
 
 	tradeAblePairs := algo.MatchPairsForCurrency(e, code, asset.Spot)
+
+	algo.FindShortestPathToAsset(e, code, currency.USD, asset.Spot)
 
 	for _, p := range tradeAblePairs {
 		if p.Quote.Match(currency.USD) {
