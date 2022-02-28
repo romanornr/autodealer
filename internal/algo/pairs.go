@@ -35,8 +35,8 @@ type Node struct {
 	ID    int
 }
 
-// FindShortestPathToDollarPair returns the shortest path to a dollar pair by using an algorithm
-func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destination currency.Code, assetType asset.Item) {
+// FindShortestPathToAsset returns the shortest path to the asset
+func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destination currency.Code, assetType asset.Item) ([]currency.Code, error) {
 
 	availablePairs := currency.Pairs{}
 	// chosen asset is "ANC"
@@ -84,7 +84,7 @@ func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destin
 		for _, p := range n.Pairs {
 			err := graph.AddArc(vertices[p.Base], vertices[p.Quote], int64(n.ID))
 			if err != nil {
-				logrus.Printf("error adding arc: %s", err)
+				return nil, fmt.Errorf("error adding arc: %s", err)
 			}
 		}
 	}
@@ -94,10 +94,35 @@ func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destin
 	// add the edges to the graph
 	best, err := graph.Shortest(vertices[code], vertices[destination])
 	if err != nil {
-		logrus.Printf("error: %s", err)
+		return nil, fmt.Errorf("shortest graph error: %s\n", err)
 	}
 
 	fmt.Println("Shortest distance ", best.Distance, " following path ", best.Path)
+
+	keys := make([]currency.Code, len(best.Path))
+
+	// hashmap
+	for _, n := range best.Path {
+		key, ok := mapkeyVertices(vertices, n)
+		if !ok {
+			return nil, fmt.Errorf("error finding key for %d", n)
+		}
+		// key BNB // key USD
+		keys = append(keys, key)
+	}
+	return keys, nil
+}
+
+// mapkeyVertices returns the key for the given value
+func mapkeyVertices(m map[currency.Code]int, value int) (key currency.Code, ok bool) {
+	for k, v := range m {
+		if v == value {
+			key = k
+			ok = true
+			return
+		}
+	}
+	return
 }
 
 // Write Bellman Ford Algorithm to find the shortest path to a dollar pair by using an algorithm
