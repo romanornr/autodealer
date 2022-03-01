@@ -1,4 +1,4 @@
-package algo
+package shortestPath
 
 import (
 	"context"
@@ -37,14 +37,13 @@ type Node struct {
 	ID    int
 }
 
-// FindShortestPathToAsset returns the shortest path to the asset
-func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destination currency.Code, assetType asset.Item) ([]currency.Code, error) {
+// PathToAsset returns the shortest path to the given asset
+func PathToAsset(e exchange.IBotExchange, code currency.Code, destination currency.Code, assetType asset.Item) ([]currency.Code, error) {
 
 	availablePairs := currency.Pairs{}
 	// chosen asset is "ANC"
 	// INFO[0121]: relatablePairs [ANC-BTC ANC-BUSD ANC-USDT]
 	relatablePairs := MatchPairsForCurrency(e, code, assetType)
-	logrus.Printf("relatablePairs %s\n", relatablePairs)
 
 	availablePairs = append(availablePairs, relatablePairs...)
 
@@ -78,7 +77,7 @@ func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destin
 		//INFO[0121] 1: [BTC-USDT BTC-TUSD BTC-USDC BTC-BUSD BTC-NGN BTC-RUB BTC-TRY BTC-EUR BTC-GBP BTC-UAH BTC-BIDR BTC-AUD BTC-DAI BTC-BRL BTC-USDP]
 		//INFO[0121] 2: [BUSD-USDT BUSD-RUB BUSD-TRY BUSD-BIDR BUSD-DAI BUSD-BRL BUSD-VAI BUSD-UAH]
 		//INFO[0121] 3: [USDT-TRY USDT-RUB USDT-IDRT USDT-UAH USDT-BIDR USDT-DAI USDT-NGN USDT-BRL]
-		logrus.Printf("%d: %s", n.ID, n.Pairs)
+		//logrus.Printf("%d: %s", n.ID, n.Pairs)
 	}
 
 	for _, n := range nodes.Nodes {
@@ -91,7 +90,7 @@ func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destin
 		}
 	}
 
-	logrus.Printf("vertices %v\n", vertices)
+	// logrus.Printf("vertices %v\n", vertices)
 
 	// add the edges to the graph
 	best, err := graph.Shortest(vertices[code], vertices[destination])
@@ -101,17 +100,14 @@ func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destin
 
 	fmt.Println("Shortest distance ", best.Distance, " following path ", best.Path)
 
-	//codesToPath := make([]currency.Code, len(best.Path))
 	var codesToPath []currency.Code
 
-	// hashmap
+	// convert the path to currency codes
 	for _, n := range best.Path {
 		key, ok := mapkeyVertices(vertices, n)
 		if !ok {
 			return nil, fmt.Errorf("error finding key for %d", n)
 		}
-
-		logrus.Printf("key %s", key)
 		codesToPath = append(codesToPath, key)
 	}
 
@@ -130,7 +126,7 @@ func mapkeyVertices(m map[currency.Code]int, value int) (key currency.Code, ok b
 	return
 }
 
-func FetchTickersPrice(currenies []currency.Code, e exchange.IBotExchange, assetType asset.Item) (float64, error) {
+func FetchTickerPrice(currencies []currency.Code, e exchange.IBotExchange, assetType asset.Item) (float64, error) {
 
 	// currencies is a slice
 	// currencies VIA, BTC, USD (3 currency codes)
@@ -142,43 +138,37 @@ func FetchTickersPrice(currenies []currency.Code, e exchange.IBotExchange, asset
 		return 0, err
 	}
 
-	for _, c := range currenies {
+	for _, c := range currencies {
 		logrus.Printf("currency %s\n", c)
 	}
 
 	pairs := currency.Pairs{}
 
 	// create pairs from the currencies Slice
-	for i, c := range currenies {
-		if i == len(currenies)-1 {
+	for i, c := range currencies {
+		if i == len(currencies)-1 {
 			break
 		}
-		pair := currency.NewPair(c, currenies[i+1]) // the quote is the next currency code
+		pair := currency.NewPair(c, currencies[i+1]) // the quote is the next currency code
 		pairs = append(pairs, pair)
 	}
 
-	logrus.Printf("pairs %s\n", pairs)
-
-	var previousPrice float64
+	var accumulatedPrice float64
 
 	for _, p := range pairs {
 		price, err := e.FetchTicker(context.Background(), p, assetType)
 		if err != nil {
 			return 0, err
 		}
-		logrus.Printf("price %f\n", price.Last)
 
-		if previousPrice == 0.0 {
-			previousPrice = price.Last
-		} else {
-			previousPrice = previousPrice * price.Last
+		if accumulatedPrice == 0.0 {
+			accumulatedPrice = price.Last
+			continue
 		}
 
+		accumulatedPrice = accumulatedPrice * price.Last
 	}
-
-	logrus.Printf("previousPrice %f\n", previousPrice)
-
-	return 0, nil
+	return accumulatedPrice, nil
 }
 
 // Write Bellman Ford Algorithm to find the shortest path to a dollar pair by using an algorithm

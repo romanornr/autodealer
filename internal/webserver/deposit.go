@@ -7,7 +7,7 @@ package webserver
 import (
 	"context"
 	"errors"
-	"github.com/romanornr/autodealer/internal/algo"
+	"github.com/romanornr/autodealer/internal/algo/shortestPath"
 	"net/http"
 	"strings"
 	"time"
@@ -219,10 +219,10 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 	//	}
 	//}
 
-	tradeAblePairs := algo.MatchPairsForCurrency(e, code, asset.Spot)
+	tradeAblePairs := shortestPath.MatchPairsForCurrency(e, code, asset.Spot)
 
-	codes, _ := algo.FindShortestPathToAsset(e, code, currency.USD, asset.Spot)
-	algo.FetchTickersPrice(codes, e, assetType)
+	codes, _ := shortestPath.PathToAsset(e, code, currency.USDT, asset.Spot)
+	shortestPath.FetchTickerPrice(codes, e, assetType)
 
 	for _, p := range tradeAblePairs {
 		if p.Quote.Match(currency.USD) {
