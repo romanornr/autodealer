@@ -1,8 +1,10 @@
 package algo
 
 import (
+	"context"
 	"fmt"
 	"github.com/RyanCarrier/dijkstra"
+	"github.com/romanornr/autodealer/internal/singleton"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
@@ -94,12 +96,13 @@ func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destin
 	// add the edges to the graph
 	best, err := graph.Shortest(vertices[code], vertices[destination])
 	if err != nil {
-		return nil, fmt.Errorf("shortest graph error: %s\n", err)
+		logrus.Errorf("error finding best path: %s", err)
 	}
 
 	fmt.Println("Shortest distance ", best.Distance, " following path ", best.Path)
 
-	keys := make([]currency.Code, len(best.Path))
+	//codesToPath := make([]currency.Code, len(best.Path))
+	var codesToPath []currency.Code
 
 	// hashmap
 	for _, n := range best.Path {
@@ -107,10 +110,12 @@ func FindShortestPathToAsset(e exchange.IBotExchange, code currency.Code, destin
 		if !ok {
 			return nil, fmt.Errorf("error finding key for %d", n)
 		}
-		// key BNB // key USD
-		keys = append(keys, key)
+
+		logrus.Printf("key %s", key)
+		codesToPath = append(codesToPath, key)
 	}
-	return keys, nil
+
+	return codesToPath, nil
 }
 
 // mapkeyVertices returns the key for the given value
@@ -123,6 +128,57 @@ func mapkeyVertices(m map[currency.Code]int, value int) (key currency.Code, ok b
 		}
 	}
 	return
+}
+
+func FetchTickersPrice(currenies []currency.Code, e exchange.IBotExchange, assetType asset.Item) (float64, error) {
+
+	// currencies is a slice
+	// currencies VIA, BTC, USD (3 currency codes)
+	// which should become VIA-BTC, BTC-USD  (2 pairs created from 3 currency codes)
+
+	d := singleton.GetDealer()
+	e, err := d.ExchangeManager.GetExchangeByName(e.GetName())
+	if err != nil {
+		return 0, err
+	}
+
+	for _, c := range currenies {
+		logrus.Printf("currency %s\n", c)
+	}
+
+	pairs := currency.Pairs{}
+
+	// create pairs from the currencies Slice
+	for i, c := range currenies {
+		if i == len(currenies)-1 {
+			break
+		}
+		pair := currency.NewPair(c, currenies[i+1]) // the quote is the next currency code
+		pairs = append(pairs, pair)
+	}
+
+	logrus.Printf("pairs %s\n", pairs)
+
+	var previousPrice float64
+
+	for _, p := range pairs {
+		price, err := e.FetchTicker(context.Background(), p, assetType)
+		if err != nil {
+			return 0, err
+		}
+		logrus.Printf("price %f\n", price.Last)
+
+		if previousPrice == 0.0 {
+			previousPrice = price.Last
+		} else {
+			previousPrice = previousPrice * price.Last
+		}
+
+	}
+
+	logrus.Printf("previousPrice %f\n", previousPrice)
+
+	return 0, nil
 }
 
 // Write Bellman Ford Algorithm to find the shortest path to a dollar pair by using an algorithm

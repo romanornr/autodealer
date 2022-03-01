@@ -221,7 +221,8 @@ func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset
 
 	tradeAblePairs := algo.MatchPairsForCurrency(e, code, asset.Spot)
 
-	algo.FindShortestPathToAsset(e, code, currency.USD, asset.Spot)
+	codes, _ := algo.FindShortestPathToAsset(e, code, currency.USD, asset.Spot)
+	algo.FetchTickersPrice(codes, e, assetType)
 
 	for _, p := range tradeAblePairs {
 		if p.Quote.Match(currency.USD) {
