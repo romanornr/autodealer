@@ -45,7 +45,7 @@
 
                 <div v-if="address" class="content">
                     <p>Address: ${ address }</p>
-                    <p>Balance: ${ balance} ${ symbol }</p>
+                    <p>Balance: ${ balance} ${ symbol } ($${ balanceUSD.toFixed(2) }) </p>
                 </div>
             </div>
         </main>
@@ -81,6 +81,7 @@
                 exchangeName: "ftx",
                 address: "",
                 balance: "",
+                balanceUSD: "",
                 price: 0,
                 chain: "default",
             }
@@ -129,6 +130,7 @@
                 this.symbol = data.code
                 this.balance = data.balance
                 this.price = data.price
+                this.balanceUSD = data.balance * data.price
                 //this.exchangeName = data.exchange
             }
         },

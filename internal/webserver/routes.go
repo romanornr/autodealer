@@ -9,7 +9,7 @@ const (
 	routeTrade              = "/trade/{exchange}/{pair}/{qty}/{assetType}/{orderType}/{side}"
 	routeTWAP               = "/twap/{exchange}/{pair}/{qty}/{assetType}/{orderType}/{side}/{hours}/{minutes}"
 	routeGetTicker          = "/ticker/{exchange}/{base}/{quote}"
-	routePriceToUSD         = "/{exchange}/{base}/priceusd"
+	routeGetPrice           = "/{exchange}/price/{base}/{quote}"
 	routeMoveTermStructure  = "/move"
 	routeMoveStats          = "/move/stats"
 	routeBankTransfer       = "/bank/transfer/{currency}"

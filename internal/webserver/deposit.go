@@ -6,7 +6,6 @@ package webserver
 
 import (
 	"context"
-	"errors"
 	"github.com/romanornr/autodealer/internal/algo/shortestPath"
 	"net/http"
 	"strings"
@@ -185,84 +184,17 @@ func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAc
 	return account.SubAccount{}, err
 }
 
-// TODO : needs refactoring and this can be done in a better way
-// check first if with a loop for USDT, USD, BTC and ETH Pairs
-// When found, start fetching price to get a dollar value
-
 // getDollarValue returns the dollar value of the currency and route if there's no USDT pair available
 func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 
-	logrus.Info(currency.GetTranslation(code))
-	if code.Match(currency.USDT) || code.Match(currency.USD) || code.Match(currency.BUSD) || code.Match(currency.UST) {
-		logrus.Infof("stable coin price is pegged to $1: %s\n", code.String())
-		return 1, nil
+	price, err := shortestPath.GetPrice(e, code, currency.USDT, assetType)
+	if err != nil {
+		logrus.Errorf("failed to get price: %s\n", err)
 	}
 
-	//// get available pairs for spot
-	//availablePairs, err := e.GetAvailablePairs(asset.Spot)
-	//
-	//if err != nil {
-	//	logrus.Errorf("failed to get available pairs: %s\n", err)
-	//}
+	logrus.Printf("price: %f\n", price)
 
-	//tradeAblePairs := currency.Pairs{}
-	//
-	////INFO[0013] found pair: ETH/BRZ
-	////INFO[0013] found pair: ETH/BTC
-	////INFO[0013] found pair: ETH/EUR
-	////INFO[0013] found pair: ETH/USD
-	////INFO[0013] found pair: ETH/USDT
-	//for _, p := range availablePairs {
-	//	if p.ContainsCurrency(code) {
-	//		tradeAblePairs = append(tradeAblePairs, p)
-	//		logrus.Printf("found pair: %s\n", p.String())
-	//	}
-	//}
-
-	tradeAblePairs := shortestPath.MatchPairsForCurrency(e, code, asset.Spot)
-
-	codes, _ := shortestPath.PathToAsset(e, code, currency.USDT, asset.Spot)
-	shortestPath.FetchTickerPrice(codes, e, assetType)
-
-	for _, p := range tradeAblePairs {
-		if p.Quote.Match(currency.USD) {
-			logrus.Printf("found USD pair: %s\n", p.String())
-			ticker, err := e.FetchTicker(context.Background(), p, assetType)
-			if err != nil {
-				logrus.Errorf("failed to get price: %s\n", err)
-			}
-			return ticker.Last, nil
-		}
-
-		if p.Quote.Match(currency.USDT) {
-			logrus.Printf("found USDT pair: %s\n", p.String())
-			ticker, err := e.FetchTicker(context.Background(), p, assetType)
-			if err != nil {
-				logrus.Errorf("failed to get price: %s\n", err)
-			}
-			return ticker.Last, nil
-		}
-	}
-
-	// TODO need to figure out the fastest pair routing for USD price when there's no USD or USDT as quote currency, code below sucks.
-
-	//// Try to match with a BTC pair
-	//p := currency.NewPair(code, currency.BTC) // ie VIA-BTC
-	//if availablePairs.Contains(p, true) {     // confirm there's a BTC pair
-	//	// if no USD pair is found, try BTC
-	//	BTCUSDT := currency.NewPair(currency.BTC, currency.USDT)
-	//	btcTicker, err := e.FetchTicker(context.Background(), BTCUSDT, assetType)
-	//	if err != nil {
-	//		logrus.Errorf("failed to get ticker: %s\n", err)
-	//	}
-	//
-	//	ticker, err := e.FetchTicker(context.Background(), p, assetType) // get the ticker for the BTC pair (ie VIA-BTC)
-	//	if err == nil {
-	//		return ticker.Last * btcTicker.Last, nil // ie return VIABTC price * BTCUSDT price
-	//	}
-	//}
-
-	return 0, errors.New("no USD, USDT or BTC pair found")
+	return price, nil
 }
 
 // TODO need to figure out the fastest pair routing for USD price when there's no USD or USDT as quote currency, code below sucks.
