@@ -97,7 +97,6 @@ func service() http.Handler {
 func New() {
 	// load config
 	config.AppConfig()
-
 	logrus.Infof("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
 	logrus.Infof("creating http Server")
 
@@ -166,6 +165,11 @@ func apiSubrouter() http.Handler {
 	r.Route(routePairs, func(r chi.Router) {
 		r.Use(FetchPairsCtx)
 		r.Get("/", getPairsResponse)
+	})
+
+	r.Route(routePrice, func(r chi.Router) {
+		r.Use(PriceCtx)
+		r.Get("/", getPrice)
 	})
 
 	r.Route(routeTrade, func(r chi.Router) {

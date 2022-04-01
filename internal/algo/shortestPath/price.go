@@ -29,7 +29,7 @@ func GetPrice(e exchange.IBotExchange, base, target currency.Code, a asset.Item)
 		return 0, ErrNoPathFound
 	}
 
-	price, err = FetchTickerPrice(e, codes, a)
+	price, err = fetchTickerPrice(e, codes, a)
 	if err != nil {
 		logrus.Error("Failed to fetch ticker price: ", err)
 		return 0, err

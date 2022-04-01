@@ -126,7 +126,7 @@ func mapkeyVertices(m map[currency.Code]int, value int) (key currency.Code, ok b
 	return
 }
 
-func FetchTickerPrice(e exchange.IBotExchange, currencies []currency.Code, assetType asset.Item) (float64, error) {
+func fetchTickerPrice(e exchange.IBotExchange, currencies []currency.Code, assetType asset.Item) (float64, error) {
 
 	// currencies is a slice
 	// currencies VIA, BTC, USD (3 currency codes)
