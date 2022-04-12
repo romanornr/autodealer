@@ -45,8 +45,8 @@ func init() {
 
 	// time format YYYY-MM-DD HH:MM:SS
 	logrus.Infof("%s %s", time.Now().Format("2006-01-02 15:04:05"), util2.Location()+": Init")
-
-	tpl = template.Must(template.ParseGlob("internal/webserver/templates/*.html"))
+	
+	tpl = template.Must(template.ParseGlob("../../internal/webserver/templates/*.html"))
 }
 
 func service() http.Handler {
