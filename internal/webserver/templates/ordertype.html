@@ -1,29 +1,25 @@
 {{define "orderTypeMarket"}}
-<div class="mb-3">
-    <div class="row">
-        <div class="col">
-            <input type="radio" class="btn-check" name="orderTypeMarketBuy-options-outlined" v-model="orderType" value="marketBuy" id="orderTypeMarketBuy-info-outlined" autocomplete="off">
-            <label class="btn btn-outline-info" for="orderTypeMarketBuy-info-outlined">Market buy</label>
-        </div>
-        <div class="col">
-            <input type="radio" class="btn-check" name="orderTypeMarketBuy-options-outlined" v-model="orderType" value="marketSell" id="orderTypeMarketSell-danger-outlined" autocomplete="off">
-            <label class="btn btn-outline-danger" for="orderTypeMarketSell-danger-outlined">Market sell</label>
-        </div>
+<div class="row">
+    <div class="col">
+        <input type="radio" class="btn-check" name="orderTypeMarketBuy-options-outlined" v-model="orderType" value="marketBuy" id="orderTypeMarketBuy-info-outlined" autocomplete="off">
+        <label class="btn btn-outline-info" for="orderTypeMarketBuy-info-outlined">Market buy</label>
+    </div>
+    <div class="col">
+        <input type="radio" class="btn-check" name="orderTypeMarketBuy-options-outlined" v-model="orderType" value="marketSell" id="orderTypeMarketSell-danger-outlined" autocomplete="off">
+        <label class="btn btn-outline-danger" for="orderTypeMarketSell-danger-outlined">Market sell</label>
     </div>
 </div>
 {{end}}
 
 {{define "orderTypeLimit"}}
-<div class="mb-3">
-    <div class="row">
-        <div class="col">
-            <input type="radio" class="btn-check" name="orderTypeLimitBuy-options-outlined" v-model="orderType" value="limitBuy" id="orderTypeLimitBuy-info-outlined" autocomplete="off">
-            <label class="btn btn-outline-info" for="orderTypeLimitBuy-info-outlined">Limit buy</label>
-        </div>
-        <div class="col">
-            <input type="radio" class="btn-check" name="orderTypeLimitSell-options-outlined" v-model="orderType" value="limitSell" id="orderTypeLimitSell-danger-outlined" autocomplete="off">
-            <label class="btn btn-outline-danger" for="orderTypeLimitSell-danger-outlined">Limit sell</label>
-        </div>
+<div class="row mb-3">
+    <div class="col">
+        <input type="radio" class="btn-check" name="orderTypeLimitBuy-options-outlined" v-model="orderType" value="limitBuy" id="orderTypeLimitBuy-info-outlined" autocomplete="off">
+        <label class="btn btn-outline-info" for="orderTypeLimitBuy-info-outlined">Limit buy</label>
+    </div>
+    <div class="col">
+        <input type="radio" class="btn-check" name="orderTypeLimitSell-options-outlined" v-model="orderType" value="limitSell" id="orderTypeLimitSell-danger-outlined" autocomplete="off">
+        <label class="btn btn-outline-danger" for="orderTypeLimitSell-danger-outlined">Limit sell</label>
     </div>
 </div>
 {{end}}
