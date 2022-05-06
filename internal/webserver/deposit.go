@@ -187,6 +187,10 @@ func GetSubAccountByID(e exchange.IBotExchange, accountId string) (account.SubAc
 // getDollarValue returns the dollar value of the currency and route if there's no USDT pair available
 func getDollarValue(e exchange.IBotExchange, code currency.Code, assetType asset.Item) (float64, error) {
 
+	if code.Item.Symbol == "USDT" || code.Item.Symbol == "USD" || code.Item.Symbol == "BUSD" || code.Item.Symbol == "UST" {
+		return 1, nil
+	}
+
 	price, err := shortestPath.GetPrice(e, code, currency.USDT, assetType)
 	if err != nil {
 		logrus.Errorf("failed to get price: %s\n", err)

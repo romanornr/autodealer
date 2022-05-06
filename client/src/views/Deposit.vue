@@ -195,7 +195,17 @@
 
   <div v-if="address" class="content">
     <p>Address: {{ address }}</p>
-    <p>Balance: {{ balance }} {{ symbol }} (${{ balanceUSD.toFixed(2) }})</p>
+    <p>Balance: {{ balance }} {{ symbol }}</p>
+    <!-- Show USD balance -->
+    <!-- green if positive balance -->
+    <div v-if="balanceUSD > 0">
+      <p style="color:green;">USD: ${{ balanceUSD.toFixed(2) }}</p>
+    </div>
+    <!-- red if negative balance -->
+    <div v-else>
+      <p style="color:red;">USD: {{ balanceUSD.toFixed(2) }}</p>
+    </div>
+    <!-- end show USD balance -->
   </div>
 </template>
 
