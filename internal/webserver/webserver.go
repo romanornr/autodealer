@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -95,6 +94,10 @@ func service() http.Handler {
 // The remainder of the Routes(), apiSubrouter(), and init() methods configure basic handlers for each resource.
 // TODO We can improve the project's performance by using the chi.Mux.StrictSlash(true) option.
 func New() {
+	// Create context that listns for the interrupt signal.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	// load config
 	config.AppConfig()
 	logrus.Infof("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
@@ -113,6 +116,8 @@ func New() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	// initializing the server in a goroutine so that
+	// it won't block the graceful shutdown handling below
 	go func() {
 		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			logrus.Errorf("error starting http server: %s\n", err)
@@ -120,23 +125,21 @@ func New() {
 		logrus.Printf("server stopped serving new connections")
 	}()
 
-	// Graceful shutdown
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
+	// Listen for the interrupt signal
+	<-ctx.Done()
 
-	logrus.Printf("shutting down server...")
+	// Restore default behavior on interrupt signal and notify user of shutdown.
+	stop()
+	logrus.Infof("shutting downserver gracefully, press Ctrl+C again to force")
 
-	// Create a context to attempt a graceful 10-second shutdown.
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// The context is used to inform the server it has 5 seconds to finish
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	// Attempt the graceful shutdown by closing the listener
 	if err := httpServer.Shutdown(ctx); err != nil {
-		logrus.Fatalf("failed to shutdown: %v", err)
+		logrus.Errorf("error shutting down http server: %s\n", err)
 	}
 
-	logrus.Printf("server gracefully stopped")
+	logrus.Infof("server exiting")
 }
 
 // The `corsConfig` function returns a new CORS configuration. It is used to configure CORS for our application. The CORS configuration is used by the `cors.New` middleware.
