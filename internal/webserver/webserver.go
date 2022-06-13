@@ -45,7 +45,7 @@ func init() {
 	// time format YYYY-MM-DD HH:MM:SS
 	logrus.Infof("%s %s", time.Now().Format("2006-01-02 15:04:05"), util2.Location()+": Init")
 
-	//tpl = template.Must(template.ParseGlob("internal/webserver/templates/*.html")) // TODO fix parse template files
+	tpl = template.Must(template.ParseGlob("internal/webserver/templates/*.html")) // TODO fix parse template files
 }
 
 func service() http.Handler {
@@ -291,11 +291,13 @@ func MoveHandler(w http.ResponseWriter, _ *http.Request) {
 	yesterday := make([]opts.LineData, 0)
 	var xstring []string
 
-	for _, m := range termStructure.MOVE {
-		items = append(items, opts.LineData{Value: m.Mark})
-		yesterday = append(yesterday, opts.LineData{Value: m.Mark + m.Change24h})
-		xstring = append(xstring, m.ExpiryDescription)
-		//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
+	for _, m := range termStructure.MOVE.Statistic {
+		items = append(items, opts.LineData{Value: m.Stats.Greeks.ImpliedVolatility})
+		xstring = append(xstring, m.Data.ExpiryDescription)
+
+		//	yesterday = append(yesterday, opts.LineData{Value: m.Mark + m.Change24h})
+		//	xstring = append(xstring, m.ExpiryDescription)
+		//	//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
 	}
 
 	line.SetXAxis(xstring).
