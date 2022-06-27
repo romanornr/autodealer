@@ -300,6 +300,9 @@ func MoveHandler(w http.ResponseWriter, _ *http.Request) {
 		//	//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
 	}
 
+	// remove first element because the "Today" MOVE contract does not belong in the term structure
+	items = items[1:]
+
 	line.SetXAxis(xstring).
 		AddSeries("move", items).
 		AddSeries("yesterday", yesterday).
