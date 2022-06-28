@@ -1,5 +1,7 @@
 # autodealer
 
+[![GoDoc](https://godoc.org/github.com/romanornr/autodealer?status.svg)](https://godoc.org/github.com/romanornr/autodealer)
+
 [![Go CI](https://github.com/romanornr/autodealer/actions/workflows/go.yml/badge.svg)](https://github.com/romanornr/autodealer/actions/workflows/go.yml)
 
 
