@@ -48,7 +48,7 @@ func ModifyOrder(ctx context.Context, d *Dealer, e exchange.IBotExchange, mod or
 		response order.SubmitResponse
 	)
 
-	value, loaded := d.GetOrderValue(e.GetName(), mod.ID)
+	value, loaded := d.GetOrderValue(e.GetName(), mod.OrderID)
 	if loaded {
 		response, err = d.SubmitOrderUD(ctx, e, submit, value.UserData)
 	} else {
@@ -58,7 +58,7 @@ func ModifyOrder(ctx context.Context, d *Dealer, e exchange.IBotExchange, mod or
 	ans.Exchange = e.GetName()
 	ans.AssetType = submit.AssetType
 	ans.Pair = submit.Pair
-	ans.ID = response.OrderID
+	ans.OrderID = response.OrderID
 	return ans, err
 }
 
@@ -75,7 +75,7 @@ func Ticker(p interface{}) ticker.Price {
 func ModifyToCancel(mod order.Modify) order.Cancel {
 	var cancel order.Cancel
 	cancel.Exchange = mod.Exchange
-	cancel.ID = mod.ID
+	cancel.OrderID = mod.OrderID
 	cancel.AssetType = mod.AssetType
 	cancel.Pair = mod.Pair
 	return cancel

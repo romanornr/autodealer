@@ -164,8 +164,8 @@ type Dealer struct {
 	reporters       []Reporter
 }
 
-//Run is the entry point of all exchange data streams.  Strategy.On*() events for a single exchange are invoked from the same thread.
-//Thus, if a strategy deals with multiple exchanges simultaneously, there may be race conditions.
+// Run is the entry point of all exchange data streams.  Strategy.On*() events for a single exchange are invoked from the same thread.
+// Thus, if a strategy deals with multiple exchanges simultaneously, there may be race conditions.
 func (bot *Dealer) Run(ctx context.Context) {
 	var wg sync.WaitGroup
 
@@ -386,7 +386,7 @@ func (bot *Dealer) CancelOrder(ctx context.Context, exchangeOrName interface{}, 
 // OnFilled, we check two criteria to verify whether they are present in Value in order to optimize the strategy's execution.
 func (bot *Dealer) OnOrder(e exchange.IBotExchange, x order.Detail) {
 	if x.Status == order.Filled {
-		value, ok := bot.GetOrderValue(e.GetName(), x.ID)
+		value, ok := bot.GetOrderValue(e.GetName(), x.OrderID)
 		if !ok {
 			return
 		}
@@ -632,7 +632,7 @@ func (bot *Dealer) loadExchange(ctx context.Context, exchCfg *config.Exchange, w
 
 // setupExchanges is an (almost) unchanged copy of Engine.SetupExchanges.
 //
-//nolint
+// nolint
 func (bot *Dealer) setupExchanges(ctx context.Context) error {
 	var wg sync.WaitGroup
 
