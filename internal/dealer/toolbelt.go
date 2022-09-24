@@ -86,37 +86,37 @@ func ModifyToCancel(mod order.Modify) order.Cancel {
 func ModifyToSubmit(mod order.Modify) order.Submit {
 	sub := order.Submit{
 		ImmediateOrCancel: mod.ImmediateOrCancel,
-		HiddenOrder:       mod.HiddenOrder,
-		FillOrKill:        mod.FillOrKill,
-		PostOnly:          mod.PostOnly,
-		ReduceOnly:        false, // Missing.
-		Leverage:          mod.Leverage,
-		Price:             mod.Price,
-		Amount:            mod.Amount,
-		StopPrice:         0, // Missing.
-		LimitPriceUpper:   mod.LimitPriceUpper,
-		LimitPriceLower:   mod.LimitPriceLower,
-		TriggerPrice:      mod.TriggerPrice,
-		TargetAmount:      mod.TargetAmount,
-		ExecutedAmount:    mod.ExecutedAmount,
-		RemainingAmount:   mod.RemainingAmount,
-		Fee:               mod.Fee,
-		Exchange:          mod.Exchange,
-		InternalOrderID:   mod.InternalOrderID,
-		ID:                mod.ID,
-		AccountID:         mod.AccountID,
-		ClientID:          mod.ClientID,
-		ClientOrderID:     mod.ClientOrderID,
-		WalletAddress:     mod.WalletAddress,
-		Offset:            "", // Missing.
-		Type:              mod.Type,
-		Side:              mod.Side,
-		Status:            mod.Status,
-		AssetType:         mod.AssetType,
-		Date:              mod.Date,
-		LastUpdated:       mod.LastUpdated,
-		Pair:              mod.Pair,
-		Trades:            mod.Trades,
+		//HiddenOrder:       mod.HiddenOrder,
+		//FillOrKill:        mod.ImmediateOrCancel
+		PostOnly:   mod.PostOnly,
+		ReduceOnly: false, // Missing.
+		//Leverage:          mod.Leverage,
+		Price:  mod.Price,
+		Amount: mod.Amount,
+		//StopPrice:         0, // Missing.
+		//LimitPriceUpper:   mod.LimitPriceUpper,
+		//LimitPriceLower:   mod.LimitPriceLower,
+		TriggerPrice: mod.TriggerPrice,
+		//TargetAmount:      mod.TargetAmount,
+		//ExecutedAmount:    mod.ExecutedAmount,
+		//RemainingAmount:   mod.RemainingAmount,
+		//Fee:               mod.Fee,
+		Exchange: mod.Exchange,
+		//InternalOrderID:   mod.InternalOrderID,
+		//ID:                mod.ID,
+		//AccountID:         mod.AccountID,
+		//ClientID:          mod.ClientID,
+		ClientOrderID: mod.ClientOrderID,
+		//WalletAddress:     mod.WalletAddress,
+		//Offset:            "", // Missing.
+		Type: mod.Type,
+		Side: mod.Side,
+		//Status:            mod.Status,
+		AssetType: mod.AssetType,
+		//Date:              mod.Date,
+		//LastUpdated:       mod.LastUpdated,
+		Pair: mod.Pair,
+		//Trades:            mod.Trades,
 	}
 	return sub
 }

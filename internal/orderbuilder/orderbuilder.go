@@ -158,10 +158,10 @@ func (o *OrderBuilder) UseImmediateOrCancel(immediateOrCancel bool) *OrderBuilde
 	return o
 }
 
-func (o *OrderBuilder) ForAccountID(accountID string) *OrderBuilder {
-	o.Order.AccountID = accountID
-	return o
-}
+//func (o *OrderBuilder) ForAccountID(accountID string) *OrderBuilder {
+//	o.Order.AccountID = accountID
+//	return o
+//}
 
 func (o *OrderBuilder) Build() (*order.Submit, error) {
 	if err := o.Order.Validate(); err != nil {

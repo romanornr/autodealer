@@ -14,7 +14,7 @@ func NewOrderTask(order *order.Submit) (*asynq.Task, error) {
 		return nil, err
 	}
 
-	logrus.Printf("sending order %s\n", order.ID)
+	//logrus.Printf("sending order %s\n", order.ID)
 
 	return asynq.NewTask(TypeOrder, payload), nil
 }

@@ -54,7 +54,7 @@ func Execute(t Payload) {
 		ob := orderbuilder.NewOrderBuilder()
 		ob.
 			AtExchange(t.Exchange).
-			ForAccountID(t.AccountID).
+			//ForAccountID(t.AccountID).
 			ForCurrencyPair(t.Pair).
 			WithAssetType(t.Asset).
 			ForPrice(11).
