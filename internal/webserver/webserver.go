@@ -195,10 +195,10 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getExchangeWithdrawResponse)
 	})
 
-	r.Route(routeGetWithdrawHistory, func(r chi.Router) {
-		r.Use(withdrawHistoryCtx)
-		r.Get("/", getWithdrawHistory)
-	})
+	//r.Route(routeGetWithdrawHistory, func(r chi.Router) {
+	//	r.Use(withdrawHistoryCtx)
+	//	r.Get("/", getWithdrawHistory)
+	//})
 
 	r.Route(routeBankTransfer, func(r chi.Router) {
 		r.Use(BankTransferCtx)

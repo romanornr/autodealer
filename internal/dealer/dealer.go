@@ -310,14 +310,14 @@ func (bot *Dealer) SubmitOrderUD(ctx context.Context, exchangeOrName interface{}
 	if err != nil {
 		// post an error metric event
 		bot.ReportEvent(SubmitOrderErrorMetric, e.GetName())
-		return resp, err
+		return *resp, err
 	}
 
 	// store the order in the registry
-	if !bot.registry.Store(e.GetName(), resp, userData) {
-		return resp, ErrOrdersAlreadyExists
+	if !bot.registry.Store(e.GetName(), *resp, userData) {
+		return *resp, ErrOrdersAlreadyExists
 	}
-	return resp, err
+	return *resp, err
 }
 
 // SubmitOrders method calls the SubmitOrder method then Contains method to check for an exchage name in xs slice.
@@ -342,7 +342,7 @@ func (bot *Dealer) SubmitOrders(ctx context.Context, e exchange.IBotExchange, xs
 // ModifyOrder method calls the SubmitOrder method then Contains method to check for an exchange name in xs slice.
 // If contains is true, you will return an error since an exchange was reported. If contains is false, you will continue with the execution of the function.
 // CreateOrder method will not be executed if Contains method returns an error.
-func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}, mod order.Modify) (order.Modify, error) {
+func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}, mod order.Modify) (order.ModifyResponse, error) {
 	e := bot.getExchange(exchangeOrName)
 	bot.ReportEvent(ModifyOrderMetric, e.GetName())
 
@@ -351,9 +351,9 @@ func (bot *Dealer) ModifyOrder(ctx context.Context, exchangeOrName interface{}, 
 	resp, err := e.ModifyOrder(ctx, &mod)
 	if err != nil {
 		bot.ReportEvent(ModifyOrderErrorMetric, e.GetName())
-		return resp, err
+		return *resp, err
 	}
-	return resp, nil
+	return *resp, nil
 }
 
 // CancelOrder calls to make an Order.Cancel which includes the giving submitted order, the name to the requested submitted order

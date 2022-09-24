@@ -33,7 +33,7 @@ func Holdings(d *Dealer, exchangeName string) (*ExchangeHoldings, error) {
 
 // ModifyOrder function will execute two steps: modify order on exchange current order status using the submitted ID, after that cancel that order using the same ID.
 // All markers issue when modifying/canceling order also will be made using the same ID it was treated before
-func ModifyOrder(ctx context.Context, d *Dealer, e exchange.IBotExchange, mod order.Modify) (ans order.Modify, err error) {
+func ModifyOrder(ctx context.Context, d *Dealer, e exchange.IBotExchange, mod order.Modify) (ans order.ModifyResponse, err error) {
 	ans, err = d.ModifyOrder(ctx, e, mod)
 	if err == nil {
 		return ans, nil

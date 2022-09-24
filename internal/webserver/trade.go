@@ -3,6 +3,7 @@ package webserver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/hibiken/asynq"
 	"github.com/romanornr/autodealer/internal/algo/twap"
 	"github.com/romanornr/autodealer/internal/singleton"
@@ -63,7 +64,12 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
 		}
 
-		assetItem := asset.Item(chi.URLParam(request, "assetType"))
+		//assetItem := asset.Item(chi.URLParam(request, "assetType"))
+		assetItem, err := asset.New(chi.URLParam(request, "assetType"))
+		if err != nil {
+			logrus.Errorf("failed to parse asset: %s\n", chi.URLParam(request, "assetType"))
+		}
+
 		if !assetItem.IsValid() {
 			logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
 		}
@@ -89,6 +95,8 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to update ticker %s\n", err)
 		}
 
+		fmt.Println(price)
+
 		qtyUSD, err := strconv.ParseFloat(chi.URLParam(request, "qty"), 64)
 		if err != nil {
 			logrus.Errorf("failed to parse qty %s\n", err)
@@ -99,13 +107,15 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse orderType %s\n", err)
 		}
 
+		fmt.Printf("last price:%f\n", price.Last)
+
 		qty := qtyUSD / price.Last
-		subAccount, err := GetSubAccountByID(e, "")
+		//subAccount, err := GetSubAccountByID(e, "")
 
 		ob := orderbuilder.NewOrderBuilder()
 		ob.
 			AtExchange(e.GetName()).
-			ForAccountID(subAccount.ID).
+			//ForAccountID(subAccount.ID).
 			ForCurrencyPair(p).
 			WithAssetType(assetItem).
 			ForPrice(price.Last).
@@ -123,7 +133,7 @@ func TradeCtx(next http.Handler) http.Handler {
 		if err != nil {
 			logrus.Errorf("submit order failed: %s\n", err)
 		}
-		logrus.Printf("order response ID %s placed %t", submitResponse.OrderID, submitResponse.IsOrderPlaced)
+		logrus.Printf("order response ID %s placed %s", submitResponse.OrderID, submitResponse.Status.String())
 
 		response := OrderResponse{
 			Response:  submitResponse,
@@ -165,7 +175,12 @@ func TWAPCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse pair: %s\n", chi.URLParam(request, "pair"))
 		}
 
-		assetItem := asset.Item(chi.URLParam(request, "assetType"))
+		//assetItem := asset.Item(chi.URLParam(request, "assetType"))
+		assetItem, err := asset.New(chi.URLParam(request, "assetType"))
+		if err != nil {
+			logrus.Errorf("failed to parse asset: %s\n", chi.URLParam(request, "assetType"))
+		}
+
 		if !assetItem.IsValid() {
 			logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
 		}

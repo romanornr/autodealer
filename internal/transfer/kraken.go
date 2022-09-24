@@ -31,7 +31,7 @@ func KrakenConvertUSDT(code currency.Code, d *dealer.Dealer) (order.SubmitRespon
 	for _, a := range accounts.Accounts {
 		for _, c := range a.Currencies {
 			if c.CurrencyName == currency.USDT {
-				value = c.TotalValue
+				value = c.Total
 			}
 		}
 	}
@@ -57,7 +57,7 @@ func KrakenConvertUSDT(code currency.Code, d *dealer.Dealer) (order.SubmitRespon
 	}
 
 	logrus.Infof("order response: %v\n", response)
-	return response, nil
+	return *response, nil
 }
 
 // KrakenInternationalBankAccountWithdrawal withdraws funds to an international bank account
@@ -77,7 +77,7 @@ func KrakenInternationalBankAccountWithdrawal(code currency.Code, d *dealer.Deal
 	for _, a := range accounts.Accounts {
 		for _, c := range a.Currencies {
 			if c.CurrencyName == currency.EUR {
-				value = c.TotalValue
+				value = c.Total
 			}
 		}
 	}

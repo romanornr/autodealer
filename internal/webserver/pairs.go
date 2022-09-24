@@ -3,6 +3,7 @@ package webserver
 import (
 	"context"
 	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/thrasher-corp/gocryptotrader/currency"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -47,6 +48,13 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 		assetTypes := e.GetAssetTypes(true)
 		response := new(pairResponse)
 
+		currencyPairFormat := currency.PairFormat{
+			Uppercase: true,
+			Delimiter: "-",
+			Separator: "",
+			Index:     "",
+		}
+
 		for _, a := range assetTypes {
 			c, err := e.GetAvailablePairs(a)
 			if err != nil {
@@ -55,7 +63,7 @@ func FetchPairsCtx(next http.Handler) http.Handler {
 
 			for _, p := range c {
 				response.Pair = append(response.Pair, pair{
-					Name:      p.Format("-", true).String(),
+					Name:      currencyPairFormat.Format(p), //p.Format()//p.Format("-", true).String(),
 					AssetType: a,
 				})
 			}

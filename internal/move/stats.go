@@ -43,7 +43,7 @@ func GetStatistics(d *dealer.Dealer) (List, error) {
 				return list, err
 			}
 
-			stats, err := f.GetFutureStats(context.Background(), future.String())
+			stats, err := f.GetFutureStats(context.Background(), future)
 			if err != nil {
 				return list, err
 			}
