@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/RyanCarrier/dijkstra"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/singleton"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"

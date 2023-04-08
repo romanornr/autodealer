@@ -1,7 +1,7 @@
 package move
 
 //import (
-//	"github.com/romanornr/autodealer/internal/dealer"
+//	"github.com/romanornr/autodealer/dealer"
 //	"github.com/sirupsen/logrus"
 //)
 //

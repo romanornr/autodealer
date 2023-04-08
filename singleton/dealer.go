@@ -2,7 +2,7 @@ package singleton
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/internal/dealer"
+	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 	"sync"
 	"sync/atomic"
@@ -15,8 +15,8 @@ var (
 	err         error
 )
 
-//GetDealer can only create and return an initialized instance of Dealer.
-//This means that GetDealer will NOT create a new instance, if there is already an instance running.
+// GetDealer can only create and return an initialized instance of Dealer.
+// This means that GetDealer will NOT create a new instance, if there is already an instance running.
 func GetDealer() *dealer.Dealer {
 	once.Do(func() {
 		instance, err = dealer.NewBuilder().Build(context.Background())

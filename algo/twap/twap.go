@@ -2,7 +2,7 @@ package twap
 
 import (
 	"github.com/hibiken/asynq"
-	"github.com/romanornr/autodealer/internal/orderbuilder"
+	"github.com/romanornr/autodealer/orderbuilder"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"time"

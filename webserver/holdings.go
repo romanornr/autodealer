@@ -3,15 +3,15 @@ package webserver
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
-	"github.com/romanornr/autodealer/internal/singleton"
-	"github.com/romanornr/autodealer/internal/subaccount"
+	"github.com/romanornr/autodealer/singleton"
+	"github.com/romanornr/autodealer/subaccount"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/internal/dealer"
+	"github.com/romanornr/autodealer/dealer"
 	"github.com/sirupsen/logrus"
 )
 

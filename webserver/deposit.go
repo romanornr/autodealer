@@ -6,13 +6,13 @@ package webserver
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/internal/algo/shortestPath"
+	"github.com/romanornr/autodealer/algo/shortestPath"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/romanornr/autodealer/internal/dealer"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/dealer"
+	"github.com/romanornr/autodealer/singleton"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
 

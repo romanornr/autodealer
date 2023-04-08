@@ -3,8 +3,8 @@ package webserver
 import (
 	"context"
 	"errors"
-	"github.com/romanornr/autodealer/internal/config"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/config"
+	"github.com/romanornr/autodealer/singleton"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/http"

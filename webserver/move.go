@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/romanornr/autodealer/internal/move"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/move"
+	"github.com/romanornr/autodealer/singleton"
 	"github.com/sirupsen/logrus"
 )
 

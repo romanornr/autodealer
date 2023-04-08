@@ -2,10 +2,10 @@ package webserver
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/singleton"
 	"net/http"
 
-	transfer2 "github.com/romanornr/autodealer/internal/transfer"
+	transfer2 "github.com/romanornr/autodealer/transfer"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 
 	"github.com/go-chi/render"

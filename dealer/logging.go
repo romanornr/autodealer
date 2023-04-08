@@ -1,7 +1,7 @@
 package dealer
 
 import (
-	"github.com/romanornr/autodealer/internal/util"
+	"github.com/romanornr/autodealer/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/thrasher-corp/gocryptotrader/common/convert"

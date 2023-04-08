@@ -2,7 +2,7 @@ package webserver
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/singleton"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	transfer2 "github.com/romanornr/autodealer/internal/transfer"
+	transfer2 "github.com/romanornr/autodealer/transfer"
 	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"

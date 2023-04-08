@@ -2,7 +2,7 @@ package webserver
 
 import (
 	"context"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/singleton"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"net/http"
 

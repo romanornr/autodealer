@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	util2 "github.com/romanornr/autodealer/internal/util"
+	util2 "github.com/romanornr/autodealer/util"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
 

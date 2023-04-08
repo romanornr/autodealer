@@ -4,6 +4,7 @@ import "C"
 import (
 	"context"
 	"errors"
+	"github.com/romanornr/autodealer/util"
 	"html/template"
 	"log"
 	"net/http"
@@ -12,14 +13,13 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/romanornr/autodealer/internal/algo/twap"
-	"github.com/romanornr/autodealer/internal/config"
-	"github.com/romanornr/autodealer/internal/singleton"
+	"github.com/romanornr/autodealer/algo/twap"
+	"github.com/romanornr/autodealer/config"
+	"github.com/romanornr/autodealer/singleton"
 	"github.com/spf13/viper"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	util2 "github.com/romanornr/autodealer/internal/util"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 )
@@ -36,12 +36,12 @@ const (
 func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{})
-	logrus.Infof(util2.Location())
+	logrus.Infof(util.Location())
 
 	// time format YYYY-MM-DD HH:MM:SS
-	logrus.Infof("%s %s", time.Now().Format("2006-01-02 15:04:05"), util2.Location()+": Init")
+	logrus.Infof("%s %s", time.Now().Format("2006-01-02 15:04:05"), util.Location()+": Init")
 
-	tpl = template.Must(template.ParseGlob("internal/webserver/templates/*.html")) // TODO fix parse template files
+	tpl = template.Must(template.ParseGlob("webserver/templates/*.html")) // TODO fix parse template files
 }
 
 func service() http.Handler {

@@ -6,7 +6,7 @@ package main
 
 import (
 	"github.com/hibiken/asynq"
-	webserver2 "github.com/romanornr/autodealer/internal/webserver"
+	webserver2 "github.com/romanornr/autodealer/webserver"
 	"github.com/thrasher-corp/gocryptotrader/gctscript"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
