@@ -289,13 +289,13 @@ func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface
 
 // SubmitOrder function, simply makes an Order.Submit which contains the giving parameters and the current name of requested Exchange
 // Submit it to the giving requested Exchange, called at the user orders code. It returns the order map response if successful, otherwise error.
-func (bot *Dealer) SubmitOrder(ctx context.Context, exchangeOrName interface{}, submit order.Submit) (order.SubmitResponse, error) {
+func (bot *Dealer) SubmitOrder(ctx context.Context, exchangeOrName interface{}, submit order.Submit) (*order.SubmitResponse, error) {
 	return bot.SubmitOrderUD(ctx, exchangeOrName, submit, nil)
 }
 
 // SubmitOrderUD is similar to the SubmitOrder, except that this function also adds the order map into the Orders map
 // and its corresponding ID and name and then return it and its error and additional notes and errors which cause the metric to move asynchronous processing.
-func (bot *Dealer) SubmitOrderUD(ctx context.Context, exchangeOrName interface{}, submit order.Submit, userData interface{}) (order.SubmitResponse, error) {
+func (bot *Dealer) SubmitOrderUD(ctx context.Context, exchangeOrName interface{}, submit order.Submit, userData interface{}) (*order.SubmitResponse, error) {
 	e := bot.getExchange(exchangeOrName)
 
 	// Make sure order.Submit.Exchange is properly populated
@@ -310,14 +310,14 @@ func (bot *Dealer) SubmitOrderUD(ctx context.Context, exchangeOrName interface{}
 	if err != nil {
 		// post an error metric event
 		bot.ReportEvent(SubmitOrderErrorMetric, e.GetName())
-		return *resp, err
+		return resp, err
 	}
 
 	// store the order in the registry
 	if !bot.registry.Store(e.GetName(), *resp, userData) {
-		return *resp, ErrOrdersAlreadyExists
+		return resp, ErrOrdersAlreadyExists
 	}
-	return *resp, err
+	return resp, err
 }
 
 // SubmitOrders method calls the SubmitOrder method then Contains method to check for an exchage name in xs slice.

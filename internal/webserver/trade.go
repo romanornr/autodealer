@@ -70,6 +70,8 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse asset: %s\n", chi.URLParam(request, "assetType"))
 		}
 
+		fmt.Println(assetItem.IsValid())
+
 		if !assetItem.IsValid() {
 			logrus.Errorf("failed to parse assetType: %s\n", chi.URLParam(request, "assetType"))
 		}
@@ -109,7 +111,8 @@ func TradeCtx(next http.Handler) http.Handler {
 
 		fmt.Printf("last price:%f\n", price.Last)
 
-		qty := qtyUSD / price.Last
+		//qty := qtyUSD / price.Last
+		qty := 0.443
 		//subAccount, err := GetSubAccountByID(e, "")
 
 		ob := orderbuilder.NewOrderBuilder()
@@ -121,6 +124,7 @@ func TradeCtx(next http.Handler) http.Handler {
 			ForPrice(price.Last).
 			WithAmount(qty).
 			UseOrderType(orderType).
+			SetQuoteAmount(qtyUSD).
 			SetSide(side)
 
 		newOrder, err := ob.Build()
@@ -129,6 +133,8 @@ func TradeCtx(next http.Handler) http.Handler {
 
 		logrus.Printf("%s quantity %f\n", p.String(), qty)
 
+		newOrder.QuoteAmount = 15
+
 		submitResponse, err := d.SubmitOrderUD(context.Background(), e.GetName(), *newOrder, nil)
 		if err != nil {
 			logrus.Errorf("submit order failed: %s\n", err)
@@ -136,7 +142,7 @@ func TradeCtx(next http.Handler) http.Handler {
 		logrus.Printf("order response ID %s placed %s", submitResponse.OrderID, submitResponse.Status.String())
 
 		response := OrderResponse{
-			Response:  submitResponse,
+			Response:  *submitResponse,
 			Order:     *newOrder,
 			Pair:      p.String(),
 			QtyUSD:    qtyUSD,

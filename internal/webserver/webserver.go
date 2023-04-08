@@ -225,6 +225,11 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getTwapResponse)
 	})
 
+	r.Route(routeReferral, func(r chi.Router) {
+		r.Use(ReferralCtx)
+		r.Get("/", getReferral)
+	})
+
 	return r
 }
 

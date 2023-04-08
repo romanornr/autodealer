@@ -45,7 +45,7 @@ func ModifyOrder(ctx context.Context, d *Dealer, e exchange.IBotExchange, mod or
 	// Prepare submission
 	var (
 		submit   = ModifyToSubmit(mod)
-		response order.SubmitResponse
+		response *order.SubmitResponse
 	)
 
 	value, loaded := d.GetOrderValue(e.GetName(), mod.OrderID)

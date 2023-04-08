@@ -15,4 +15,5 @@ const (
 	routeBankTransfer       = "/bank/transfer/{currency}"
 	routeHoldingsExchange   = "/holdings/{exchange}/{asset}"
 	routeAssets             = "/assets/{exchange}"
+	routeReferral           = "/referral"
 )

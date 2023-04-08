@@ -1,6 +1,7 @@
 package orderbuilder
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -112,6 +113,7 @@ func (o *OrderBuilder) AtExchange(exchange string) *OrderBuilder {
 
 func (o *OrderBuilder) ForCurrencyPair(pair currency.Pair) *OrderBuilder {
 	o.Order.Pair = pair
+	logrus.Printf("currency pair: %s", o.Order.Pair)
 	return o
 }
 
@@ -155,6 +157,11 @@ func (o *OrderBuilder) SetReduceOnly(reduce bool) *OrderBuilder {
 
 func (o *OrderBuilder) UseImmediateOrCancel(immediateOrCancel bool) *OrderBuilder {
 	o.Order.ImmediateOrCancel = immediateOrCancel
+	return o
+}
+
+func (o *OrderBuilder) SetQuoteAmount(quoteAmount float64) *OrderBuilder {
+	o.Order.QuoteAmount = quoteAmount
 	return o
 }
 
