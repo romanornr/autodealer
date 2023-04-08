@@ -11,13 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-echarts/go-echarts/v2/charts"
-	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/go-echarts/go-echarts/v2/types"
 	"github.com/hibiken/asynq"
 	"github.com/romanornr/autodealer/internal/algo/twap"
 	"github.com/romanornr/autodealer/internal/config"
-	"github.com/romanornr/autodealer/internal/move"
 	"github.com/romanornr/autodealer/internal/singleton"
 	"github.com/spf13/viper"
 
@@ -81,7 +77,7 @@ func service() http.Handler {
 	r.Get("/withdraw", WithdrawHandler) // http://127.0.0.1:3333/withdraw
 	r.Get("/bank/transfer", bankTransferHandler)
 	r.Get("/s", SearchHandler)
-	r.Get("/move", MoveHandler) // http://127.0.0.1:3333/move
+	//r.Get("/move", MoveHandler) // http://127.0.0.1:3333/move
 
 	// func subrouter generates a new router for each sub route.
 	r.Mount("/api", apiSubrouter())
@@ -225,10 +221,10 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getTwapResponse)
 	})
 
-	r.Route(routeReferral, func(r chi.Router) {
-		r.Use(ReferralCtx)
-		r.Get("/", getReferral)
-	})
+	//r.Route(routeReferral, func(r chi.Router) {
+	//	r.Use(ReferralCtx)
+	//	r.Get("/", getReferral)
+	//})
 
 	return r
 }
@@ -278,41 +274,41 @@ func SearchHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-// MoveHandler handleMove is the handler for the '/move' page request.
-func MoveHandler(w http.ResponseWriter, _ *http.Request) {
-	line := charts.NewLine()
-	// set some global options like Title/Legend/ToolTip or anything else
-	line.SetGlobalOptions(
-		charts.WithInitializationOpts(opts.Initialization{Theme: types.ThemeWesteros}),
-		charts.WithYAxisOpts(opts.YAxis{Scale: true}),
-		charts.WithTitleOpts(opts.Title{
-			Title:    "FTX Move Contracts",
-			Subtitle: "TermStructure",
-		}))
-
-	d := singleton.GetDealer()
-	termStructure := move.GetTermStructure(d)
-
-	items := make([]opts.LineData, 0)
-	yesterday := make([]opts.LineData, 0)
-	var xstring []string
-
-	for _, m := range termStructure.MOVE.Statistic {
-		items = append(items, opts.LineData{Value: m.Stats.Greeks.ImpliedVolatility})
-		xstring = append(xstring, m.Data.ExpiryDescription)
-
-		//	yesterday = append(yesterday, opts.LineData{Value: m.Mark + m.Change24h})
-		//	xstring = append(xstring, m.ExpiryDescription)
-		//	//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
-	}
-
-	// remove first element because the "Today" MOVE contract does not belong in the term structure
-	items = items[1:]
-
-	line.SetXAxis(xstring).
-		AddSeries("move", items).
-		AddSeries("yesterday", yesterday).
-		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
-
-	line.Render(w)
-}
+//// MoveHandler handleMove is the handler for the '/move' page request.
+//func MoveHandler(w http.ResponseWriter, _ *http.Request) {
+//	line := charts.NewLine()
+//	// set some global options like Title/Legend/ToolTip or anything else
+//	line.SetGlobalOptions(
+//		charts.WithInitializationOpts(opts.Initialization{Theme: types.ThemeWesteros}),
+//		charts.WithYAxisOpts(opts.YAxis{Scale: true}),
+//		charts.WithTitleOpts(opts.Title{
+//			Title:    "FTX Move Contracts",
+//			Subtitle: "TermStructure",
+//		}))
+//
+//	d := singleton.GetDealer()
+//	termStructure := move.GetTermStructure(d)
+//
+//	items := make([]opts.LineData, 0)
+//	yesterday := make([]opts.LineData, 0)
+//	var xstring []string
+//
+//	for _, m := range termStructure.MOVE.Statistic {
+//		items = append(items, opts.LineData{Value: m.Stats.Greeks.ImpliedVolatility})
+//		xstring = append(xstring, m.Data.ExpiryDescription)
+//
+//		//	yesterday = append(yesterday, opts.LineData{Value: m.Mark + m.Change24h})
+//		//	xstring = append(xstring, m.ExpiryDescription)
+//		//	//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
+//	}
+//
+//	// remove first element because the "Today" MOVE contract does not belong in the term structure
+//	items = items[1:]
+//
+//	line.SetXAxis(xstring).
+//		AddSeries("move", items).
+//		AddSeries("yesterday", yesterday).
+//		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+//
+//	line.Render(w)
+//}
