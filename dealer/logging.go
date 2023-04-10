@@ -143,19 +143,18 @@ func (d *Dealer) setupGCTLogging() {
 	d.Config.Logging.AdvancedSettings.Headers.Warn = "w"
 	d.Config.Logging.AdvancedSettings.Headers.Debug = "d"
 	d.Config.Logging.AdvancedSettings.Headers.Error = "e"
+	d.Config.Logging.SubLoggerConfig.Output = "stdout"
 
-	gctlog.RWM.Lock()
-	gctlog.GlobalLogConfig = &d.Config.Logging
-	gctlog.RWM.Unlock()
-
+	gctlog.SetGlobalLogConfig(&d.Config.Logging)
 	gctlog.SetupGlobalLogger()
 
-	var console GCTConsoleWriter
-
-	// override all sublogger outputs with our own writer
-	for _, subLogger := range gctlog.SubLoggers {
-		subLogger.SetOutput(console)
-	}
+	// TODO: formatting per or GCTConsoleWriter
+	//var console GCTConsoleWriter
+	//
+	//// override all sublogger outputs with our own writer
+	//for _, subLogger := range gctlog.SubLoggers {
+	//	subLogger.SetOutput(console)
+	//}
 }
 
 // GCTConsoleWriter is a zerolog writer that outputs to the console.

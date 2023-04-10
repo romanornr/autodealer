@@ -48,7 +48,7 @@ func BalanceCtx(next http.Handler) http.Handler {
 
 		account := accounts.Accounts[0]
 		for _, c := range account.Currencies {
-			if c.CurrencyName == assetInfo.Code {
+			if c.Currency == assetInfo.Code {
 				logrus.Info(c.Total)
 				assetInfo.Balance = fmt.Sprintf("%f", c.Total)
 			}
