@@ -105,8 +105,8 @@ func (b *BalancesStrategy) tick(d *Dealer, e exchange.IBotExchange) {
 			}
 
 			for _, currencyBalance := range subAccount.Currencies {
-				holdings.Accounts[subAccount.ID].Balances[assetType][currencyBalance.CurrencyName] = CurrencyBalance{
-					Currency:   currencyBalance.CurrencyName,
+				holdings.Accounts[subAccount.ID].Balances[assetType][currencyBalance.Currency] = CurrencyBalance{
+					Currency:   currencyBalance.Currency,
 					TotalValue: currencyBalance.Total,
 					Hold:       currencyBalance.Hold,
 				}

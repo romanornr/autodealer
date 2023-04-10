@@ -105,7 +105,7 @@ func (b Builder) Build(ctx context.Context) (*Dealer, error) {
 		dealer = &Dealer{
 			Settings:        b.settings,
 			Config:          conf,
-			ExchangeManager: *engine.SetupExchangeManager(),
+			ExchangeManager: *engine.NewExchangeManager(),
 			Root:            NewRootStrategy(),
 			registry:        *NewOrderRegistry(),
 			reporters:       b.reporters,
@@ -614,13 +614,13 @@ func (bot *Dealer) loadExchange(ctx context.Context, exchCfg *config.Exchange, w
 	}
 
 	if wg != nil {
-		if err := exch.Start(wg); err != nil {
+		if err := exch.Start(context.TODO(), wg); err != nil {
 			return fmt.Errorf("unable to start exchange: %w", err)
 		}
 	} else {
 		tempWG := sync.WaitGroup{}
 
-		if err := exch.Start(&tempWG); err != nil {
+		if err := exch.Start(context.TODO(), &tempWG); err != nil {
 			return fmt.Errorf("unable to start exchange: %w", err)
 		}
 

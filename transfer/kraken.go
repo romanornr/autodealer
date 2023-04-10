@@ -30,7 +30,7 @@ func KrakenConvertUSDT(code currency.Code, d *dealer.Dealer) (order.SubmitRespon
 	// check accounts for total tether value to sell
 	for _, a := range accounts.Accounts {
 		for _, c := range a.Currencies {
-			if c.CurrencyName == currency.USDT {
+			if c.Currency == currency.USDT {
 				value = c.Total
 			}
 		}
@@ -76,7 +76,7 @@ func KrakenInternationalBankAccountWithdrawal(code currency.Code, d *dealer.Deal
 	var value float64
 	for _, a := range accounts.Accounts {
 		for _, c := range a.Currencies {
-			if c.CurrencyName == currency.EUR {
+			if c.Currency == currency.EUR {
 				value = c.Total
 			}
 		}

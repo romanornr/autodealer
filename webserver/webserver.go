@@ -41,7 +41,7 @@ func init() {
 	// time format YYYY-MM-DD HH:MM:SS
 	logrus.Infof("%s %s", time.Now().Format("2006-01-02 15:04:05"), util.Location()+": Init")
 
-	tpl = template.Must(template.ParseGlob("webserver/templates/*.html")) // TODO fix parse template files
+	tpl = template.Must(template.ParseGlob("templates/*.html"))
 }
 
 func service() http.Handler {
@@ -201,15 +201,15 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getBankTransfer)
 	})
 
-	r.Route(routeMoveTermStructure, func(r chi.Router) {
-		r.Use(MoveTermStructureCtx)
-		r.Get("/", getMoveTermStructure)
-	})
-
-	r.Route(routeMoveStats, func(r chi.Router) {
-		r.Use(MoveStatsCtx)
-		r.Get("/", getMoveStats)
-	})
+	//r.Route(routeMoveTermStructure, func(r chi.Router) {
+	//	r.Use(MoveTermStructureCtx)
+	//	r.Get("/", getMoveTermStructure)
+	//})
+	//
+	//r.Route(routeMoveStats, func(r chi.Router) {
+	//	r.Use(MoveStatsCtx)
+	//	r.Get("/", getMoveStats)
+	//})
 
 	r.Route(routeAssets, func(r chi.Router) {
 		r.Use(AssetListCtx)
