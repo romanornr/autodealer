@@ -4,102 +4,8 @@
       <!-- {{template "exchangesRadioButtons"}} -->
       <span class="input-group-text" id="basic-addon">Exchange</span>
 
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="binance"
-          id="binance-btn-check-2-outlined"
-          autocomplete="off"
-      />
-      <label class="btn btn-outline-warning" for="binance-btn-check-2-outlined">Binance</label>
-      <br/>
-
-<!--      <input-->
-<!--          type="radio"-->
-<!--          class="btn-check"-->
-<!--          name="options-outlined"-->
-<!--          v-model="exchangeName"-->
-<!--          value="ftx"-->
-<!--          id="ftx-btn-check-outlined"-->
-<!--          autocomplete="off"-->
-<!--          checked-->
-<!--          required/>-->
-<!--      <label class="btn btn-outline-primary" for="ftx-btn-check-outlined"-->
-<!--      >FTX</label-->
-<!--      ><br/>-->
-
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="deribit"
-          id="deribit-success-outlined"
-          autocomplete="off"/>
-      <label class="btn btn-outline-success" for="deribit-success-outlined">Deribit</label>
-
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="bitmex"
-          id="bitmex-danger-outlined"
-          autocomplete="off"/>
-      <label class="btn btn-outline-danger" for="bitmex-danger-outlined">Bitmex</label>
-
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="huobi"
-          id="huobi-info-outlined"
-          autocomplete="off"/>
-      <label class="btn btn-outline-info" for="huobi-info-outlined">Huobi</label>
-
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="bitfinex"
-          id="finex-success-outlined"
-          autocomplete="off"/>
-      <label class="btn btn-outline-success" for="finex-success-outlined">Bitfinex</label>
-
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="btse"
-          id="btse-info-outlined"
-          autocomplete="off"/>
-      <label class="btn btn-outline-info" for="btse-info-outlined">BTSE</label>
-
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="kraken"
-          id="kraken-dark-outlined"
-          autocomplete="off"/>
-      <label class="btn btn-outline-dark" for="kraken-dark-outlined">Kraken</label>
-
-      <input
-          type="radio"
-          class="btn-check"
-          name="options-outlined"
-          v-model="exchangeName"
-          value="bittrex"
-          id="bittrex-info-outlined"
-          autocomplete="off"/>
+      <ExchangeInput v-model="exchangeName"/>
     </div>
-
     <div class="row">
       <div class="col">
         <v-select
@@ -148,11 +54,13 @@
 
 <script>
 import vSelect from 'vue-select'
-import ChainInput from "@/components/forms/ChainInput.vue";
+import ChainInput from "@/components/form/ChainInput.vue";
+import ExchangeInput from "@/components/form/ExchangeInput.vue";
 
 export default {
   name: 'Deposit',
   components: {
+    ExchangeInput,
     ChainInput,
     vSelect,
   },
