@@ -2,64 +2,6 @@ package dealer
 
 import "fmt"
 
-// The code focuses on managing memory automatically. That means, if you want to initialize an array of length 10, you write ....
-//
-// ```go
-// a := NewCircularArray(10)
-// ```
-//
-// and no Reserve functions are required. Just Initialize the array of length 10, and you are ready to go. Internally, the code handles 17 different situations at scale.
-// Most of the time it does something like this.
-// ```go
-// offset := 0
-// xs := make([]interface{}, n)
-// ```
-//
-// `n` is, of course, the capacity of the array.
-// Then, for example, if you push an element, you find where you need to write it in the array. There are only 4 situations.
-// ```go
-//	Dynamic Length
-//	if len(xs) == cap(xs) {
-//		//the array has max capacity, thus the offset must wrap around
-//		// to make room for another element
-//		offset = (offset + 1) % cap(xs)
-//	} else {
-//		offset = len(xs)
-//	}
-//
-//	xs = append(xs, x)
-//```
-// `offset` manages the offset value of the array.
-// The `offset` dictates how far from the beginning of the array you can stuff the next input element. It only lets you go down to zero.
-//
-//```go
-//if len(xs) == cap(xs) {
-//	offset = 0
-//	xs = append(make([]interface{}), xs...)
-//}
-//
-//xs[offset] = x
-//```
-// Here we set the offset to be the last element. Let's look at how we would initialize such a case.
-// ```go
-// a := NewCircularArray(10)
-// a.Push(nil)
-// for i:=0; i<9; i++ {
-//	  a.Push(nil)
-// }
-// overfill the array
-// a.Push(nil)
-// ```
-// Let's look at the output of `a.LastIndex()`
-// ```go
-// a.LastIndex() // returns len(xs) - 1
-// ```
-//
-// ```go
-// a.Index(a.LastIndex()) // return len(xs) 1
-// ```
-//
-
 // CircularArray is initialized with the "width" of the array.
 type CircularArray struct {
 	Offset int
