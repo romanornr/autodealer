@@ -11,9 +11,9 @@
           v-model="exchangeName"
           value="binance"
           id="binance-btn-check-2-outlined"
-          autocomplete="off"/>
-      <label class="btn btn-outline-warning" for="binance-btn-check-2-outlined"
-      >Binance</label>
+          autocomplete="off"
+      />
+      <label class="btn btn-outline-warning" for="binance-btn-check-2-outlined">Binance</label>
       <br/>
 
 <!--      <input-->
@@ -38,9 +38,7 @@
           value="deribit"
           id="deribit-success-outlined"
           autocomplete="off"/>
-      <label class="btn btn-outline-success" for="deribit-success-outlined"
-      >Deribit</label
-      >
+      <label class="btn btn-outline-success" for="deribit-success-outlined">Deribit</label>
 
       <input
           type="radio"
@@ -50,9 +48,7 @@
           value="bitmex"
           id="bitmex-danger-outlined"
           autocomplete="off"/>
-      <label class="btn btn-outline-danger" for="bitmex-danger-outlined"
-      >Bitmex</label
-      >
+      <label class="btn btn-outline-danger" for="bitmex-danger-outlined">Bitmex</label>
 
       <input
           type="radio"
@@ -62,9 +58,7 @@
           value="huobi"
           id="huobi-info-outlined"
           autocomplete="off"/>
-      <label class="btn btn-outline-info" for="huobi-info-outlined"
-      >Huobi</label
-      >
+      <label class="btn btn-outline-info" for="huobi-info-outlined">Huobi</label>
 
       <input
           type="radio"
@@ -74,9 +68,7 @@
           value="bitfinex"
           id="finex-success-outlined"
           autocomplete="off"/>
-      <label class="btn btn-outline-success" for="finex-success-outlined"
-      >Bitfinex</label
-      >
+      <label class="btn btn-outline-success" for="finex-success-outlined">Bitfinex</label>
 
       <input
           type="radio"
@@ -96,9 +88,7 @@
           value="kraken"
           id="kraken-dark-outlined"
           autocomplete="off"/>
-      <label class="btn btn-outline-dark" for="kraken-dark-outlined"
-      >Kraken</label
-      >
+      <label class="btn btn-outline-dark" for="kraken-dark-outlined">Kraken</label>
 
       <input
           type="radio"
@@ -121,61 +111,7 @@
     </div>
 
     <!-- {{template "chain"}} -->
-    <div class="input-group mb-3">
-      <div class="form-check form-check-inline">
-        <input
-            class="form-check-input"
-            type="radio"
-            name="inlineRadioOptions"
-            v-model="chain"
-            id="inlineRadio1"
-            value="default"
-            checked/>
-        <label class="form-check-label" for="inlineRadio1">Default</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input
-            class="form-check-input"
-            type="radio"
-            name="inlineRadioOptions"
-            v-model="chain"
-            id="inlineRadio2"
-            value="erc20"/>
-        <label class="form-check-label" for="inlineRadio2">ERC20</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input
-            class="form-check-input"
-            type="radio"
-            name="inlineRadioOptions"
-            v-model="chain"
-            id="inlineRadio3"
-            value="trx"/>
-        <label class="form-check-label" for="inlineRadio2">TRX</label>
-      </div>
-
-      <div class="form-check form-check-inline">
-        <input
-            class="form-check-input"
-            type="radio"
-            name="inlineRadioOptions"
-            v-model="chain"
-            id="inlineRadio4"
-            value="sol"/>
-        <label class="form-check-label" for="inlineRadio3">SOL</label>
-      </div>
-
-      <div class="form-check form-check-inline">
-        <input
-            class="form-check-input"
-            type="radio"
-            name="inlineRadioOptions"
-            v-model="chain"
-            id="inlineRadio5"
-            value="BNB"/>
-        <label class="form-check-label" for="inlineRadio3">BNB</label>
-      </div>
-    </div>
+    <ChainInput v-model="chain"/>
 
     <button class="btn btn-primary" type="submit" :disabled="loading">
       <span
@@ -212,10 +148,12 @@
 
 <script>
 import vSelect from 'vue-select'
+import ChainInput from "@/components/forms/ChainInput.vue";
 
 export default {
   name: 'Deposit',
   components: {
+    ChainInput,
     vSelect,
   },
   data() {
