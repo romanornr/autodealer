@@ -1,11 +1,6 @@
 <template>
   <form class="deposit-form" @submit.prevent="onSubmit">
-    <div class="input-group mb-3">
-      <!-- {{template "exchangesRadioButtons"}} -->
-      <span class="input-group-text" id="basic-addon">Exchange</span>
-
       <ExchangeInput v-model="exchangeName"/>
-    </div>
     <div class="row">
       <div class="col">
         <v-select
