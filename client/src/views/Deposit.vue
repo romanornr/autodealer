@@ -1,6 +1,6 @@
 <template>
   <form class="deposit-form" @submit.prevent="onSubmit">
-      <ExchangeInput v-model="exchangeName"/>
+      <ExchangeInput v-model="exchangeName" label="exchange" id="exchange"/>
     <div class="row">
       <div class="col">
         <v-select

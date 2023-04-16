@@ -1,10 +1,10 @@
 <template>
-  <div>Withdraw</div>
+  <div>BankTransfer</div>
 </template>
 
 <script>
 // TODO
 export default {
-  name: 'Withdraw',
+  name: 'BankTransfer',
 }
 </script>

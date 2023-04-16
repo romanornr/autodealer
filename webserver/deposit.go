@@ -85,7 +85,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		subAccount, err := GetSubAccountByID(e, "")
 
 		depositRequest.Chains, err = e.GetAvailableTransferChains(context.Background(), depositRequest.Code)
-		logrus.Info(depositRequest.Chains)
+		logrus.Infof("deposit request chains %v", depositRequest.Chains)
 		depositRequest.Asset = depositRequest.Code.Item
 		depositRequest.AccountID = subAccount.ID
 
@@ -122,8 +122,14 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			chain = ""
 		}
 
+		if depositRequest.Chains == nil {
+			chain = ""
+			logrus.Debugf("no available transfer chains for %s", depositRequest.Code.String())
+		}
+
 		if chain == "default" {
 			if len(depositRequest.Chains) > 0 {
+				logrus.Debugf("using default deposit request chain:%s", depositRequest.Chains[0])
 				chain = depositRequest.Chains[0]
 			} else {
 				chain = ""

@@ -29,17 +29,17 @@ const router = createRouter({
       },
     },
     {
-      path: '/withdraw',
-      name: 'withdraw',
-      component: () => import('../views/Withdraw.vue'),
+      path: '/transfer',
+      name: 'transfer',
+      component: () => import('../views/Transfer.vue'),
       meta: {
         title: 'Transfer capital',
       },
     },
     {
       path: '/bank/transfer',
-      name: 'transfer',
-      component: () => import('../views/Transfer.vue'),
+      name: 'bank-transfer',
+      component: () => import('../views/BankTransfer.vue'),
       meta: {
         title: 'International Bank Transfer',
       },

@@ -14,9 +14,7 @@
           <RouterLink class="nav-link" to="/deposit"> Deposit </RouterLink>
         </li>
         <li class="nav-item">
-          <RouterLink class="nav-link" to="/withdraw">
-            Transfer capital
-          </RouterLink>
+          <RouterLink class="nav-link" to="/transfer">Transfer capital</RouterLink>
         </li>
         <li class="nav-item">
           <RouterLink class="nav-link" to="/bank/transfer">

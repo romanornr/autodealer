@@ -1,6 +1,6 @@
 <script>
 export default {
-  props: ['modelValue'],
+  props: ['modelValue', 'label', 'id'],
   emits: ['update:modelValue'],
   data() {
     return {
@@ -19,10 +19,10 @@ export default {
 
 <template>
   <div class="input-group mb-3">
-    <span class="input-group-text" id="basic-addon">Exchange</span>
+    <span class="input-group-text" id="basic-addon">{{ label }}</span>
     <span v-for="exchange in exchanges" :key="exchange.value">
-      <input type="radio" class="btn-check" name="options-outlined" :value="exchange.value" :id="'checkbox-' + exchange.value" @input="$emit('update:modelValue', $event.target.value)"/>
-      <label :class="exchange.btn_class" :for="'checkbox-' + exchange.value">{{exchange.text}}</label>
+      <input type="radio" class="btn-check" :name="id" :value="exchange.value" :id="id + '-checkbox-' + exchange.value" @input="$emit('update:modelValue', $event.target.value)"/>
+      <label :class="exchange.btn_class" :for="id + '-checkbox-' + exchange.value">{{exchange.text}}</label>
     </span>
   </div>
 </template>
