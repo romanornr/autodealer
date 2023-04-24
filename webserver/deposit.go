@@ -64,7 +64,7 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		var depositRequest depositResponse
 		depositRequest.Code = currency.NewCode(strings.ToUpper(chi.URLParam(request, "asset")))
 		exchangeNameReq := chi.URLParam(request, "exchange")
-		chain := chi.URLParam(request, "chain")
+		chainReq := chi.URLParam(request, "chain")
 
 		d := singleton.GetDealer()
 
@@ -75,68 +75,17 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		//pairs, _ := e.GetAvailablePairs(asset.Spot)
-
-		//for _, p := range pairs {
-		//	logrus.Printf("pairs: %s\n", p.Quote.String())
-		//	logrus.Printf("%s\n", p.Base.String())
-		//}
-
 		subAccount, err := GetSubAccountByID(e, "")
 
-		depositRequest.Chains, err = e.GetAvailableTransferChains(context.Background(), depositRequest.Code)
-		logrus.Infof("deposit request chains %v", depositRequest.Chains)
+		availableTransferChains, err := e.GetAvailableTransferChains(context.Background(), depositRequest.Code)
+		depositRequest.Chains = availableTransferChains
+		logrus.Infof("deposit request chains %v", availableTransferChains)
 		depositRequest.Asset = depositRequest.Code.Item
 		depositRequest.AccountID = subAccount.ID
 
-		// need to figure out chain selection
-		// USDT FTX: [erc20 trx sol]
-		// USDT Binance: [BNB BSC ETH SOL TRX]
-		// USDT BTSE: []
-		// USDT Bitfinex: [TETHERUSDTALG TETHERUSX TETHERUSDTBCH TETHERUSDTDVF TETHERUSO TETHERUSDTSOL TETHERUSDTHEZ TETHERUSE TETHERUSL TETHERUSS TETHERUSDTOMG]
-		// USDT Kraken: [Tether USD (ERC20) Tether USD (TRC20)]
-		// USDT Huobi:  [algousdt hrc20usdt solusdt trc20usdt usdt usdterc20]
-		if e.GetName() == "Binance" {
-			if chain == "erc20" {
-				chain = "eth"
-			}
-		}
+		selectedChain := chainSelection(e.GetName(), chainReq, depositRequest.Chains)
 
-		if e.GetName() == "Huobi" {
-			if chain == "trx" {
-				chain = "trc20usdt"
-			}
-		}
-
-		if e.GetName() == "Kraken" {
-			if chain == "trx" {
-				chain = "Tether USD (TRC20)"
-			}
-		}
-
-		if e.GetName() == "BTSE" {
-			chain = ""
-		}
-
-		if e.GetName() == "Bittrex" {
-			chain = ""
-		}
-
-		if depositRequest.Chains == nil {
-			chain = ""
-			logrus.Debugf("no available transfer chains for %s", depositRequest.Code.String())
-		}
-
-		if chain == "default" {
-			if len(depositRequest.Chains) > 0 {
-				logrus.Debugf("using default deposit request chain:%s", depositRequest.Chains[0])
-				chain = depositRequest.Chains[0]
-			} else {
-				chain = ""
-			}
-		}
-
-		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.AccountID, chain)
+		depositRequest.Address, err = e.GetDepositAddress(context.Background(), depositRequest.Code, depositRequest.AccountID, selectedChain)
 		if err != nil {
 			logrus.Errorf("failed to get deposit address: %s\n", err)
 			render.Render(w, request, ErrInvalidRequest(err))
@@ -163,6 +112,80 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		ctx := context.WithValue(request.Context(), "response", &depositRequest)
 		next.ServeHTTP(w, request.WithContext(ctx))
 	})
+}
+
+func chainSelectionOld(exchangeName string, chainReq string, chains []string) string {
+
+	var chain string
+
+	exchangeName = strings.ToLower(exchangeName)
+
+	// need to figure out chain selection
+	// USDT FTX: [erc20 trx sol]
+	// USDT Binance: [BNB BSC ETH SOL TRX]
+	// USDT BTSE: []
+	// USDT Bitfinex: [TETHERUSDTALG TETHERUSX TETHERUSDTBCH TETHERUSDTDVF TETHERUSO TETHERUSDTSOL TETHERUSDTHEZ TETHERUSE TETHERUSL TETHERUSS TETHERUSDTOMG]
+	// USDT Kraken: [Tether USD (ERC20) Tether USD (TRC20)]
+	// USDT Huobi:  [algousdt hrc20usdt solusdt trc20usdt usdt usdterc20]
+	if exchangeName == "binance" {
+		if chainReq == "erc20" {
+			chain = "eth"
+		}
+
+		if chainReq == "trx" {
+			chain = "TRX"
+		}
+
+		if chainReq == "sol" {
+			chain = "SOL"
+		}
+	}
+
+	if exchangeName == "ftx" {
+		if chainReq == "erc20" {
+			chain = "eth"
+		}
+
+		if chainReq == "trx" {
+			chain = "trx"
+		}
+	}
+
+	if exchangeName == "huobi" {
+		if chainReq == "trx" {
+			chain = "trc20usdt"
+		}
+	}
+
+	if exchangeName == "kraken" {
+		if chainReq == "trx" {
+			chain = "Tether USD (TRC20)"
+		}
+	}
+
+	if exchangeName == "btse" {
+		chain = ""
+	}
+
+	if exchangeName == "bittrex" {
+		chain = ""
+	}
+
+	if chains == nil {
+		chain = ""
+		logrus.Debugf("no available transfer chains for %s", exchangeName)
+	}
+
+	if chainReq == "default" {
+		if len(chains) > 0 {
+			logrus.Debugf("using default deposit request chain:%s", chains[0])
+			chain = chains[0]
+		} else {
+			chain = ""
+		}
+	}
+
+	return chain
 }
 
 // GetSubAccountByID is a function that returns a subaccount by ID.
