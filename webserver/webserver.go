@@ -181,6 +181,11 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getHoldingsExchangeResponse)
 	})
 
+	r.Route(routeAvailableTransferChains, func(r chi.Router) {
+		r.Use(AvailableTransferChainsCtx)
+		r.Get("/", getAvailableTransferChainsResponse)
+	})
+
 	r.Route(routeGetDepositAddr, func(r chi.Router) {
 		r.Use(DepositAddressCtx)
 		r.Get("/", getDepositAddress)
