@@ -4,6 +4,7 @@ import "C"
 import (
 	"context"
 	"errors"
+	"github.com/go-chi/chi/v5"
 	"github.com/romanornr/autodealer/util"
 	"html/template"
 	"log"
@@ -18,7 +19,6 @@ import (
 	"github.com/romanornr/autodealer/singleton"
 	"github.com/spf13/viper"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
@@ -95,7 +95,7 @@ func New() {
 	defer stop()
 
 	// load config
-	config.AppConfig()
+	config.LoadAppConfig()
 	logrus.Infof("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
 	logrus.Infof("creating http Server")
 
@@ -196,25 +196,10 @@ func apiSubrouter() http.Handler {
 		r.Get("/", getExchangeWithdrawResponse)
 	})
 
-	//r.Route(routeGetWithdrawHistory, func(r chi.Router) {
-	//	r.Use(withdrawHistoryCtx)
-	//	r.Get("/", getWithdrawHistory)
-	//})
-
 	r.Route(routeBankTransfer, func(r chi.Router) {
 		r.Use(BankTransferCtx)
 		r.Get("/", getBankTransfer)
 	})
-
-	//r.Route(routeMoveTermStructure, func(r chi.Router) {
-	//	r.Use(MoveTermStructureCtx)
-	//	r.Get("/", getMoveTermStructure)
-	//})
-	//
-	//r.Route(routeMoveStats, func(r chi.Router) {
-	//	r.Use(MoveStatsCtx)
-	//	r.Get("/", getMoveStats)
-	//})
 
 	r.Route(routeAssets, func(r chi.Router) {
 		r.Use(AssetListCtx)
@@ -225,12 +210,6 @@ func apiSubrouter() http.Handler {
 		r.Use(TWAPCtx)
 		r.Get("/", getTwapResponse)
 	})
-
-	//r.Route(routeReferral, func(r chi.Router) {
-	//	r.Use(ReferralCtx)
-	//	r.Get("/", getReferral)
-	//})
-
 	return r
 }
 
@@ -278,42 +257,3 @@ func SearchHandler(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 }
-
-//// MoveHandler handleMove is the handler for the '/move' page request.
-//func MoveHandler(w http.ResponseWriter, _ *http.Request) {
-//	line := charts.NewLine()
-//	// set some global options like Title/Legend/ToolTip or anything else
-//	line.SetGlobalOptions(
-//		charts.WithInitializationOpts(opts.Initialization{Theme: types.ThemeWesteros}),
-//		charts.WithYAxisOpts(opts.YAxis{Scale: true}),
-//		charts.WithTitleOpts(opts.Title{
-//			Title:    "FTX Move Contracts",
-//			Subtitle: "TermStructure",
-//		}))
-//
-//	d := singleton.GetDealer()
-//	termStructure := move.GetTermStructure(d)
-//
-//	items := make([]opts.LineData, 0)
-//	yesterday := make([]opts.LineData, 0)
-//	var xstring []string
-//
-//	for _, m := range termStructure.MOVE.Statistic {
-//		items = append(items, opts.LineData{Value: m.Stats.Greeks.ImpliedVolatility})
-//		xstring = append(xstring, m.Data.ExpiryDescription)
-//
-//		//	yesterday = append(yesterday, opts.LineData{Value: m.Mark + m.Change24h})
-//		//	xstring = append(xstring, m.ExpiryDescription)
-//		//	//line.SetXAxis([]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}).
-//	}
-//
-//	// remove first element because the "Today" MOVE contract does not belong in the term structure
-//	items = items[1:]
-//
-//	line.SetXAxis(xstring).
-//		AddSeries("move", items).
-//		AddSeries("yesterday", yesterday).
-//		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
-//
-//	line.Render(w)
-//}
