@@ -5,29 +5,29 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
-// The code shows how we can listen to different trade activities and responses like if an order is filled.
-// Listeners or implementing interfaces allows us to be loosely coupled to the code base and add functionalities based on the requirement.
+// A classic Observer design pattern implementation, allowing customizable post-order-fill actions.
+// Slots refers to a function pointer. So the function can be called indirectly through the variable.
+// The "OnFilledSlot" in the "Slots" struct is a function pointer, which is assigned a function that gets called when an order is filled.
 
-// The code is fairly simple, we have a Slots' struct which has a function pointer to OnFilled.
-// This function is invoked with the placed order and the exchange. We can see we can retrieve its original details and possibly use it as a source of data and reconcile using this.
-// If we agreed per exchange this strategy is acceptable, all orders are needed.
-
-// OnFilledObserver
-// An observer that responds to each placed order by the dealer
+// OnFilledObserver is an interface that responds to each placed order by the dealer.
+// The OnFilled method is expected to perform operations when a trade order is filled.
 type OnFilledObserver interface {
-	OnFilled(d *Dealer, e exchange.IBotExchange, x order.Detail)
+	OnFilled(d *Dealer, e exchange.IBotExchange, orderDetail order.Detail)
 }
 
-// Slots have an OnFilled function pointer.
+// Slots is a struct that contains an OnFilled function pointer.
+// as the OnFilled method in the OnFilledObserver interface.
+// This allows for customizable behavior when an order gets filled.
 type Slots struct {
-	OnFilledSlot func(d *Dealer, e exchange.IBotExchange, x order.Detail)
+	OnFilledSlot func(d *Dealer, e exchange.IBotExchange, orderDetail order.Detail)
 }
 
-// OnFilled is invoked with the placed order and the exchange
-// per Observer, we can see we can retrieve its original details and possibly use
-// it as a source of data and reconcile using this. If we agreed per exchange this strategy is acceptable, all orders are needed.
-func (s Slots) OnFilled(d *Dealer, e exchange.IBotExchange, x order.Detail) {
+// OnFilled is invoked with the placed order and the exchange.
+// It retrieves the original order details and can be used as a source of data for reconciliation.
+// If this strategy is acceptable per exchange, all orders are needed.
+func (s Slots) OnFilled(d *Dealer, e exchange.IBotExchange, orderDetail order.Detail) {
 	if s.OnFilledSlot != nil {
-		s.OnFilledSlot(d, e, x)
+		// Add error handling here to handle potential issues when calling s.OnFilledSlot
+		s.OnFilledSlot(d, e, orderDetail)
 	}
 }
