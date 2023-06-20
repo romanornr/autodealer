@@ -5,10 +5,11 @@ import (
 	"context"
 	"errors"
 	"github.com/go-chi/chi/v5"
-	"github.com/romanornr/autodealer/util"
+	"github.com/rs/zerolog"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -21,10 +22,10 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
-	"github.com/sirupsen/logrus"
 )
 
 var tpl *template.Template
+var logger zerolog.Logger
 
 const (
 	redisAddr = "127.0.0.1:6379"
@@ -34,12 +35,8 @@ const (
 // Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
 // The Chi router selects a correct handler and middleware and hooks them together.
 func init() {
-	logrus.SetLevel(logrus.DebugLevel)
-	logrus.SetFormatter(&logrus.TextFormatter{})
-	logrus.Infof(util.Location())
-
-	// time format YYYY-MM-DD HH:MM:SS
-	logrus.Infof("%s %s", time.Now().Format("2006-01-02 15:04:05"), util.Location()+": Init")
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 
 	tpl = template.Must(template.ParseGlob("webserver/templates/*.html"))
 }
@@ -67,7 +64,7 @@ func service() http.Handler {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		if err := tpl.ExecuteTemplate(w, "404.html", nil); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			logrus.Errorf("error template: %s\n", err)
+			logger.Error().Msgf("error template: %s\n", err)
 		}
 	})
 
@@ -96,8 +93,9 @@ func New() {
 
 	// load config
 	config.LoadAppConfig()
-	logrus.Infof("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
-	logrus.Infof("creating http Server")
+	logger.Info().Msgf("config loaded: %s", viper.ConfigFileUsed())
+	logger.Info().Msgf("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
+	logger.Info().Msg("creating http server")
 
 	//go singleton.singleton.GetDealerInstance()
 	go singleton.GetDealer()
@@ -116,9 +114,9 @@ func New() {
 	// it won't block the graceful shutdown handling below
 	go func() {
 		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			logrus.Errorf("error starting http server: %s\n", err)
+			logger.Error().Msgf("error starting http server: %s\n", err)
 		}
-		logrus.Printf("server stopped serving new connections")
+		logger.Info().Msg("server stopped serving new connections")
 	}()
 
 	// Listen for the interrupt signal
@@ -126,16 +124,16 @@ func New() {
 
 	// Restore default behavior on interrupt signal and notify user of shutdown.
 	stop()
-	logrus.Infof("shutting downserver gracefully, press Ctrl+C again to force")
+	logger.Info().Msgf("shutting down server grafecully, press Ctrl+C again to force")
 
 	// The context is used to inform the server it has 5 seconds to finish
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := httpServer.Shutdown(ctx); err != nil {
-		logrus.Errorf("error shutting down http server: %s\n", err)
+		logger.Error().Msgf("error shutting down http server: %s\n", err)
 	}
 
-	logrus.Infof("server exiting")
+	logger.Info().Msg("server exiting")
 }
 
 // The `corsConfig` function returns a new CORS configuration. It is used to configure CORS for our application. The CORS configuration is used by the `cors.New` middleware.
@@ -245,7 +243,7 @@ func asyncWebWorker() {
 func HomeHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Errorf("error template: %s\n", err)
+		logger.Error().Msgf("error template: %s\n", err)
 		return
 	}
 }
@@ -253,7 +251,7 @@ func HomeHandler(w http.ResponseWriter, _ *http.Request) {
 func SearchHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := tpl.ExecuteTemplate(w, "search.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Errorf("error template: %s\n", err)
+		logger.Error().Msgf("error template: %s\n", err)
 		return
 	}
 }
