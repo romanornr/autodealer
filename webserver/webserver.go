@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/go-chi/chi/v5"
+	"github.com/romanornr/autodealer/config"
 	"github.com/rs/zerolog"
 	"html/template"
 	"log"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/romanornr/autodealer/algo/twap"
-	"github.com/romanornr/autodealer/config"
 	"github.com/romanornr/autodealer/singleton"
 	"github.com/spf13/viper"
 
@@ -32,6 +32,10 @@ const (
 	baseCSP   = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
 )
 
+type Server struct {
+	server *http.Server
+}
+
 // Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
 // The Chi router selects a correct handler and middleware and hooks them together.
 func init() {
@@ -39,17 +43,19 @@ func init() {
 	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 
 	tpl = template.Must(template.ParseGlob("webserver/templates/*.html"))
+	config.LoadAppConfig()
 }
 
 func service() http.Handler {
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 
 	r := chi.NewRouter()
 
-	// The middleware stacks. Logger, per RequestId and re-hopping initialized variables.
-	// The RequestId middleware handles uuid generation for each request and setting it to Mux context.
+	// Set up our middleware with the Chi router
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	r.Use(zerologMiddleware(logger))
 	r.Use(middleware.Recoverer)
 
 	// Set a timeout value on the request context (ctx), that will signal
@@ -82,6 +88,51 @@ func service() http.Handler {
 	return r
 }
 
+// zerologMiddleware is a custom middleware function for logging HTTP requests and responses using zerolog.
+func zerologMiddleware(logger zerolog.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logger.Info().
+				Str("method", r.Method).
+				Str("url", r.URL.String()).
+				Str("remote_addr", r.RemoteAddr).
+				Msg("received request")
+
+			// Then call the next handler
+			next.ServeHTTP(w, r)
+
+			// Log the outgoing response
+			logger.Info().
+				Str("method", r.Method).
+				Str("url", r.URL.String()).
+				Msg("sending response")
+		})
+	}
+}
+
+// NewServer creates a new HTTP server and returns a pointer to it.
+func NewServer() (*Server, error) {
+	s := &Server{
+		server: &http.Server{
+			Addr:           viper.GetViper().GetString("SERVER_ADDR") + ":" + viper.GetViper().GetString("SERVER_PORT"),
+			Handler:        service(),
+			ReadTimeout:    viper.GetViper().GetDuration("SERVER_READ_TIMEOUT"),
+			WriteTimeout:   viper.GetViper().GetDuration("SERVER_WRITE_TIMEOUT"),
+			MaxHeaderBytes: 1 << 20,
+		},
+	}
+
+	// initializing the server in a goroutine so that
+	// it won't block the graceful shutdown handling below
+	go func() {
+		if err := s.server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			logger.Error().Msgf("error starting server: %s", err)
+		}
+		logger.Print("server stopped serving new connections")
+	}()
+	return s, nil
+}
+
 // New imports many libraries, effectively constructing the project's "infrastructure."
 // These are based on the namespaces' chi, go-chi-middleware, and go-chi-render. Additionally, some little logging was established.
 // The remainder of the Routes(), apiSubrouter(), and init() methods configure basic handlers for each resource.
@@ -91,8 +142,6 @@ func New() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	// load config
-	config.LoadAppConfig()
 	logger.Info().Msgf("config loaded: %s", viper.ConfigFileUsed())
 	logger.Info().Msgf("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
 	logger.Info().Msg("creating http server")
@@ -101,23 +150,10 @@ func New() {
 	go singleton.GetDealer()
 	go asyncWebWorker()
 
-	httpServer := &http.Server{
-		// viper config .env get server address
-		Addr:           viper.GetViper().GetString("SERVER_ADDR") + ":" + viper.GetViper().GetString("SERVER_PORT"),
-		Handler:        service(),
-		ReadTimeout:    viper.GetViper().GetDuration("SERVER_READ_TIMEOUT"),
-		WriteTimeout:   viper.GetViper().GetDuration("SERVER_WRITE_TIMEOUT"),
-		MaxHeaderBytes: 1 << 20,
+	s, err := NewServer()
+	if err != nil {
+		logger.Fatal().Msgf("error creating server: %s", err)
 	}
-
-	// initializing the server in a goroutine so that
-	// it won't block the graceful shutdown handling below
-	go func() {
-		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			logger.Error().Msgf("error starting http server: %s\n", err)
-		}
-		logger.Info().Msg("server stopped serving new connections")
-	}()
 
 	// Listen for the interrupt signal
 	<-ctx.Done()
@@ -129,7 +165,7 @@ func New() {
 	// The context is used to inform the server it has 5 seconds to finish
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := httpServer.Shutdown(ctx); err != nil {
+	if err = s.server.Shutdown(ctx); err != nil {
 		logger.Error().Msgf("error shutting down http server: %s\n", err)
 	}
 
