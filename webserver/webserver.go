@@ -46,6 +46,18 @@ func init() {
 	config.LoadAppConfig()
 }
 
+// Handler is our handler struct
+type Handler struct {
+	tpl *template.Template
+}
+
+// NewHandler returns a new instance of our handler.
+func NewHandler() *Handler {
+	return &Handler{
+		tpl: tpl,
+	}
+}
+
 func service() http.Handler {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
@@ -74,12 +86,15 @@ func service() http.Handler {
 		}
 	})
 
-	r.Get("/", HomeHandler)
+	// call NewHandler() to get a new handler instance
+	handler := NewHandler()
+
+	r.Get("/", handler.HomeHandler)
 	r.Get("/trade", TradeHandler)
 	r.Get("/deposit", DepositHandler)   // http://127.0.0.1:3333/deposit
 	r.Get("/withdraw", WithdrawHandler) // http://127.0.0.1:3333/withdraw
 	r.Get("/bank/transfer", bankTransferHandler)
-	r.Get("/s", SearchHandler)
+	r.Get("/s", handler.SearchHandler)
 	//r.Get("/move", MoveHandler) // http://127.0.0.1:3333/move
 
 	// func subrouter generates a new router for each sub route.
@@ -274,18 +289,16 @@ func asyncWebWorker() {
 	}
 }
 
-// HomeHandler handleHome is the handler for the '/' page request. It redirects the
-// requester to the markets page.
-func HomeHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
+func (h *Handler) HomeHandler(w http.ResponseWriter, _ *http.Request) {
+	if err := h.tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logger.Error().Msgf("error template: %s\n", err)
 		return
 	}
 }
 
-func SearchHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := tpl.ExecuteTemplate(w, "search.html", nil); err != nil {
+func (h *Handler) SearchHandler(w http.ResponseWriter, _ *http.Request) {
+	if err := h.tpl.ExecuteTemplate(w, "search.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logger.Error().Msgf("error template: %s\n", err)
 		return
