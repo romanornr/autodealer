@@ -58,6 +58,30 @@ func NewHandler() *Handler {
 	}
 }
 
+// CorsConfig is our CORS configuration struct
+type CorsConfig struct {
+	AllowedOrigins   []string // Origins that are allowed to access resources
+	AllowedMethods   []string // HTTP Methods that are allowed to be used
+	AllowedHeaders   []string // Headers that are allowed in HTTP requests
+	ExposedHeaders   []string // Headers that are exposed in HTTP responses
+	AllowCredentials bool     // Allow Whether the request can include credentials
+	MaxAge           int      // The maximum age (in seconds) of the result of a preflight request
+}
+
+// corsMiddleware is our CORS middleware
+func corsMiddleware(config *CorsConfig) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return cors.New(cors.Options{
+			AllowedOrigins:   config.AllowedOrigins,
+			AllowedMethods:   config.AllowedMethods,
+			AllowedHeaders:   config.AllowedHeaders,
+			ExposedHeaders:   config.ExposedHeaders,
+			AllowCredentials: config.AllowCredentials,
+			MaxAge:           config.MaxAge,
+		}).Handler(next)
+	}
+}
+
 func service() http.Handler {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
@@ -74,9 +98,24 @@ func service() http.Handler {
 	// through ctx.Done() that the request has timed out and further processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	chiCors := corsConfig()
+	// Create the CORS configuration
+	corsConfig := &CorsConfig{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           900, // Maximum value not ignored by any of major browsers
+	}
 
-	r.Use(chiCors.Handler)
+	// Set up CORS middleware with the Chi router
+	r.Use(corsMiddleware(corsConfig))
 
 	// set 404 handler
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
@@ -185,24 +224,6 @@ func New() {
 	}
 
 	logger.Info().Msg("server exiting")
-}
-
-// The `corsConfig` function returns a new CORS configuration. It is used to configure CORS for our application. The CORS configuration is used by the `cors.New` middleware.
-func corsConfig() *cors.Cors {
-	return cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{
-			http.MethodGet,
-			http.MethodPost,
-			http.MethodPut,
-			http.MethodDelete,
-			http.MethodOptions,
-		},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           900, // Maximum value not ignored by any of major browsers
-	})
 }
 
 // apiSubrouter function will create an api route tree for each exchange, which will then be mounted into the application routing tree using the apiSubroutines.Mount method.
