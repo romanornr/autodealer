@@ -5,8 +5,13 @@ import (
 	"context"
 	"errors"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog"
+	"github.com/hibiken/asynq"
+	"github.com/romanornr/autodealer/algo/twap"
 	"github.com/romanornr/autodealer/config"
+	"github.com/romanornr/autodealer/singleton"
 	"github.com/rs/zerolog"
+	"github.com/spf13/viper"
 	"html/template"
 	"log"
 	"net/http"
@@ -14,11 +19,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/hibiken/asynq"
-	"github.com/romanornr/autodealer/algo/twap"
-	"github.com/romanornr/autodealer/singleton"
-	"github.com/spf13/viper"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
@@ -84,14 +84,19 @@ func corsMiddleware(config *CorsConfig) func(next http.Handler) http.Handler {
 
 func service() http.Handler {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
+	logger = httplog.NewLogger("httplog", httplog.Options{
+		JSON:            true,
+		Concise:         true,
+		LogLevel:        "debug",
+		TimeFieldFormat: time.TimeOnly,
+	})
 
 	r := chi.NewRouter()
 
 	// Set up our middleware with the Chi router
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(zerologMiddleware(logger))
+	r.Use(httplog.RequestLogger(logger))
 	r.Use(middleware.Recoverer)
 
 	// Set a timeout value on the request context (ctx), that will signal
@@ -119,6 +124,9 @@ func service() http.Handler {
 
 	// set 404 handler
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		oplog := httplog.LogEntry(r.Context())
+		w.WriteHeader(http.StatusNotFound)
+		oplog.Warn().Msgf("path not found: %q", r.URL.Path)
 		if err := tpl.ExecuteTemplate(w, "404.html", nil); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			logger.Error().Msgf("error template: %s\n", err)
@@ -140,28 +148,6 @@ func service() http.Handler {
 	r.Mount("/api", apiSubrouter())
 
 	return r
-}
-
-// zerologMiddleware is a custom middleware function for logging HTTP requests and responses using zerolog.
-func zerologMiddleware(logger zerolog.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logger.Info().
-				Str("method", r.Method).
-				Str("url", r.URL.String()).
-				Str("remote_addr", r.RemoteAddr).
-				Msg("received request")
-
-			// Then call the next handler
-			next.ServeHTTP(w, r)
-
-			// Log the outgoing response
-			logger.Info().
-				Str("method", r.Method).
-				Str("url", r.URL.String()).
-				Msg("sending response")
-		})
-	}
 }
 
 // NewServer creates a new HTTP server and returns a pointer to it.
