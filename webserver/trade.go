@@ -22,8 +22,8 @@ import (
 )
 
 // TradeHandler handleHome is the handler for the '/trade' page request.
-func TradeHandler(w http.ResponseWriter, r *http.Request) {
-	if err := tpl.ExecuteTemplate(w, "trade.html", nil); err != nil {
+func (h *Handler) TradeHandler(w http.ResponseWriter, r *http.Request) {
+	if err := h.tpl.ExecuteTemplate(w, "trade.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Errorf("error template: %s\n", err)
 		return

@@ -24,9 +24,6 @@ import (
 	"github.com/rs/cors"
 )
 
-var tpl *template.Template
-var logger zerolog.Logger
-
 const (
 	redisAddr = "127.0.0.1:6379"
 	baseCSP   = "default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'"
@@ -34,28 +31,32 @@ const (
 
 type Server struct {
 	server *http.Server
+	logger *zerolog.Logger
+	router *chi.Mux
+}
+
+type Handler struct {
+	tpl    *template.Template
+	logger *zerolog.Logger
+}
+
+func NewHandler() *Handler {
+	return &Handler{
+		tpl:    template.Must(template.ParseGlob("webserver/templates/*.html")),
+		logger: initLogger(),
+	}
+}
+
+func initLogger() *zerolog.Logger {
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+	return &logger
 }
 
 // Init sets up our just do for our webserver by ensuring that the ASI Application import has been used correctly.
 // The Chi router selects a correct handler and middleware and hooks them together.
 func init() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
-
-	tpl = template.Must(template.ParseGlob("webserver/templates/*.html"))
 	config.LoadAppConfig()
-}
-
-// Handler is our handler struct
-type Handler struct {
-	tpl *template.Template
-}
-
-// NewHandler returns a new instance of our handler.
-func NewHandler() *Handler {
-	return &Handler{
-		tpl: tpl,
-	}
 }
 
 // CorsConfig is our CORS configuration struct
@@ -82,8 +83,9 @@ func corsMiddleware(config *CorsConfig) func(next http.Handler) http.Handler {
 	}
 }
 
-func service() http.Handler {
+func (s *Server) SetupService() http.Handler {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	logger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 	logger = httplog.NewLogger("httplog", httplog.Options{
 		JSON:            true,
 		Concise:         true,
@@ -91,17 +93,15 @@ func service() http.Handler {
 		TimeFieldFormat: time.TimeOnly,
 	})
 
-	r := chi.NewRouter()
-
 	// Set up our middleware with the Chi router
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(httplog.RequestLogger(logger))
-	r.Use(middleware.Recoverer)
+	s.router.Use(middleware.RequestID)
+	s.router.Use(middleware.RealIP)
+	s.router.Use(httplog.RequestLogger(logger))
+	s.router.Use(middleware.Recoverer)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further processing should be stopped.
-	r.Use(middleware.Timeout(60 * time.Second))
+	s.router.Use(middleware.Timeout(60 * time.Second))
 
 	// Create the CORS configuration
 	corsConfig := &CorsConfig{
@@ -120,34 +120,40 @@ func service() http.Handler {
 	}
 
 	// Set up CORS middleware with the Chi router
-	r.Use(corsMiddleware(corsConfig))
+	s.router.Use(corsMiddleware(corsConfig))
+
+	handler := NewHandler()
 
 	// set 404 handler
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+	s.router.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		oplog := httplog.LogEntry(r.Context())
 		w.WriteHeader(http.StatusNotFound)
 		oplog.Warn().Msgf("path not found: %q", r.URL.Path)
-		if err := tpl.ExecuteTemplate(w, "404.html", nil); err != nil {
+		if err := handler.tpl.ExecuteTemplate(w, "404.html", nil); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			logger.Error().Msgf("error template: %s\n", err)
+			s.logger.Error().Msgf("error template: %s\n", err)
 		}
 	})
 
-	// call NewHandler() to get a new handler instance
-	handler := NewHandler()
+	return s.router
+}
 
-	r.Get("/", handler.HomeHandler)
-	r.Get("/trade", TradeHandler)
-	r.Get("/deposit", DepositHandler)   // http://127.0.0.1:3333/deposit
-	r.Get("/withdraw", WithdrawHandler) // http://127.0.0.1:3333/withdraw
-	r.Get("/bank/transfer", bankTransferHandler)
-	r.Get("/s", handler.SearchHandler)
+func (s *Server) SetupRoutes() *chi.Mux {
+	handler := NewHandler() // call NewHandler() to get a new handler instance
+
+	s.router.Get("/", handler.HomeHandler)
+	s.router.Get("/trade", handler.TradeHandler)
+	s.router.Get("/deposit", handler.DepositHandler)   // http://127.0.0.1:3333/deposit
+	s.router.Get("/withdraw", handler.WithdrawHandler) // http://127.0.0.1:3333/withdraw
+	s.router.Get("/bank/transfer", handler.bankTransferHandler)
+	s.router.Get("/s", handler.SearchHandler)
 	//r.Get("/move", MoveHandler) // http://127.0.0.1:3333/move
 
 	// func subrouter generates a new router for each sub route.
-	r.Mount("/api", apiSubrouter())
+	s.router.Mount("/api", apiSubrouter())
 
-	return r
+	return s.router
+
 }
 
 // NewServer creates a new HTTP server and returns a pointer to it.
@@ -155,61 +161,62 @@ func NewServer() (*Server, error) {
 	s := &Server{
 		server: &http.Server{
 			Addr:           viper.GetViper().GetString("SERVER_ADDR") + ":" + viper.GetViper().GetString("SERVER_PORT"),
-			Handler:        service(),
 			ReadTimeout:    viper.GetViper().GetDuration("SERVER_READ_TIMEOUT"),
 			WriteTimeout:   viper.GetViper().GetDuration("SERVER_WRITE_TIMEOUT"),
 			MaxHeaderBytes: 1 << 20,
 		},
+		logger: initLogger(),
+		router: chi.NewRouter(), // initialize the chi router
 	}
+
+	s.server.Handler = s.SetupService() // set up the service
+	s.router = s.SetupRoutes()
 
 	// initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
 	go func() {
 		if err := s.server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			logger.Error().Msgf("error starting server: %s", err)
+			s.logger.Error().Msgf("error starting server: %s", err)
 		}
-		logger.Print("server stopped serving new connections")
+		s.logger.Info().Msg("server stopped listening")
 	}()
 	return s, nil
 }
 
-// New imports many libraries, effectively constructing the project's "infrastructure."
-// These are based on the namespaces' chi, go-chi-middleware, and go-chi-render. Additionally, some little logging was established.
-// The remainder of the Routes(), apiSubrouter(), and init() methods configure basic handlers for each resource.
-// TODO We can improve the project's performance by using the chi.Mux.StrictSlash(true) option.
 func New() {
+
 	// Create context that listns for the interrupt signal.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	logger.Info().Msgf("config loaded: %s", viper.ConfigFileUsed())
-	logger.Info().Msgf("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
-	logger.Info().Msg("creating http server")
+	s, err := NewServer()
+	if err != nil {
+		s.logger.Fatal().Msgf("error creating server: %s", err)
+	}
+
+	s.logger.Info().Msgf("config loaded: %s", viper.ConfigFileUsed())
+	s.logger.Info().Msgf("API route mounted on port %s\n", viper.GetString("SERVER_PORT"))
+	s.logger.Info().Msg("creating http server")
 
 	//go singleton.singleton.GetDealerInstance()
 	go singleton.GetDealer()
 	go asyncWebWorker()
-
-	s, err := NewServer()
-	if err != nil {
-		logger.Fatal().Msgf("error creating server: %s", err)
-	}
 
 	// Listen for the interrupt signal
 	<-ctx.Done()
 
 	// Restore default behavior on interrupt signal and notify user of shutdown.
 	stop()
-	logger.Info().Msgf("shutting down server grafecully, press Ctrl+C again to force")
+	s.logger.Info().Msgf("shutting down server grafecully, press Ctrl+C again to force")
 
 	// The context is used to inform the server it has 5 seconds to finish
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err = s.server.Shutdown(ctx); err != nil {
-		logger.Error().Msgf("error shutting down http server: %s\n", err)
+		s.logger.Error().Msgf("error shutting down http server: %s\n", err)
 	}
 
-	logger.Info().Msg("server exiting")
+	s.logger.Info().Msg("server exiting")
 }
 
 // apiSubrouter function will create an api route tree for each exchange, which will then be mounted into the application routing tree using the apiSubroutines.Mount method.
@@ -299,7 +306,7 @@ func asyncWebWorker() {
 func (h *Handler) HomeHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := h.tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Error().Msgf("error template: %s\n", err)
+		h.logger.Error().Msgf("error template: %s\n", err)
 		return
 	}
 }
@@ -307,7 +314,7 @@ func (h *Handler) HomeHandler(w http.ResponseWriter, _ *http.Request) {
 func (h *Handler) SearchHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := h.tpl.ExecuteTemplate(w, "search.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Error().Msgf("error template: %s\n", err)
+		h.logger.Error().Msgf("error template: %s\n", err)
 		return
 	}
 }

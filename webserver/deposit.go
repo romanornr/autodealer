@@ -39,8 +39,8 @@ type depositResponse struct {
 }
 
 // DepositHandler handles deposit requests
-func DepositHandler(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "deposit.html", nil)
+func (h *Handler) DepositHandler(w http.ResponseWriter, _ *http.Request) {
+	err := h.tpl.ExecuteTemplate(w, "deposit.html", nil)
 	if err != nil {
 		logrus.Errorf("error template: %s\n", err)
 	}
