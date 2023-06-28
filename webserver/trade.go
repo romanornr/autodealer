@@ -21,15 +21,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
-// TradeHandler handleHome is the handler for the '/trade' page request.
-func (h *Handler) TradeHandler(w http.ResponseWriter, r *http.Request) {
-	if err := h.tpl.ExecuteTemplate(w, "trade.html", nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Errorf("error template: %s\n", err)
-		return
-	}
-}
-
 // OrderResponse is the response for the '/order' request.
 type OrderResponse struct {
 	Response  order.SubmitResponse `json:"response"`

@@ -12,13 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func bankTransferHandler(w http.ResponseWriter, r *http.Request) {
-	err := tpl.ExecuteTemplate(w, "bank.html", nil)
-	if err != nil {
-		logrus.Errorf("error template: %s\n", err)
-	}
-}
-
 func getBankTransfer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	exchangeResponse, ok := ctx.Value("response").(*transfer2.ExchangeWithdrawResponse)

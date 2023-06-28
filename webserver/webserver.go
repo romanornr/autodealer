@@ -33,6 +33,7 @@ type Server struct {
 	server *http.Server
 	logger *zerolog.Logger
 	router *chi.Mux
+	//tpl    *template.Template
 }
 
 type Handler struct {
@@ -42,9 +43,18 @@ type Handler struct {
 
 func NewHandler() *Handler {
 	return &Handler{
-		tpl:    template.Must(template.ParseGlob("webserver/templates/*.html")),
+		tpl:    initTpl(), //template.Must(template.ParseGlob("webserver/templates/*.html")),
 		logger: initLogger(),
 	}
+}
+
+func initTpl() *template.Template {
+	tpl, err := template.ParseGlob("webserver/templates/*html") ///template.Must(template.ParseGlob("webserver/templates/*.html"))
+	if err != nil {
+		panic(err)
+	}
+	return tpl
+	//return template.Must(template.ParseGlob("webserver/templates/*.html"))
 }
 
 func initLogger() *zerolog.Logger {
@@ -141,12 +151,13 @@ func (s *Server) SetupService() http.Handler {
 func (s *Server) SetupRoutes() *chi.Mux {
 	handler := NewHandler() // call NewHandler() to get a new handler instance
 
-	s.router.Get("/", handler.HomeHandler)
-	s.router.Get("/trade", handler.TradeHandler)
-	s.router.Get("/deposit", handler.DepositHandler)   // http://127.0.0.1:3333/deposit
-	s.router.Get("/withdraw", handler.WithdrawHandler) // http://127.0.0.1:3333/withdraw
-	s.router.Get("/bank/transfer", handler.bankTransferHandler)
-	s.router.Get("/s", handler.SearchHandler)
+	s.router.Get("/", handler.handleTemplate("home.html")) // handler.handleTemplate("index"))
+	s.router.Get("/test", handler.handleTemplate("bank.html"))
+	s.router.Get("/trade", handler.handleTemplate("trade.html"))       //handler.TradeHandler)
+	s.router.Get("/deposit", handler.handleTemplate("deposit.html"))   // http://127.0.0.1:3333/deposit
+	s.router.Get("/withdraw", handler.handleTemplate("withdraw.html")) // http://127.0.0.1:3333/withdraw
+	s.router.Get("/bank/transfer", handler.handleTemplate("bank.html"))
+	s.router.Get("/s", handler.handleTemplate("search.html"))
 	//r.Get("/move", MoveHandler) // http://127.0.0.1:3333/move
 
 	// func subrouter generates a new router for each sub route.
@@ -167,6 +178,7 @@ func NewServer() (*Server, error) {
 		},
 		logger: initLogger(),
 		router: chi.NewRouter(), // initialize the chi router
+		//tpl:    initTpl(),
 	}
 
 	s.server.Handler = s.SetupService() // set up the service
@@ -303,18 +315,17 @@ func asyncWebWorker() {
 	}
 }
 
-func (h *Handler) HomeHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := h.tpl.ExecuteTemplate(w, "home.html", nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		h.logger.Error().Msgf("error template: %s\n", err)
-		return
-	}
-}
-
-func (h *Handler) SearchHandler(w http.ResponseWriter, _ *http.Request) {
-	if err := h.tpl.ExecuteTemplate(w, "search.html", nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		h.logger.Error().Msgf("error template: %s\n", err)
-		return
+// handleTemplate will render the template with the name passed as parameter.
+// It will return a http.HandlerFunc which can be used to handle the request.
+// handleTemplate function is a wrapper for the template handler functions
+func (h *Handler) handleTemplate(templateName string) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		// common handler code here...
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if err := h.tpl.ExecuteTemplate(w, templateName, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			h.logger.Error().Msgf("error template: %s\n", err)
+			return
+		}
 	}
 }

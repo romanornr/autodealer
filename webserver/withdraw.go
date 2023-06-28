@@ -36,16 +36,6 @@ type ExchangeWithdrawResponse struct {
 	Err                error                `json:"err"`
 }
 
-// WithdrawHandler is calling the ExecuteTemplate method with the first argument a http.ResponseWriter.
-// The second argument will be the file named deposit.html inside the folder templates.
-// The function can now be used as part of the router by adding the path to the function.
-func (h *Handler) WithdrawHandler(w http.ResponseWriter, _ *http.Request) {
-	err := h.tpl.ExecuteTemplate(w, "withdraw.html", nil)
-	if err != nil {
-		logrus.Errorf("error template: %s\n", err)
-	}
-}
-
 // getExchangeWithdrawResponse is the reward for performing an exchange withdraw transaction. It's called
 // as part of what is called an exchange event. The received json request is consistent with what is
 // expected for what the function defines.

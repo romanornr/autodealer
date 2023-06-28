@@ -38,14 +38,6 @@ type depositResponse struct {
 	AccountID string           `json:"account"`
 }
 
-// DepositHandler handles deposit requests
-func (h *Handler) DepositHandler(w http.ResponseWriter, _ *http.Request) {
-	err := h.tpl.ExecuteTemplate(w, "deposit.html", nil)
-	if err != nil {
-		logrus.Errorf("error template: %s\n", err)
-	}
-}
-
 // getDepositAddress is a function that returns the deposit address for a given exchange and asset.
 func getDepositAddress(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
