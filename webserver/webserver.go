@@ -16,8 +16,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -164,7 +162,6 @@ func (s *Server) SetupRoutes() *chi.Mux {
 	s.router.Mount("/api", apiSubrouter())
 
 	return s.router
-
 }
 
 // NewServer creates a new HTTP server and returns a pointer to it.
@@ -195,12 +192,7 @@ func NewServer() (*Server, error) {
 	return s, nil
 }
 
-func New() {
-
-	// Create context that listns for the interrupt signal.
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
+func New(ctx context.Context) {
 	s, err := NewServer()
 	if err != nil {
 		s.logger.Fatal().Msgf("error creating server: %s", err)
@@ -217,8 +209,6 @@ func New() {
 	// Listen for the interrupt signal
 	<-ctx.Done()
 
-	// Restore default behavior on interrupt signal and notify user of shutdown.
-	stop()
 	s.logger.Info().Msgf("shutting down server grafecully, press Ctrl+C again to force")
 
 	// The context is used to inform the server it has 5 seconds to finish
