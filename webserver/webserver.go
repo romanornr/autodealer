@@ -145,9 +145,7 @@ func (s *Server) SetupService() http.Handler {
 	return s.router
 }
 
-func (s *Server) SetupRoutes() *chi.Mux {
-	handler := NewHandler() // call NewHandler() to get a new handler instance
-
+func (s *Server) SetupRoutes(handler *Handler) *chi.Mux {
 	s.router.Get("/", handler.handleTemplate("home.html")) // handler.handleTemplate("index"))
 	s.router.Get("/test", handler.handleTemplate("bank.html"))
 	s.router.Get("/trade", handler.handleTemplate("trade.html"))       //handler.TradeHandler)
@@ -176,8 +174,9 @@ func NewServer() (*Server, error) {
 		router: chi.NewRouter(), // initialize the chi router
 	}
 
+	handler := NewHandler()
 	s.server.Handler = s.SetupService() // set up the service
-	s.router = s.SetupRoutes()
+	s.router = s.SetupRoutes(handler)
 
 	return s, nil
 }
