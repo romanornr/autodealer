@@ -31,7 +31,6 @@ type Server struct {
 	server *http.Server
 	logger *zerolog.Logger
 	router *chi.Mux
-	//tpl    *template.Template
 }
 
 type Handler struct {
@@ -175,21 +174,36 @@ func NewServer() (*Server, error) {
 		},
 		logger: initLogger(),
 		router: chi.NewRouter(), // initialize the chi router
-		//tpl:    initTpl(),
 	}
 
 	s.server.Handler = s.SetupService() // set up the service
 	s.router = s.SetupRoutes()
 
-	// initializing the server in a goroutine so that
-	// it won't block the graceful shutdown handling below
+	return s, nil
+}
+
+func (s *Server) Start(ctx context.Context) error {
 	go func() {
 		if err := s.server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			s.logger.Error().Msgf("error starting server: %s", err)
 		}
 		s.logger.Info().Msg("server stopped listening")
 	}()
-	return s, nil
+
+	// Listen for the interrupt signal
+	<-ctx.Done()
+	s.logger.Info().Msg("shutting down server")
+
+	// The context is used to inform the server it has 5 seconds to finish
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := s.server.Shutdown(shutdownCtx); err != nil {
+		s.logger.Error().Msgf("error shutting down http server: %s", err)
+		return err
+	}
+
+	s.logger.Info().Msg("server exiting")
+	return nil
 }
 
 func New(ctx context.Context) {
@@ -206,19 +220,11 @@ func New(ctx context.Context) {
 	go singleton.GetDealer()
 	go asyncWebWorker()
 
-	// Listen for the interrupt signal
-	<-ctx.Done()
-
-	s.logger.Info().Msgf("shutting down server grafecully, press Ctrl+C again to force")
-
-	// The context is used to inform the server it has 5 seconds to finish
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err = s.server.Shutdown(ctx); err != nil {
-		s.logger.Error().Msgf("error shutting down http server: %s\n", err)
+	// Run the server and handle shutdown
+	err = s.Start(ctx)
+	if err != nil {
+		s.logger.Error().Msgf("error running server: %s", err)
 	}
-
-	s.logger.Info().Msg("server exiting")
 }
 
 // apiSubrouter function will create an api route tree for each exchange, which will then be mounted into the application routing tree using the apiSubroutines.Mount method.
