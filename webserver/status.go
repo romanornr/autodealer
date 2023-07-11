@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var startTime time.Time
+
 type Status struct {
 	Status string `json:"status"`
 	Uptime string `json:"uptime"`

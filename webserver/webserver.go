@@ -33,18 +33,6 @@ type Server struct {
 	router *chi.Mux
 }
 
-type Handler struct {
-	tpl    *template.Template
-	logger *zerolog.Logger
-}
-
-func NewHandler() *Handler {
-	return &Handler{
-		tpl:    initTpl(), //template.Must(template.ParseGlob("webserver/templates/*.html")),
-		logger: initLogger(),
-	}
-}
-
 func initTpl() *template.Template {
 	tpl, err := template.ParseGlob("webserver/templates/*html") ///template.Must(template.ParseGlob("webserver/templates/*.html"))
 	if err != nil {
@@ -166,6 +154,7 @@ func NewServer() (*Server, error) {
 }
 
 func (s *Server) Start(ctx context.Context) error {
+	startTime = time.Now()
 	go func() {
 		if err := s.server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			s.logger.Error().Msgf("error starting server: %s", err)
@@ -234,20 +223,5 @@ func asyncWebWorker() {
 
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run server: %v", err)
-	}
-}
-
-// handleTemplate will render the template with the name passed as parameter.
-// It will return a http.HandlerFunc which can be used to handle the request.
-// handleTemplate function is a wrapper for the template handler functions
-func (h *Handler) handleTemplate(templateName string) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		// common handler code here...
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		if err := h.tpl.ExecuteTemplate(w, templateName, nil); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			h.logger.Error().Msgf("error template: %s\n", err)
-			return
-		}
 	}
 }
