@@ -145,22 +145,6 @@ func (s *Server) SetupService() http.Handler {
 	return s.router
 }
 
-func (s *Server) SetupRoutes(handler *Handler) *chi.Mux {
-	s.router.Get("/", handler.handleTemplate("home.html")) // handler.handleTemplate("index"))
-	s.router.Get("/test", handler.handleTemplate("bank.html"))
-	s.router.Get("/trade", handler.handleTemplate("trade.html"))       //handler.TradeHandler)
-	s.router.Get("/deposit", handler.handleTemplate("deposit.html"))   // http://127.0.0.1:3333/deposit
-	s.router.Get("/withdraw", handler.handleTemplate("withdraw.html")) // http://127.0.0.1:3333/withdraw
-	s.router.Get("/bank/transfer", handler.handleTemplate("bank.html"))
-	s.router.Get("/s", handler.handleTemplate("search.html"))
-	//r.Get("/move", MoveHandler) // http://127.0.0.1:3333/move
-
-	// func subrouter generates a new router for each sub route.
-	s.router.Mount("/api", apiSubrouter())
-
-	return s.router
-}
-
 // NewServer creates a new HTTP server and returns a pointer to it.
 func NewServer() (*Server, error) {
 	s := &Server{
@@ -224,63 +208,6 @@ func New(ctx context.Context) {
 	if err != nil {
 		s.logger.Error().Msgf("error running server: %s", err)
 	}
-}
-
-// apiSubrouter function will create an api route tree for each exchange, which will then be mounted into the application routing tree using the apiSubroutines.Mount method.
-// It will then apply the WithdrawCtx function to any API requests that include the /withdraw, /deposit, or /twap routes. These three features are included in sendRequestSpecific.
-func apiSubrouter() http.Handler {
-	r := chi.NewRouter()
-
-	r.Route(routePairs, func(r chi.Router) {
-		r.Use(FetchPairsCtx)
-		r.Get("/", getPairsResponse)
-	})
-
-	r.Route(routePrice, func(r chi.Router) {
-		r.Use(PriceCtx)
-		r.Get("/", getPrice)
-	})
-
-	r.Route(routeTrade, func(r chi.Router) {
-		r.Use(TradeCtx)
-		r.Get("/", getTradeResponse)
-	})
-
-	r.Route(routeHoldingsExchange, func(r chi.Router) {
-		r.Use(HoldingsExchangeCtx)
-		r.Get("/", getHoldingsExchangeResponse)
-	})
-
-	r.Route(routeAvailableTransferChains, func(r chi.Router) {
-		r.Use(AvailableTransferChainsCtx)
-		r.Get("/", getAvailableTransferChainsResponse)
-	})
-
-	r.Route(routeGetDepositAddr, func(r chi.Router) {
-		r.Use(DepositAddressCtx)
-		r.Get("/", getDepositAddress)
-	})
-
-	r.Route(routeWithdraw, func(r chi.Router) {
-		r.Use(WithdrawCtx)
-		r.Get("/", getExchangeWithdrawResponse)
-	})
-
-	r.Route(routeBankTransfer, func(r chi.Router) {
-		r.Use(BankTransferCtx)
-		r.Get("/", getBankTransfer)
-	})
-
-	r.Route(routeAssets, func(r chi.Router) {
-		r.Use(AssetListCtx)
-		r.Get("/", getAssetList)
-	})
-
-	r.Route(routeTWAP, func(r chi.Router) {
-		r.Use(TWAPCtx)
-		r.Get("/", getTwapResponse)
-	})
-	return r
 }
 
 func asyncWebWorker() {
