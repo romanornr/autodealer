@@ -69,7 +69,7 @@ func PriceCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		d := singleton.GetDealer()
+		d, _ := singleton.GetDealer(context.Background())
 		response.Exchange = chi.URLParam(r, "exchange")
 		e, err := d.ExchangeManager.GetExchangeByName(response.Exchange)
 		if err != nil {

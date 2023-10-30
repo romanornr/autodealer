@@ -32,7 +32,7 @@ type exchangeAssetResponse struct {
 // FetchPairsCtx fetches pairs from the exchange
 func FetchPairsCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		d := singleton.GetDealer()
+		d, _ := singleton.GetDealer(context.Background())
 		e, err := d.ExchangeManager.GetExchangeByName(chi.URLParam(request, "exchange"))
 		if err != nil {
 			logrus.Errorf("Failed to get exchange: %s\n", err)
@@ -108,7 +108,7 @@ func getAssetList(w http.ResponseWriter, r *http.Request) {
 func AssetListCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 
-		d := singleton.GetDealer()
+		d, _ := singleton.GetDealer(context.Background())
 		e, err := d.ExchangeManager.GetExchangeByName(chi.URLParam(request, "exchange"))
 		if err != nil {
 			logrus.Errorf("Failed to get exchange: %s\n", err)

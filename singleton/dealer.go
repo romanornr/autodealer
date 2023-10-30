@@ -2,35 +2,51 @@ package singleton
 
 import (
 	"context"
+	"errors"
 	"github.com/romanornr/autodealer/dealer"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"sync"
-	"sync/atomic"
 )
 
-var (
-	initialized uint32 // atomic flag
+var Ds = &DealerSingleton{}
+
+type DealerSingleton struct {
+	initialized bool
 	instance    *dealer.Dealer
-	once        sync.Once
+	mutex       sync.Mutex
 	err         error
-)
-
-// GetDealer can only create and return an initialized instance of Dealer.
-// This means that GetDealer will NOT create a new instance, if there is already an instance running.
-func GetDealer() *dealer.Dealer {
-	once.Do(func() {
-		instance, err = dealer.NewBuilder().Build(context.Background())
-		if err != nil {
-			logrus.Errorf("failed to create instance: %v", err)
-		}
-		go instance.Run(context.Background())
-		atomic.StoreUint32(&initialized, 1)
-		logrus.Infof("Created dealer instance\n")
-	})
-	return instance
+	cancel      context.CancelFunc
 }
 
-// IsDealerInitialized function to check if dealer is initialized
-func IsDealerInitialized() bool {
-	return atomic.LoadUint32(&initialized) == 1
+func GetDealer(ctx context.Context) (*dealer.Dealer, error) {
+	return Ds.InitAndGetDealer(ctx)
+}
+
+func (ds *DealerSingleton) InitAndGetDealer(ctx context.Context) (*dealer.Dealer, error) {
+	if ctx.Err() != nil {
+		return nil, errors.New("context is canceled or deadline exceeded")
+	}
+
+	ctx, ds.cancel = context.WithCancel(ctx)
+
+	ds.mutex.Lock()
+	defer ds.mutex.Unlock()
+
+	// Only initialize if not already initialized
+	if !ds.initialized {
+		ds.instance, ds.err = dealer.NewBuilder().Build(ctx)
+		if ds.err != nil {
+			log.Error().Err(ds.err).Msg("failed to create instance")
+			return nil, ds.err
+		}
+		// As run does not return an error, we just run it in a goroutine
+		go ds.instance.Run(ctx)
+		ds.initialized = true
+		log.Info().Msg("Created dealer instance")
+	}
+	return ds.instance, nil
+}
+
+func (ds *DealerSingleton) isDealerInitialized() bool {
+	return ds.initialized
 }

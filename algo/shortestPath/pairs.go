@@ -132,8 +132,12 @@ func fetchTickerPrice(e exchange.IBotExchange, currencies []currency.Code, asset
 	// currencies VIA, BTC, USD (3 currency codes)
 	// which should become VIA-BTC, BTC-USD  (2 pairs created from 3 currency codes)
 
-	d := singleton.GetDealer()
-	e, err := d.ExchangeManager.GetExchangeByName(e.GetName())
+	d, err := singleton.GetDealer(context.Background())
+	if err != nil {
+		return 0, err
+	}
+
+	e, err = d.ExchangeManager.GetExchangeByName(e.GetName())
 	if err != nil {
 		return 0, err
 	}

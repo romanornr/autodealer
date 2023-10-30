@@ -58,7 +58,10 @@ func DepositAddressCtx(next http.Handler) http.Handler {
 		exchangeNameReq := chi.URLParam(request, "exchange")
 		chainReq := chi.URLParam(request, "chain")
 
-		d := singleton.GetDealer()
+		d, err := singleton.GetDealer(context.Background())
+		if err != nil {
+			logrus.Error(err)
+		}
 
 		e, err := d.GetExchangeByName(exchangeNameReq)
 		if err != nil {

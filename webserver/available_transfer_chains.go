@@ -27,7 +27,13 @@ func AvailableTransferChainsCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		assetInfo := new(Asset)
 
-		d := singleton.GetDealer()
+		d, err := singleton.GetDealer(request.Context())
+		if err != nil {
+			logrus.Errorf("failed to get dealer: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		e, err := d.GetExchangeByName(chi.URLParam(request, "exchange"))
 		if err != nil {
 			logrus.Errorf("failed to get exchange %s by name: %s", e.GetName(), err)

@@ -31,7 +31,7 @@ func getHoldingsExchangeResponse(w http.ResponseWriter, r *http.Request) {
 // HoldingsExchangeCtx middleware adds the holdings to the context
 func HoldingsExchangeCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		d := singleton.GetDealer()
+		d, _ := singleton.GetDealer(context.Background())
 		e, err := d.GetExchangeByName(chi.URLParam(request, "exchange"))
 		if err != nil {
 			logrus.Errorf("could not get exchange: %v", err)

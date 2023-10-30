@@ -127,7 +127,7 @@ func New(ctx context.Context) {
 	s.logger.Info().Msg("creating http server")
 
 	//go singleton.singleton.GetDealerInstance()
-	go singleton.GetDealer()
+	go singleton.GetDealer(ctx)
 	go asyncWebWorker()
 
 	// Run the server and handle shutdown

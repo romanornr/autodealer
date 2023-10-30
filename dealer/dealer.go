@@ -152,9 +152,11 @@ func (b Builder) Build(ctx context.Context) (*Dealer, error) {
 
 var ErrOrdersAlreadyExists = errors.New("order already exists")
 
-// Dealer struct holds all the information about an instance of an autodealer (`root`, `settings`, `config`, `httpFactory`, `wg`, `ctx`, `exchangeManager`).
-// It has inner structs which are instances of ExchangeManager, WithdrawManager.  It has functions such as NewExchangeManager() and return an instance of ExchangeManager.
-// This is used for looking up exchange support to enable, and we control it through NewExchangeManager() and WithdrawManager instance.
+// Dealer struct holds state. In this case it specifically has a definition function Augment().
+// It also stores internal values such as the path the configs will be read from, the closures/recipe function it will use while conditioning config values.
+// Our Augment() will run before the Build() code is called. In this case, the config itself may have been read from a filepath.
+// In this case, our function augments with a value from the dealerBuilder struct/obj. That function is then run, and various further functions that had been defined for this.
+// Finally, if a file wasn't found, one of the directives within our builder will be constructed a new default template as an alternative to the expected input not found (the expected input "initial"
 type Dealer struct {
 	Root            RootStrategy
 	Settings        engine.Settings
@@ -603,7 +605,7 @@ func (bot *Dealer) loadExchange(ctx context.Context, exchCfg *config.Exchange, w
 		ctx, cancel := context.WithTimeout(ctx, constDefaultValidateCredentialsTimeout)
 		defer cancel()
 
-		if err := exch.ValidateCredentials(ctx, useAsset); err != nil {
+		if err := exch.ValidateAPICredentials(ctx, useAsset); err != nil {
 			What(log.Warn().
 				Err(err).
 				Str("exchange", exch.GetName()),

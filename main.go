@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"github.com/hibiken/asynq"
+	"github.com/romanornr/autodealer/dealer"
 	"github.com/romanornr/autodealer/webserver"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -23,6 +24,8 @@ const redisAddr = "127.0.0.1:6379"
 func init() {
 	go gctscript.Setup()
 }
+
+var d = dealer.Dealer{}
 
 func main() {
 

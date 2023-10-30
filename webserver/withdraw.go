@@ -60,7 +60,12 @@ func WithdrawCtx(next http.Handler) http.Handler {
 		var err error
 		assetInfo := new(Asset)
 
-		d := singleton.GetDealer() //d, err := dealer.NewBuilder().Build()
+		d, err := singleton.GetDealer(context.Background()) //d, err := dealer.NewBuilder().Build()
+		if err != nil {
+			logrus.Errorf("failed to create a dealer %s\n", err)
+			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		}
+
 		if err != nil {
 			logrus.Errorf("failed to create a dealer %s\n", err)
 		}

@@ -28,7 +28,7 @@ func BankTransferCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		// currencyCode := currency.NewCode(chi.URLParam(request, "exchange"))     // TODO fix currency.EUR
 		currencyCode := currency.EUR
-		d := singleton.GetDealer()
+		d, _ := singleton.GetDealer(context.Background())
 
 		submitResponse, err := transfer2.KrakenConvertUSDT(currencyCode, d)
 		if err != nil {

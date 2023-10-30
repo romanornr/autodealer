@@ -72,7 +72,7 @@ func TradeCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse side: %s\n", chi.URLParam(request, "side"))
 		}
 
-		d := singleton.GetDealer()
+		d, _ := singleton.GetDealer(context.Background())
 		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
@@ -187,7 +187,7 @@ func TWAPCtx(next http.Handler) http.Handler {
 			logrus.Errorf("failed to parse side: %s\n", chi.URLParam(request, "side"))
 		}
 
-		d := singleton.GetDealer()
+		d, _ := singleton.GetDealer(context.Background())
 		e, err := d.ExchangeManager.GetExchangeByName(exchangeNameReq)
 		if err != nil {
 			logrus.Errorf("failed to get exchange: %s\n", exchangeNameReq)
