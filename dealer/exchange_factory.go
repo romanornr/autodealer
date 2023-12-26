@@ -1,18 +1,11 @@
 package dealer
 
 import (
-	"errors"
-
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 )
 
-var ErrCreatorNotRegistered = errors.New("exchange creator not registered")
-
-type (
-	ExchangeFactory func(name string) (exchange.IBotExchange, error)
-)
-
-// NewExchangeByName implements gocryptotrader/engine.CustomExchangeBuilder.
-func (e ExchangeFactory) NewExchangeByName(name string) (exchange.IBotExchange, error) {
-	return e(name)
+// ExchangeFactory defines an interface for creating exchange instances.
+// It abstracts the instantiation process, allowing for flexible and dynamic creation of different exchanges based on a given name.
+type ExchangeFactory interface {
+	NewExchangeByName(name string) (exchange.IBotExchange, error)
 }

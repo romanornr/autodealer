@@ -270,7 +270,7 @@ func (bot *Dealer) getExchange(x interface{}) exchange.IBotExchange {
 // +----------------------+
 
 // GetActiveOrders function is a wrapper around the GetActiveOrders function in the exchange package.
-func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.GetOrdersRequest) ([]order.Detail, error) {
+func (bot *Dealer) GetActiveOrders(ctx context.Context, exchangeOrName interface{}, request order.MultiOrderRequest) ([]order.Detail, error) {
 	e := bot.getExchange(exchangeOrName)
 
 	timer := time.Now()
