@@ -146,7 +146,7 @@ func (d *Dealer) setupGCTLogging() {
 	d.Config.Logging.SubLoggerConfig.Output = "stdout"
 
 	gctlog.SetGlobalLogConfig(&d.Config.Logging)
-	gctlog.SetupGlobalLogger()
+	gctlog.SetupGlobalLogger("autodealer", true)
 
 	// TODO: formatting per or GCTConsoleWriter
 	//var console GCTConsoleWriter
